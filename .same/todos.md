@@ -31,5 +31,6 @@
 - [x] Security & Compliance (home band + settings page)
 - [x] Responsive QA (mobile drawers, responsive grids/tables)
 - [x] Lint passes (tsc + next lint clean)
+- [x] Push to GitHub (github.com/emabi2002/owc — branch: main)
 - [ ] Deploy (awaiting user confirmation)
 - [ ] Wire real backend (Supabase/PostgreSQL) — future step
