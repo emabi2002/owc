@@ -19,7 +19,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
-import { OWCSeal, BirdOfParadise } from "@/components/owc-emblem";
+import { OWCSeal, BirdOfParadise, NationalEmblem } from "@/components/owc-emblem";
 import { ORG } from "@/lib/site-data";
 
 export default function AdminLoginPage() {
@@ -84,9 +84,7 @@ export default function AdminLoginPage() {
         <div className="w-full max-w-md">
           {/* Mobile brand */}
           <div className="mb-8 flex items-center gap-3 lg:hidden">
-            <div className="grid h-12 w-12 place-items-center rounded-full bg-flag-diag ring-1 ring-gold/40">
-              <BirdOfParadise className="h-9 w-9" />
-            </div>
+            <NationalEmblem className="h-12 w-12" />
             <div>
               <div className="font-serif text-base font-bold text-primary">OWC Admin Console</div>
               <div className="text-xs text-muted-foreground">Office of Workers Compensation</div>

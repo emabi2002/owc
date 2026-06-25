@@ -82,74 +82,53 @@ export function BirdOfParadise({
 }
 
 /* -------------------------------------------------------------------------- */
-/*  Full circular government seal                                              */
+/*  Official National Emblem of Papua New Guinea (raster lockup mark)          */
+/* -------------------------------------------------------------------------- */
+
+export function NationalEmblem({
+  className,
+  framed = true,
+}: {
+  className?: string;
+  framed?: boolean;
+}) {
+  if (!framed) {
+    return (
+      <img
+        src="/png-emblem.png"
+        alt="National Emblem of Papua New Guinea"
+        className={cn("object-contain", className)}
+      />
+    );
+  }
+  return (
+    <span
+      className={cn(
+        "grid shrink-0 place-items-center overflow-hidden rounded-full bg-white shadow-sm ring-2 ring-gold/70",
+        className
+      )}
+    >
+      <img
+        src="/png-emblem.png"
+        alt="National Emblem of Papua New Guinea"
+        className="h-[76%] w-[76%] object-contain"
+      />
+    </span>
+  );
+}
+
+/* -------------------------------------------------------------------------- */
+/*  Government seal — gold-ringed medallion using the national emblem          */
 /* -------------------------------------------------------------------------- */
 
 export function OWCSeal({
   className,
-  withText = true,
 }: {
   className?: string;
+  /** Retained for API compatibility; the emblem already carries the wordmark. */
   withText?: boolean;
 }) {
-  return (
-    <svg viewBox="0 0 240 240" className={className} role="img" aria-label="Office of Workers Compensation Papua New Guinea seal">
-      <defs>
-        <path
-          id="seal-top"
-          d="M 120 120 m -92 0 a 92 92 0 1 1 184 0"
-          fill="none"
-        />
-        <path
-          id="seal-bottom"
-          d="M 120 120 m -78 0 a 78 78 0 1 0 156 0"
-          fill="none"
-        />
-        <radialGradient id="seal-bg" cx="50%" cy="38%" r="75%">
-          <stop offset="0%" stopColor="hsl(212 72% 24%)" />
-          <stop offset="100%" stopColor="hsl(var(--navy-deep))" />
-        </radialGradient>
-      </defs>
-
-      <circle cx="120" cy="120" r="118" fill="url(#seal-bg)" />
-      <circle cx="120" cy="120" r="112" fill="none" stroke="hsl(var(--gold))" strokeWidth="1.5" opacity="0.6" />
-      <circle cx="120" cy="120" r="92" fill="none" stroke="hsl(var(--gold))" strokeWidth="2.5" />
-      <circle cx="120" cy="120" r="78" fill="none" stroke="hsl(var(--gold))" strokeWidth="1" opacity="0.5" />
-
-      {/* Bird in the centre */}
-      <g transform="translate(40 26) scale(0.66)">
-        <BirdOfParadise />
-      </g>
-
-      {withText && (
-        <g
-          fill="hsl(var(--gold))"
-          style={{
-            fontFamily: "var(--font-serif), Georgia, serif",
-            fontWeight: 700,
-            letterSpacing: "2.4px",
-          }}
-        >
-          <text fontSize="14" textAnchor="middle">
-            <textPath href="#seal-top" startOffset="50%">
-              OFFICE OF WORKERS COMPENSATION
-            </textPath>
-          </text>
-          <text fontSize="11" textAnchor="middle">
-            <textPath href="#seal-bottom" startOffset="50%">
-              PAPUA NEW GUINEA
-            </textPath>
-          </text>
-        </g>
-      )}
-
-      {/* Star separators */}
-      <g fill="hsl(var(--gold))">
-        <circle cx="28" cy="120" r="2.4" />
-        <circle cx="212" cy="120" r="2.4" />
-      </g>
-    </svg>
-  );
+  return <NationalEmblem className={className} />;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -167,14 +146,7 @@ export function OWCLockup({
   const subColor = variant === "light" ? "text-white/70" : "text-muted-foreground";
   return (
     <div className={cn("flex items-center gap-3", className)}>
-      <div
-        className={cn(
-          "grid h-12 w-12 shrink-0 place-items-center rounded-full bg-flag-diag ring-1",
-          variant === "light" ? "ring-white/25" : "ring-gold/40"
-        )}
-      >
-        <BirdOfParadise className="h-9 w-9 translate-y-[1px]" />
-      </div>
+      <NationalEmblem className="h-12 w-12" />
       <div className="leading-tight">
         <div className={cn("font-serif text-[15px] font-bold tracking-tight sm:text-base", titleColor)}>
           Office of Workers Compensation

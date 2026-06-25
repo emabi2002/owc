@@ -22,12 +22,13 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { SectionHeading } from "@/components/page-hero";
-import { BirdOfParadise } from "@/components/owc-emblem";
+import { BirdOfParadise, NationalEmblem } from "@/components/owc-emblem";
 import {
   QUICK_LINKS,
   STAT_HIGHLIGHTS,
   NEWS,
   ORG,
+  IMG,
 } from "@/lib/site-data";
 
 const ICONS: Record<string, React.ElementType> = {
@@ -117,8 +118,8 @@ export default function HomePage() {
             <div className="relative">
               <div className="overflow-hidden rounded-2xl border border-white/15 shadow-2xl">
                 <img
-                  src="https://images.unsplash.com/photo-1528953030358-b0c7de371f1f?fm=jpg&q=75&w=1100&auto=format&fit=crop"
-                  alt="A worker in protective equipment operating machinery in Papua New Guinea"
+                  src={IMG.heroWorker}
+                  alt="Dock workers in hi-vis vests and hard hats on the Port Moresby waterfront, Papua New Guinea"
                   className="h-[420px] w-full object-cover"
                 />
               </div>
@@ -175,8 +176,8 @@ export default function HomePage() {
           <div className="relative">
             <div className="overflow-hidden rounded-2xl border border-border shadow-lg">
               <img
-                src="https://images.unsplash.com/photo-1763841625628-36d0e3631a91?fm=jpg&q=75&w=1400&auto=format&fit=crop"
-                alt="A harbour town in Papua New Guinea"
+                src={IMG.harbour}
+                alt="View over Port Moresby, the capital of Papua New Guinea"
                 className="h-[440px] w-full object-cover"
               />
             </div>
@@ -469,7 +470,7 @@ export default function HomePage() {
       {/* Final CTA */}
       <section className="bg-flag-diag py-16 text-white">
         <div className="container-gov flex flex-col items-center gap-6 text-center">
-          <BirdOfParadise className="h-16 w-16" />
+          <NationalEmblem className="h-20 w-20" />
           <h2 className="max-w-2xl font-serif text-3xl font-bold md:text-4xl">
             Injured at work? We are here to help.
           </h2>

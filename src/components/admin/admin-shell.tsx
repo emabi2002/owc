@@ -37,7 +37,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { BirdOfParadise } from "@/components/owc-emblem";
+import { NationalEmblem } from "@/components/owc-emblem";
 import { cn } from "@/lib/utils";
 
 const NAV = [
@@ -55,9 +55,7 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
   return (
     <div className="flex h-full flex-col bg-navy-deep text-white">
       <div className="flex items-center gap-3 border-b border-white/10 px-5 py-4">
-        <div className="grid h-10 w-10 place-items-center rounded-full bg-white/5 ring-1 ring-gold/40">
-          <BirdOfParadise className="h-8 w-8" />
-        </div>
+        <NationalEmblem className="h-10 w-10" />
         <div className="leading-tight">
           <div className="font-serif text-sm font-bold">OWC Console</div>
           <div className="text-[10px] uppercase tracking-wide text-white/50">

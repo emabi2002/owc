@@ -1,36 +1,24 @@
-# OWC PNG Website — Build Tracker
+# OWC PNG — Logo & Imagery Update
 
-## Foundation
-- [x] Design system: navy/gold/grey palette, Source Serif 4 + Public Sans fonts
-- [x] Tailwind config tokens (navy, gold, fonts)
-- [x] OWC emblem SVG component (Bird of Paradise seal)
-- [x] Shared site data (nav, contact, mock content)
-- [x] Site header (utility bar + main nav + mobile sheet)
-- [x] Site footer
+## Task: Use PNG national emblem as logo + replace all photos with PNG imagery
 
-## Public Pages
-- [x] Home
-- [x] About OWC
-- [x] Claims Services (+ tracker, FAQ)
-- [x] Employer Services
-- [x] Reports & Statistics (charts + downloads)
-- [x] Forms & Downloads
-- [x] News & Public Notices (+ detail)
-- [x] Contact & Enquiry (form + map)
+- [x] Save PNG national emblem to `public/png-emblem.png`
+- [x] Add `NationalEmblem` component (gold-ringed medallion) in `owc-emblem.tsx`
+- [x] Update header `OWCLockup` to use the real emblem
+- [x] Update footer seal (`OWCSeal`) to use the real emblem
+- [x] Update admin login + admin shell + home CTA to use the real emblem
+- [x] Source authentic Papua New Guinea photos (verified each renders, all PNG people/places)
+- [x] Update `IMG` + `NEWS` image references in `site-data.ts`
+- [x] Update 2 hardcoded image URLs + alt text in home `page.tsx` and About page
+- [x] Lint clean; all routes return HTTP 200; assets serve 200
 
-## Admin CMS
-- [x] Admin login
-- [x] Dashboard layout (sidebar)
-- [x] Dashboard overview (stats)
-- [x] Content management (news/pages/reports/forms)
-- [x] Audit logs
-- [x] Roles / approval workflow UI
-- [x] Settings: security, encryption, backup & recovery, compliance
+### Final image set (all authentic PNG)
+- heroWorker → Port Moresby waterfront with hi-vis dock workers
+- harbour   → Port Moresby townscape from the hills
+- community → PNG mother & child, Gerehu Market
+- child     → young Papua New Guinean with the national flag
+- medical   → University of PNG medical student (self-hosted /png-medical.jpg)
 
-## Polish
-- [x] Security & Compliance (home band + settings page)
-- [x] Responsive QA (mobile drawers, responsive grids/tables)
-- [x] Lint passes (tsc + next lint clean)
-- [x] Push to GitHub (github.com/emabi2002/owc — branch: main)
-- [ ] Deploy (awaiting user confirmation)
-- [ ] Wire real backend (Supabase/PostgreSQL) — future step
+### Note
+- Same's screenshot/preview service failed to capture during versioning (env issue);
+  app verified working via HTTP 200 on every route + rendered markup checks.

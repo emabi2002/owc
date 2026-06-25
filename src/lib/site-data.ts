@@ -66,18 +66,26 @@ export const MAIN_NAV: NavItem[] = [
   { label: "Contact", href: "/contact" },
 ];
 
-/* Confirmed-stable imagery (Unsplash canonical URLs) */
+/*
+ * Authentic Papua New Guinea imagery.
+ * Sources: Wikimedia Commons (Australian DFAT / U.S. Navy public-domain sets,
+ * all depicting PNG people and places) plus self-hosted assets in /public.
+ */
 export const IMG = {
+  // Port Moresby waterfront & city skyline with PNG dock workers in hi-vis & hard hats
   heroWorker:
-    "https://images.unsplash.com/photo-1528953030358-b0c7de371f1f?fm=jpg&q=75&w=1200&auto=format&fit=crop",
+    "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d6/Coast_Guard_conducts_port_visit_in_Port_Moresby%2C_Papua_New_Guinea_%2852306468429%29.jpg/1280px-Coast_Guard_conducts_port_visit_in_Port_Moresby%2C_Papua_New_Guinea_%2852306468429%29.jpg",
+  // Port Moresby townscape (bus station / market area) viewed from the hills
   harbour:
-    "https://images.unsplash.com/photo-1763841625628-36d0e3631a91?fm=jpg&q=75&w=1400&auto=format&fit=crop",
-  aerialCity:
-    "https://images.unsplash.com/photo-1662505475505-cc7396a70a0c?fm=jpg&q=75&w=1400&auto=format&fit=crop",
-  coastalVillage:
-    "https://images.unsplash.com/photo-1590968336315-04f4fcef4c24?fm=jpg&q=75&w=1400&auto=format&fit=crop",
-  medical:
-    "https://images.unsplash.com/photo-1758653500301-2675f2478b43?fm=jpg&q=75&w=1200&auto=format&fit=crop",
+    "https://upload.wikimedia.org/wikipedia/commons/3/38/Bus_station_near_Walter_Bay%2C_from_hills_%28cropped%29.jpg",
+  // PNG mother & child at the Gerehu Market, Port Moresby
+  community:
+    "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5c/Gerehu_Markets_Port_Moresby%2C_Papua_New_Guinea_%2810697727534%29.jpg/1280px-Gerehu_Markets_Port_Moresby%2C_Papua_New_Guinea_%2810697727534%29.jpg",
+  // Young Papua New Guinean with the national flag, Port Moresby
+  child:
+    "https://upload.wikimedia.org/wikipedia/commons/thumb/e/ed/Gerehu_Markets_Port_Moresby%2C_Papua_New_Guinea_%2810697595053%29.jpg/1280px-Gerehu_Markets_Port_Moresby%2C_Papua_New_Guinea_%2810697595053%29.jpg",
+  // University of Papua New Guinea medical student, Port Moresby General Hospital (self-hosted)
+  medical: "/png-medical.jpg",
 };
 
 export const QUICK_LINKS = [
@@ -138,8 +146,7 @@ export const NEWS = [
     title: "OWC launches new online claims portal for faster determinations",
     excerpt:
       "Injured workers and employers can now lodge and track workers compensation claims digitally, reducing processing times across all provinces.",
-    image:
-      "https://images.unsplash.com/photo-1763841625628-36d0e3631a91?fm=jpg&q=75&w=1400&auto=format&fit=crop",
+    image: IMG.harbour,
     featured: true,
   },
   {
@@ -149,8 +156,7 @@ export const NEWS = [
     title: "National Occupational Health & Safety Awareness Week 2026",
     excerpt:
       "OWC partners with industry to promote safer workplaces, with free employer briefings held in Port Moresby, Lae and Mt Hagen.",
-    image:
-      "https://images.unsplash.com/photo-1528953030358-b0c7de371f1f?fm=jpg&q=70&w=1200&auto=format&fit=crop",
+    image: IMG.heroWorker,
     featured: false,
   },
   {
@@ -160,8 +166,7 @@ export const NEWS = [
     title: "Public Notice: Employer policy renewal period now open",
     excerpt:
       "All registered employers are reminded to renew their workers compensation insurance policies before 31 July 2026 to remain compliant.",
-    image:
-      "https://images.unsplash.com/photo-1662505475505-cc7396a70a0c?fm=jpg&q=75&w=1400&auto=format&fit=crop",
+    image: IMG.community,
     featured: false,
   },
   {
@@ -171,8 +176,7 @@ export const NEWS = [
     title: "Public consultation: Review of the Workers Compensation Act",
     excerpt:
       "OWC invites submissions from workers, employers and the public on proposed amendments to modernise the compensation framework.",
-    image:
-      "https://images.unsplash.com/photo-1758653500301-2675f2478b43?fm=jpg&q=70&w=1200&auto=format&fit=crop",
+    image: IMG.medical,
     featured: false,
   },
   {
@@ -182,8 +186,7 @@ export const NEWS = [
     title: "New OWC regional service desk opens in Kokopo",
     excerpt:
       "Workers and employers in the New Guinea Islands region can now access in-person claims support at the new Kokopo service desk.",
-    image:
-      "https://images.unsplash.com/photo-1590968336315-04f4fcef4c24?fm=jpg&q=75&w=1400&auto=format&fit=crop",
+    image: IMG.child,
     featured: false,
   },
 ];

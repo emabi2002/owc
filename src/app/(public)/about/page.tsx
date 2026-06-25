@@ -99,7 +99,7 @@ export default function AboutPage() {
             <div className="overflow-hidden rounded-2xl border border-border shadow-lg">
               <img
                 src={IMG.harbour}
-                alt="Papua New Guinea coastal community"
+                alt="View over Port Moresby, the capital of Papua New Guinea"
                 className="h-[480px] w-full object-cover"
               />
             </div>
