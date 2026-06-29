@@ -4,6 +4,9 @@ import { FileText, ShieldCheck, Megaphone, ArrowRight } from "lucide-react";
 import { PageHero, SectionHeading } from "@/components/page-hero";
 import { Button } from "@/components/ui/button";
 import { FormsBrowser } from "@/components/forms/forms-browser";
+import { getForms } from "@/lib/data/content";
+
+export const revalidate = 60;
 
 export const metadata: Metadata = {
   title: "Forms & Downloads",
@@ -11,7 +14,8 @@ export const metadata: Metadata = {
     "Download claim forms, employer forms, medical report forms, guidelines and public notices from the Office of Workers Compensation.",
 };
 
-export default function FormsPage() {
+export default async function FormsPage() {
+  const forms = await getForms();
   return (
     <>
       <PageHero
@@ -29,7 +33,7 @@ export default function FormsPage() {
             description="Filter by category or search by name and code. All documents are official OWC publications."
           />
           <div className="mt-10">
-            <FormsBrowser />
+            <FormsBrowser forms={forms} />
           </div>
         </div>
       </section>

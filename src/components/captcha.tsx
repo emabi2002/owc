@@ -1,16 +1,136 @@
 "use client";
 
-import { useEffect, useId, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { RefreshCw, ShieldCheck } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import { publicEnv } from "@/lib/env";
 import { cn } from "@/lib/utils";
+
+type ProviderMeta = { script: string; className: string };
+
+const PROVIDERS: Record<string, ProviderMeta> = {
+  turnstile: {
+    script: "https://challenges.cloudflare.com/turnstile/v0/api.js",
+    className: "cf-turnstile",
+  },
+  recaptcha: {
+    script: "https://www.google.com/recaptcha/api.js",
+    className: "g-recaptcha",
+  },
+  hcaptcha: {
+    script: "https://js.hcaptcha.com/1/api.js",
+    className: "h-captcha",
+  },
+};
+
+declare global {
+  interface Window {
+    [key: string]: unknown;
+  }
+}
 
 export function Captcha({
   onValidChange,
+  onToken,
   className,
 }: {
   onValidChange?: (valid: boolean) => void;
+  onToken?: (token: string | null) => void;
+  className?: string;
+}) {
+  const provider = publicEnv.captchaProvider;
+  const siteKey = publicEnv.captchaSiteKey;
+  const useProvider = provider !== "fallback" && Boolean(siteKey);
+
+  if (useProvider) {
+    return (
+      <ProviderCaptcha
+        provider={provider}
+        siteKey={siteKey}
+        onValidChange={onValidChange}
+        onToken={onToken}
+        className={className}
+      />
+    );
+  }
+
+  return (
+    <FallbackCaptcha
+      onValidChange={onValidChange}
+      onToken={onToken}
+      className={className}
+    />
+  );
+}
+
+/* -------------------------- Real provider widget ------------------------- */
+function ProviderCaptcha({
+  provider,
+  siteKey,
+  onValidChange,
+  onToken,
+  className,
+}: {
+  provider: string;
+  siteKey: string;
+  onValidChange?: (valid: boolean) => void;
+  onToken?: (token: string | null) => void;
+  className?: string;
+}) {
+  const meta = PROVIDERS[provider];
+  const rawId = useId();
+  const cbName = `owcCaptchaCb_${rawId.replace(/[^a-zA-Z0-9]/g, "")}`;
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!meta) return;
+    window[cbName] = (token: string) => {
+      onToken?.(token);
+      onValidChange?.(true);
+    };
+
+    const id = `captcha-script-${provider}`;
+    if (!document.getElementById(id)) {
+      const s = document.createElement("script");
+      s.id = id;
+      s.src = meta.script;
+      s.async = true;
+      s.defer = true;
+      document.head.appendChild(s);
+    }
+    return () => {
+      delete window[cbName];
+    };
+  }, [cbName, meta, provider, onToken, onValidChange]);
+
+  if (!meta) return null;
+
+  return (
+    <div className={className}>
+      <Label className="mb-2 flex items-center gap-1.5">
+        <ShieldCheck className="h-3.5 w-3.5 text-gold" />
+        Security check <span className="text-destructive">*</span>
+      </Label>
+      <div
+        ref={containerRef}
+        className={meta.className}
+        data-sitekey={siteKey}
+        data-callback={cbName}
+        data-theme="light"
+      />
+    </div>
+  );
+}
+
+/* --------------------- Built-in arithmetic fallback ---------------------- */
+function FallbackCaptcha({
+  onValidChange,
+  onToken,
+  className,
+}: {
+  onValidChange?: (valid: boolean) => void;
+  onToken?: (token: string | null) => void;
   className?: string;
 }) {
   const id = useId();
@@ -24,7 +144,6 @@ export function Captcha({
     setAnswer("");
   };
 
-  // initialise on client only (avoids hydration mismatch)
   useEffect(() => {
     regen();
   }, []);
@@ -33,7 +152,8 @@ export function Captcha({
 
   useEffect(() => {
     onValidChange?.(valid);
-  }, [valid, onValidChange]);
+    onToken?.(valid ? "fallback" : null);
+  }, [valid, onValidChange, onToken]);
 
   return (
     <div className={className}>
@@ -55,10 +175,11 @@ export function Captcha({
           onChange={(e) => setAnswer(e.target.value.replace(/[^0-9]/g, ""))}
           placeholder="Answer"
           aria-invalid={answer !== "" && !valid}
+          aria-label={`What is ${a} plus ${b}?`}
           className={cn(
             "w-28",
             valid && "border-success ring-1 ring-success/40",
-            answer !== "" && !valid && "border-destructive"
+            answer !== "" && !valid && "border-destructive",
           )}
         />
         <button

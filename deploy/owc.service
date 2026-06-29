@@ -1,0 +1,31 @@
+# ============================================================================
+# OWC PNG — systemd service (alternative to PM2)
+# Install:
+#   sudo cp deploy/owc.service /etc/systemd/system/owc.service
+#   sudo systemctl daemon-reload
+#   sudo systemctl enable --now owc
+#   sudo systemctl status owc
+# ============================================================================
+[Unit]
+Description=OWC PNG (Next.js)
+After=network.target
+
+[Service]
+Type=simple
+User=www-data
+Group=www-data
+WorkingDirectory=/var/www/owc
+# Next.js loads .env.local automatically; system overrides may also be set here.
+Environment=NODE_ENV=production
+Environment=PORT=3000
+Environment=HOSTNAME=0.0.0.0
+# Adjust if bun is installed elsewhere (run `which bun`).
+ExecStart=/usr/local/bin/bun run start
+Restart=always
+RestartSec=5
+NoNewPrivileges=true
+ProtectSystem=full
+ProtectHome=true
+
+[Install]
+WantedBy=multi-user.target

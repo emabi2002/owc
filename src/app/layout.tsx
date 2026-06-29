@@ -43,14 +43,18 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${serif.variable} ${sans.variable}`}>
       <head>
-        <Script
-          crossOrigin="anonymous"
-          src="//unpkg.com/react-grab/dist/index.global.js"
-        />
-        <Script
-          crossOrigin="anonymous"
-          src="//unpkg.com/same-runtime/dist/index.global.js"
-        />
+        {process.env.NODE_ENV !== "production" && (
+          <>
+            <Script
+              crossOrigin="anonymous"
+              src="//unpkg.com/react-grab/dist/index.global.js"
+            />
+            <Script
+              crossOrigin="anonymous"
+              src="//unpkg.com/same-runtime/dist/index.global.js"
+            />
+          </>
+        )}
       </head>
       <body suppressHydrationWarning className="antialiased">
         <ClientBody>{children}</ClientBody>

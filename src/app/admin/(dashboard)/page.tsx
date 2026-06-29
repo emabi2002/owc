@@ -1,5 +1,3 @@
-"use client";
-
 import Link from "next/link";
 import {
   FileText,
@@ -8,21 +6,21 @@ import {
   Building2,
   ArrowUpRight,
   TrendingUp,
-  Check,
-  X,
   Eye,
   CircleDot,
+  ArrowRight,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { AdminPageHeader, StatusBadge } from "@/components/admin/admin-shell";
 import { TrendChart } from "@/components/reports/charts";
+import { getSessionUser } from "@/lib/auth/session";
 import {
-  DASHBOARD_STATS,
-  ADMIN_RECENT_CLAIMS,
-  APPROVAL_QUEUE,
-  AUDIT_LOG,
-} from "@/lib/admin-data";
+  getAdminClaims,
+  getContentItems,
+  getDashboardStats,
+} from "@/lib/data/cms";
+import { getAuditLog } from "@/lib/data/audit";
 
 const ICONS: Record<string, React.ElementType> = {
   FileText,
@@ -31,12 +29,23 @@ const ICONS: Record<string, React.ElementType> = {
   Building2,
 };
 
-export default function AdminDashboard() {
+export default async function AdminDashboard() {
+  const [user, stats, claims, content, audit] = await Promise.all([
+    getSessionUser(),
+    getDashboardStats(),
+    getAdminClaims(),
+    getContentItems(),
+    getAuditLog(6),
+  ]);
+
+  const approvalQueue = content.filter((c) => c.status === "Submitted");
+  const firstName = (user?.fullName ?? "there").split(" ")[0];
+
   return (
     <>
       <AdminPageHeader
         title="Dashboard"
-        description="Welcome back, Lawrence. Here's what's happening across the Office today."
+        description={`Welcome back, ${firstName}. Here's what's happening across the Office today.`}
       >
         <Button variant="outline" size="sm" asChild>
           <Link href="/admin/audit">View audit log</Link>
@@ -50,7 +59,7 @@ export default function AdminDashboard() {
 
       {/* Stats */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {DASHBOARD_STATS.map((s) => {
+        {stats.map((s) => {
           const Icon = ICONS[s.icon] ?? FileText;
           return (
             <div key={s.label} className="rounded-xl border border-border bg-card p-5 shadow-sm">
@@ -87,10 +96,15 @@ export default function AdminDashboard() {
             <h2 className="font-serif text-lg font-bold text-primary">
               Approval queue
             </h2>
-            <Badge variant="warning">{APPROVAL_QUEUE.length} pending</Badge>
+            <Badge variant="warning">{approvalQueue.length} pending</Badge>
           </div>
           <ul className="space-y-3">
-            {APPROVAL_QUEUE.map((c) => (
+            {approvalQueue.length === 0 && (
+              <li className="rounded-lg border border-dashed border-border p-4 text-center text-sm text-muted-foreground">
+                Nothing awaiting review.
+              </li>
+            )}
+            {approvalQueue.map((c) => (
               <li key={c.id} className="flex items-center gap-3 rounded-lg border border-border p-3">
                 <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-secondary text-primary">
                   <CircleDot className="h-4 w-4" />
@@ -99,14 +113,9 @@ export default function AdminDashboard() {
                   <div className="truncate text-sm font-semibold text-foreground">{c.title}</div>
                   <div className="text-xs text-muted-foreground">{c.type} · {c.author}</div>
                 </div>
-                <div className="flex gap-1">
-                  <button className="grid h-8 w-8 place-items-center rounded-md bg-success/10 text-success hover:bg-success/20" aria-label="Approve">
-                    <Check className="h-4 w-4" />
-                  </button>
-                  <button className="grid h-8 w-8 place-items-center rounded-md bg-destructive/10 text-destructive hover:bg-destructive/20" aria-label="Reject">
-                    <X className="h-4 w-4" />
-                  </button>
-                </div>
+                <Button asChild size="sm" variant="outline">
+                  <Link href="/admin/content#approvals">Review</Link>
+                </Button>
               </li>
             ))}
           </ul>
@@ -137,16 +146,16 @@ export default function AdminDashboard() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
-                {ADMIN_RECENT_CLAIMS.map((c) => (
+                {claims.map((c) => (
                   <tr key={c.ref} className="hover:bg-secondary/40">
                     <td className="whitespace-nowrap px-5 py-3 font-mono text-xs font-semibold text-primary">{c.ref}</td>
                     <td className="px-5 py-3 font-medium text-foreground">{c.worker}</td>
                     <td className="hidden px-5 py-3 text-muted-foreground md:table-cell">{c.employer}</td>
                     <td className="px-5 py-3"><StatusBadge status={c.status} /></td>
                     <td className="px-5 py-3 text-right">
-                      <button className="text-muted-foreground hover:text-primary" aria-label="View claim">
+                      <Link href="/admin/claims" className="text-muted-foreground hover:text-primary" aria-label="View claim">
                         <Eye className="h-4 w-4" />
-                      </button>
+                      </Link>
                     </td>
                   </tr>
                 ))}
@@ -158,7 +167,7 @@ export default function AdminDashboard() {
         <div className="rounded-xl border border-border bg-card p-6 shadow-sm lg:col-span-4">
           <h2 className="mb-4 font-serif text-lg font-bold text-primary">Recent activity</h2>
           <ol className="relative space-y-5 before:absolute before:left-[7px] before:top-1 before:h-[calc(100%-0.5rem)] before:w-px before:bg-border">
-            {AUDIT_LOG.slice(0, 6).map((a, i) => (
+            {audit.slice(0, 6).map((a, i) => (
               <li key={i} className="relative flex gap-3 pl-6">
                 <span className="absolute left-0 top-1 h-3.5 w-3.5 rounded-full border-2 border-gold bg-card" />
                 <div>
@@ -172,6 +181,11 @@ export default function AdminDashboard() {
               </li>
             ))}
           </ol>
+          <Button asChild variant="ghost" size="sm" className="mt-4 w-full text-primary">
+            <Link href="/admin/audit">
+              View full audit log <ArrowRight className="h-3.5 w-3.5" />
+            </Link>
+          </Button>
         </div>
       </div>
     </>

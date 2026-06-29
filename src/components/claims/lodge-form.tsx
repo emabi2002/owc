@@ -42,7 +42,9 @@ const FieldLabel = ({
 
 export function LodgeForm() {
   const [files, setFiles] = useState<{ name: string; size: number }[]>([]);
-  const [captchaOk, setCaptchaOk] = useState(false);
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
+  const [province, setProvince] = useState("");
+  const [injuryType, setInjuryType] = useState("");
   const [agree, setAgree] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [reference, setReference] = useState<string | null>(null);
@@ -54,9 +56,9 @@ export function LodgeForm() {
     setFiles((prev) => [...prev, ...next].slice(0, 8));
   };
 
-  const submit = (e: React.FormEvent) => {
+  const submit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (!captchaOk) {
+    if (!captchaToken) {
       toast.error("Please complete the security check.");
       return;
     }
@@ -64,13 +66,43 @@ export function LodgeForm() {
       toast.error("Please confirm the declaration to proceed.");
       return;
     }
+
+    const fd = new FormData(e.currentTarget);
+    const payload = {
+      workerName: String(fd.get("fn") ?? ""),
+      workerPhone: String(fd.get("ph") ?? ""),
+      workerEmail: String(fd.get("em") ?? ""),
+      employerName: String(fd.get("emp") ?? ""),
+      occupation: String(fd.get("occ") ?? ""),
+      province,
+      weeklyWage: String(fd.get("wages") ?? ""),
+      injuryDate: String(fd.get("idate") ?? ""),
+      injuryType,
+      description: String(fd.get("desc") ?? ""),
+      documentCount: files.length,
+      declaration: agree,
+      captchaToken,
+    };
+
     setSubmitting(true);
-    setTimeout(() => {
-      const num = Math.floor(100000 + Math.random() * 899999);
-      setReference(`OWC-2026-${num}`);
-      setSubmitting(false);
+    try {
+      const res = await fetch("/api/claims/lodge", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        toast.error(data.error ?? "Submission failed. Please review the form.");
+        return;
+      }
+      setReference(data.reference);
       toast.success("Claim submitted securely.");
-    }, 1300);
+    } catch {
+      toast.error("Network error. Please try again.");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   if (reference) {
@@ -130,19 +162,19 @@ export function LodgeForm() {
         <div className="grid gap-5 sm:grid-cols-2">
           <div>
             <FieldLabel htmlFor="fn" required>Full name</FieldLabel>
-            <Input id="fn" required placeholder="Given and family name" className="mt-2" />
+            <Input id="fn" name="fn" required placeholder="Given and family name" className="mt-2" autoComplete="name" />
           </div>
           <div>
             <FieldLabel htmlFor="dob">Date of birth</FieldLabel>
-            <Input id="dob" type="date" className="mt-2" />
+            <Input id="dob" name="dob" type="date" className="mt-2" />
           </div>
           <div>
             <FieldLabel htmlFor="ph" required>Phone</FieldLabel>
-            <Input id="ph" required placeholder="+675 …" className="mt-2" />
+            <Input id="ph" name="ph" required placeholder="+675 …" className="mt-2" autoComplete="tel" />
           </div>
           <div>
             <FieldLabel htmlFor="em">Email</FieldLabel>
-            <Input id="em" type="email" placeholder="you@example.com" className="mt-2" />
+            <Input id="em" name="em" type="email" placeholder="you@example.com" className="mt-2" autoComplete="email" />
           </div>
         </div>
       </fieldset>
@@ -158,15 +190,15 @@ export function LodgeForm() {
         <div className="grid gap-5 sm:grid-cols-2">
           <div>
             <FieldLabel htmlFor="emp" required>Employer name</FieldLabel>
-            <Input id="emp" required placeholder="Company / organisation" className="mt-2" />
+            <Input id="emp" name="emp" required placeholder="Company / organisation" className="mt-2" />
           </div>
           <div>
             <FieldLabel htmlFor="occ">Occupation</FieldLabel>
-            <Input id="occ" placeholder="Your role" className="mt-2" />
+            <Input id="occ" name="occ" placeholder="Your role" className="mt-2" />
           </div>
           <div>
             <FieldLabel htmlFor="prov">Province</FieldLabel>
-            <Select>
+            <Select value={province} onValueChange={setProvince}>
               <SelectTrigger id="prov" className="mt-2">
                 <SelectValue placeholder="Select province" />
               </SelectTrigger>
@@ -179,7 +211,7 @@ export function LodgeForm() {
           </div>
           <div>
             <FieldLabel htmlFor="wages">Weekly wage (Kina)</FieldLabel>
-            <Input id="wages" inputMode="numeric" placeholder="e.g. 650" className="mt-2" />
+            <Input id="wages" name="wages" inputMode="numeric" placeholder="e.g. 650" className="mt-2" />
           </div>
         </div>
       </fieldset>
@@ -195,11 +227,11 @@ export function LodgeForm() {
         <div className="grid gap-5 sm:grid-cols-2">
           <div>
             <FieldLabel htmlFor="idate" required>Date of injury</FieldLabel>
-            <Input id="idate" type="date" required className="mt-2" />
+            <Input id="idate" name="idate" type="date" required className="mt-2" />
           </div>
           <div>
             <FieldLabel htmlFor="itype">Type of injury</FieldLabel>
-            <Select>
+            <Select value={injuryType} onValueChange={setInjuryType}>
               <SelectTrigger id="itype" className="mt-2">
                 <SelectValue placeholder="Select type" />
               </SelectTrigger>
@@ -213,7 +245,7 @@ export function LodgeForm() {
         </div>
         <div>
           <FieldLabel htmlFor="desc" required>Describe what happened</FieldLabel>
-          <Textarea id="desc" required rows={4} placeholder="Briefly describe the accident, how it occurred and the injury sustained." className="mt-2" />
+          <Textarea id="desc" name="desc" required rows={4} placeholder="Briefly describe the accident, how it occurred and the injury sustained." className="mt-2" />
         </div>
       </fieldset>
 
@@ -278,7 +310,7 @@ export function LodgeForm() {
 
       <hr className="my-7 border-border" />
 
-      <Captcha onValidChange={setCaptchaOk} />
+      <Captcha onToken={setCaptchaToken} />
 
       <label className="mt-5 flex items-start gap-3 rounded-lg bg-secondary/50 p-4">
         <Checkbox

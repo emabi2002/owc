@@ -1,0 +1,29 @@
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        # Public build-time variables (inlined into the client bundle).
+        NEXT_PUBLIC_SUPABASE_URL: ${NEXT_PUBLIC_SUPABASE_URL}
+        NEXT_PUBLIC_SUPABASE_ANON_KEY: ${NEXT_PUBLIC_SUPABASE_ANON_KEY}
+        NEXT_PUBLIC_SITE_URL: ${NEXT_PUBLIC_SITE_URL:-https://owc.gov.pg}
+        NEXT_PUBLIC_CAPTCHA_PROVIDER: ${NEXT_PUBLIC_CAPTCHA_PROVIDER:-fallback}
+        NEXT_PUBLIC_CAPTCHA_SITE_KEY: ${NEXT_PUBLIC_CAPTCHA_SITE_KEY:-}
+    image: owc-png:latest
+    container_name: owc-web
+    restart: unless-stopped
+    # Server-only secrets are injected at runtime from .env.local (never baked in).
+    env_file:
+      - .env.local
+    environment:
+      NODE_ENV: production
+    ports:
+      - "3000:3000"
+    healthcheck:
+      test:
+        ["CMD", "bun", "-e", "fetch('http://127.0.0.1:3000/').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 40s

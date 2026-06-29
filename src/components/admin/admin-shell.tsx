@@ -121,13 +121,36 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
   );
 }
 
-export function AdminShell({ children }: { children: React.ReactNode }) {
+export type AdminUser = {
+  name: string;
+  email: string;
+  role: string;
+  demo?: boolean;
+};
+
+export function AdminShell({
+  children,
+  user,
+}: {
+  children: React.ReactNode;
+  user: AdminUser;
+}) {
   const router = useRouter();
   const [mobileOpen, setMobileOpen] = useState(false);
 
-  const signOut = () => {
+  const initials =
+    user.name
+      .split(" ")
+      .map((n) => n[0])
+      .join("")
+      .slice(0, 2)
+      .toUpperCase() || "OW";
+
+  const signOut = async () => {
+    await fetch("/api/admin/logout", { method: "POST" }).catch(() => {});
     toast.success("Signed out securely");
     router.push("/admin/login");
+    router.refresh();
   };
 
   return (
@@ -167,19 +190,19 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
               <DropdownMenuTrigger asChild>
                 <button className="flex items-center gap-2 rounded-md border border-border py-1 pl-1 pr-2 transition-colors hover:bg-secondary">
                   <span className="grid h-7 w-7 place-items-center rounded-full bg-primary text-xs font-bold text-white">
-                    LA
+                    {initials}
                   </span>
                   <span className="hidden text-left sm:block">
-                    <span className="block text-sm font-semibold leading-none text-foreground">L. Aila</span>
-                    <span className="block text-[10px] text-muted-foreground">Administrator</span>
+                    <span className="block text-sm font-semibold leading-none text-foreground">{user.name}</span>
+                    <span className="block text-[10px] capitalize text-muted-foreground">{user.role}</span>
                   </span>
                   <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
                 </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-52">
                 <DropdownMenuLabel>
-                  <div className="font-semibold">Lawrence Aila</div>
-                  <div className="text-xs font-normal text-muted-foreground">l.aila@owc.gov.pg</div>
+                  <div className="font-semibold">{user.name}</div>
+                  <div className="text-xs font-normal text-muted-foreground">{user.email}</div>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem>Profile settings</DropdownMenuItem>

@@ -22,16 +22,17 @@ const FOOTER_COLS = [
       { label: "Governance", href: "/about#governance" },
       { label: "The Ministry", href: "/about#ministry" },
       { label: "News & Notices", href: "/news" },
+      { label: "Reports & Data", href: "/reports" },
     ],
   },
   {
     title: "Resources",
     links: [
-      { label: "Reports & Statistics", href: "/reports" },
-      { label: "Annual Reports", href: "/reports#downloads" },
-      { label: "OHS Information", href: "/reports#ohs" },
-      { label: "Claims FAQs", href: "/claims#faqs" },
-      { label: "Contact & Enquiry", href: "/contact" },
+      { label: "Publications", href: "/publications" },
+      { label: "Legislation", href: "/legislation" },
+      { label: "Tenders & Procurement", href: "/tenders" },
+      { label: "FAQs", href: "/faqs" },
+      { label: "Search", href: "/search" },
     ],
   },
 ];

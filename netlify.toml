@@ -1,11 +1,12 @@
+# Netlify deployment for the dynamic Next.js app.
+# Set NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY
+# and any CPPS_* / CAPTCHA_* variables in Site settings → Environment variables.
 [build]
   command = "bun run build"
-  publish = "out"
+  publish = ".next"
 
 [build.environment]
   NODE_VERSION = "20"
 
-[[redirects]]
-  from = "/*"
-  to = "/404.html"
-  status = 404
+[[plugins]]
+  package = "@netlify/plugin-nextjs"

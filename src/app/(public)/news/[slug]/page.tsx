@@ -4,10 +4,15 @@ import { notFound } from "next/navigation";
 import { CalendarDays, ArrowLeft, ArrowRight, Share2, Printer } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { NEWS, ORG } from "@/lib/site-data";
+import { ORG } from "@/lib/site-data";
+import { getNews, getNewsBySlug, getNewsSlugs } from "@/lib/data/content";
 
-export function generateStaticParams() {
-  return NEWS.map((n) => ({ slug: n.slug }));
+export const revalidate = 60;
+export const dynamicParams = true;
+
+export async function generateStaticParams() {
+  const slugs = await getNewsSlugs();
+  return slugs.map((slug) => ({ slug }));
 }
 
 export async function generateMetadata({
@@ -16,7 +21,7 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
   const { slug } = await params;
-  const article = NEWS.find((n) => n.slug === slug);
+  const article = await getNewsBySlug(slug);
   if (!article) return { title: "Article not found" };
   return { title: article.title, description: article.excerpt };
 }
@@ -34,10 +39,11 @@ export default async function NewsArticlePage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const article = NEWS.find((n) => n.slug === slug);
+  const article = await getNewsBySlug(slug);
   if (!article) notFound();
 
-  const related = NEWS.filter((n) => n.slug !== slug).slice(0, 3);
+  const allNews = await getNews();
+  const related = allNews.filter((n) => n.slug !== slug).slice(0, 3);
 
   return (
     <article>

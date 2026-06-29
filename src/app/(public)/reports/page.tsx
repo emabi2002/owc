@@ -14,7 +14,10 @@ import { PageHero, SectionHeading } from "@/components/page-hero";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { IndustryBars, TrendChart } from "@/components/reports/charts";
-import { REPORTS, STAT_HIGHLIGHTS } from "@/lib/site-data";
+import { STAT_HIGHLIGHTS } from "@/lib/site-data";
+import { getReports } from "@/lib/data/content";
+
+export const revalidate = 60;
 
 export const metadata: Metadata = {
   title: "Reports & Statistics",
@@ -29,7 +32,8 @@ const OHS = [
   { icon: BookOpen, t: "OHS national strategy", d: "The strategic framework for safer PNG workplaces 2024–2028." },
 ];
 
-export default function ReportsPage() {
+export default async function ReportsPage() {
+  const reports = await getReports();
   return (
     <>
       <PageHero
@@ -128,7 +132,7 @@ export default function ReportsPage() {
             description="Download the latest OWC reports, statistical bulletins and policy publications."
           />
           <div className="mt-10 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
-            {REPORTS.map((r) => (
+            {reports.map((r) => (
               <div
                 key={r.title}
                 className="group flex flex-col rounded-2xl border border-border bg-card p-6 shadow-sm transition-all hover:-translate-y-1 hover:border-gold/50 hover:shadow-lg"

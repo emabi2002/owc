@@ -86,17 +86,25 @@ export function SiteHeader() {
           </Link>
 
           <div className="flex items-center gap-2 sm:gap-3">
-            <button
-              className="hidden h-10 items-center gap-2 rounded-md border border-input px-3 text-sm text-muted-foreground transition-colors hover:border-gold hover:text-foreground md:flex"
+            <Link
+              href="/search"
+              className="focus-gold hidden h-10 items-center gap-2 rounded-md border border-input px-3 text-sm text-muted-foreground transition-colors hover:border-gold hover:text-foreground md:flex"
               aria-label="Search the OWC website"
             >
               <Search className="h-4 w-4" />
               <span className="pr-6">Search…</span>
               <kbd className="rounded bg-muted px-1.5 py-0.5 text-[10px] font-medium">/</kbd>
-            </button>
+            </Link>
 
             <Button asChild variant="gold" className="hidden sm:inline-flex">
               <Link href="/claims#lodge">Lodge a Claim</Link>
+            </Button>
+
+            {/* Mobile search */}
+            <Button asChild variant="outline" size="icon" className="lg:hidden" aria-label="Search">
+              <Link href="/search">
+                <Search className="h-5 w-5" />
+              </Link>
             </Button>
 
             {/* Mobile menu */}
@@ -112,6 +120,13 @@ export function SiteHeader() {
                   <OWCLockup variant="light" />
                 </div>
                 <nav className="p-3">
+                  <Link
+                    href="/search"
+                    onClick={() => setMobileOpen(false)}
+                    className="mb-1 flex items-center gap-2 rounded-md px-3 py-3 text-sm font-semibold text-primary hover:bg-secondary"
+                  >
+                    <Search className="h-4 w-4" /> Search
+                  </Link>
                   {MAIN_NAV.map((item) => (
                     <MobileNavItem
                       key={item.label}

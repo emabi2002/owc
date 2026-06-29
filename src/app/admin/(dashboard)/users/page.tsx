@@ -1,22 +1,21 @@
-"use client";
-
-import { UserPlus, ShieldCheck, Check } from "lucide-react";
-import { toast } from "sonner";
-import { Button } from "@/components/ui/button";
+import { ShieldCheck, Check } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { AdminPageHeader, StatusBadge } from "@/components/admin/admin-shell";
-import { STAFF, ROLE_PERMISSIONS } from "@/lib/admin-data";
+import { InviteStaffButton } from "@/components/admin/invite-staff-button";
+import { getStaff, ROLE_PERMISSIONS } from "@/lib/data/cms";
+import { requirePermission } from "@/lib/auth/session";
 
-export default function UsersPage() {
+export default async function UsersPage() {
+  await requirePermission("users.manage");
+  const staff = await getStaff();
+
   return (
     <>
       <AdminPageHeader
         title="Users & roles"
         description="Manage staff accounts and role-based access control across the console."
       >
-        <Button size="sm" onClick={() => toast.success("Invite sent")}>
-          <UserPlus className="h-4 w-4" /> Invite staff
-        </Button>
+        <InviteStaffButton />
       </AdminPageHeader>
 
       {/* Staff table */}
@@ -36,7 +35,7 @@ export default function UsersPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
-              {STAFF.map((u) => (
+              {staff.map((u) => (
                 <tr key={u.email} className="hover:bg-secondary/40">
                   <td className="px-5 py-3">
                     <div className="flex items-center gap-3">

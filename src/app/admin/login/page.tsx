@@ -13,6 +13,7 @@ import {
   ArrowLeft,
   KeyRound,
   Fingerprint,
+  AlertCircle,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -26,14 +27,74 @@ export default function AdminLoginPage() {
   const router = useRouter();
   const [show, setShow] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [mfa, setMfa] = useState<{ factorId?: string } | null>(null);
+  const [code, setCode] = useState("");
 
-  const submit = (e: React.FormEvent) => {
+  const redirectTarget = () => {
+    if (typeof window === "undefined") return "/admin";
+    const r = new URLSearchParams(window.location.search).get("redirect");
+    return r && r.startsWith("/admin") ? r : "/admin";
+  };
+
+  const submit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    setError(null);
+    const fd = new FormData(e.currentTarget);
     setLoading(true);
-    setTimeout(() => {
+    try {
+      const res = await fetch("/api/admin/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: String(fd.get("user") ?? ""),
+          password: String(fd.get("pw") ?? ""),
+          remember: fd.get("remember") === "on",
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error ?? "Sign-in failed.");
+        return;
+      }
+      if (data.mfaRequired) {
+        setMfa({ factorId: data.factorId });
+        toast.info("Enter your two-factor authentication code.");
+        return;
+      }
       toast.success("Authentication successful");
-      router.push("/admin");
-    }, 1100);
+      router.push(redirectTarget());
+      router.refresh();
+    } catch {
+      setError("Network error. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const verifyMfa = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+    setLoading(true);
+    try {
+      const res = await fetch("/api/admin/mfa", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ factorId: mfa?.factorId, code }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error ?? "Verification failed.");
+        return;
+      }
+      toast.success("Verified");
+      router.push(redirectTarget());
+      router.refresh();
+    } catch {
+      setError("Network error. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -97,71 +158,122 @@ export default function AdminLoginPage() {
                 <Lock className="h-3.5 w-3.5" /> Staff sign in
               </span>
               <h2 className="mt-4 font-serif text-2xl font-bold text-primary">
-                Sign in to your account
+                {mfa ? "Two-factor verification" : "Sign in to your account"}
               </h2>
               <p className="mt-1 text-sm text-muted-foreground">
-                Use your official OWC staff credentials.
+                {mfa
+                  ? "Enter the 6-digit code from your authenticator app."
+                  : "Use your official OWC staff credentials."}
               </p>
             </div>
 
-            <form onSubmit={submit} className="space-y-5">
-              <div>
-                <Label htmlFor="user">Staff username or email</Label>
-                <div className="relative mt-2">
-                  <User className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                  <Input id="user" required defaultValue="l.aila@owc.gov.pg" className="pl-9" />
-                </div>
+            {error && (
+              <div className="mb-4 flex items-start gap-2 rounded-lg border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive">
+                <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+                {error}
               </div>
+            )}
 
-              <div>
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="pw">Password</Label>
-                  <button type="button" className="text-xs font-medium text-gold hover:underline">
-                    Forgot password?
-                  </button>
+            {!mfa ? (
+              <form onSubmit={submit} className="space-y-5">
+                <div>
+                  <Label htmlFor="user">Staff username or email</Label>
+                  <div className="relative mt-2">
+                    <User className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                    <Input
+                      id="user"
+                      name="user"
+                      type="email"
+                      required
+                      autoComplete="username"
+                      defaultValue="admin@owc.gov.pg"
+                      className="pl-9"
+                    />
+                  </div>
                 </div>
-                <div className="relative mt-2">
-                  <KeyRound className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+
+                <div>
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="pw">Password</Label>
+                    <button type="button" className="text-xs font-medium text-gold hover:underline">
+                      Forgot password?
+                    </button>
+                  </div>
+                  <div className="relative mt-2">
+                    <KeyRound className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                    <Input
+                      id="pw"
+                      name="pw"
+                      type={show ? "text" : "password"}
+                      required
+                      autoComplete="current-password"
+                      placeholder="Enter your password"
+                      className="px-9"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShow((s) => !s)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                      aria-label={show ? "Hide password" : "Show password"}
+                    >
+                      {show ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
+                  </div>
+                </div>
+
+                <label className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <Checkbox name="remember" defaultChecked /> Keep me signed in on this device
+                </label>
+
+                <Button type="submit" size="lg" className="w-full" disabled={loading}>
+                  {loading ? (
+                    <><Loader2 className="animate-spin" /> Verifying…</>
+                  ) : (
+                    <><Lock /> Secure sign in</>
+                  )}
+                </Button>
+
+                <div className="flex items-center gap-2 rounded-lg bg-secondary/70 p-3 text-xs text-muted-foreground">
+                  <Fingerprint className="h-4 w-4 shrink-0 text-gold" />
+                  Two-factor authentication is supported and enforced for accounts
+                  that have it enrolled.
+                </div>
+              </form>
+            ) : (
+              <form onSubmit={verifyMfa} className="space-y-5">
+                <div>
+                  <Label htmlFor="code">Authentication code</Label>
                   <Input
-                    id="pw"
-                    type={show ? "text" : "password"}
-                    required
-                    defaultValue="demopassword"
-                    className="px-9"
+                    id="code"
+                    inputMode="numeric"
+                    autoComplete="one-time-code"
+                    value={code}
+                    onChange={(e) => setCode(e.target.value.replace(/[^0-9]/g, "").slice(0, 6))}
+                    placeholder="123456"
+                    className="mt-2 text-center font-mono text-lg tracking-[0.4em]"
                   />
-                  <button
-                    type="button"
-                    onClick={() => setShow((s) => !s)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                    aria-label={show ? "Hide password" : "Show password"}
-                  >
-                    {show ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                  </button>
                 </div>
-              </div>
-
-              <label className="flex items-center gap-2 text-sm text-muted-foreground">
-                <Checkbox defaultChecked /> Keep me signed in on this device
-              </label>
-
-              <Button type="submit" size="lg" className="w-full" disabled={loading}>
-                {loading ? (
-                  <><Loader2 className="animate-spin" /> Verifying…</>
-                ) : (
-                  <><Lock /> Secure sign in</>
-                )}
-              </Button>
-
-              <div className="flex items-center gap-2 rounded-lg bg-secondary/70 p-3 text-xs text-muted-foreground">
-                <Fingerprint className="h-4 w-4 shrink-0 text-gold" />
-                Two-factor authentication is enforced for all administrator accounts.
-              </div>
-            </form>
+                <Button type="submit" size="lg" className="w-full" disabled={loading || code.length !== 6}>
+                  {loading ? (
+                    <><Loader2 className="animate-spin" /> Verifying…</>
+                  ) : (
+                    <><ShieldCheck /> Verify &amp; continue</>
+                  )}
+                </Button>
+                <button
+                  type="button"
+                  onClick={() => { setMfa(null); setCode(""); setError(null); }}
+                  className="w-full text-center text-sm text-muted-foreground hover:text-foreground"
+                >
+                  Back to sign in
+                </button>
+              </form>
+            )}
           </div>
 
           <p className="mt-6 text-center text-xs text-muted-foreground">
-            This is a demonstration console. Credentials are pre-filled — just click
-            <span className="font-semibold text-foreground"> Secure sign in</span>.
+            Authentication is provided by Supabase Auth. Access is restricted to
+            authorised OWC staff accounts.
           </p>
         </div>
       </div>

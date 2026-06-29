@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import Link from "next/link";
 import { ArrowRight, ArrowUpRight, CalendarDays } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { NEWS } from "@/lib/site-data";
+import type { NewsItem } from "@/lib/data/types";
 import { cn } from "@/lib/utils";
 
 const fmt = (d: string) =>
@@ -14,15 +14,23 @@ const fmt = (d: string) =>
     year: "numeric",
   });
 
-export function NewsList() {
+export function NewsList({ items }: { items: NewsItem[] }) {
   const categories = useMemo(
-    () => ["All", ...Array.from(new Set(NEWS.map((n) => n.category)))],
-    []
+    () => ["All", ...Array.from(new Set(items.map((n) => n.category)))],
+    [items],
   );
   const [cat, setCat] = useState("All");
 
-  const featured = NEWS.find((n) => n.featured) ?? NEWS[0];
-  const rest = NEWS.filter((n) => n.slug !== featured.slug);
+  if (!items.length) {
+    return (
+      <div className="rounded-2xl border border-dashed border-border bg-secondary/40 p-12 text-center text-muted-foreground">
+        No news articles are available at this time.
+      </div>
+    );
+  }
+
+  const featured = items.find((n) => n.featured) ?? items[0];
+  const rest = items.filter((n) => n.slug !== featured.slug);
   const filtered = cat === "All" ? rest : rest.filter((n) => n.category === cat);
 
   return (
@@ -37,6 +45,8 @@ export function NewsList() {
             <img
               src={featured.image}
               alt={featured.title}
+              loading="lazy"
+              decoding="async"
               className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
             />
             <Badge variant="gold" className="absolute left-4 top-4 bg-white/90 text-primary">
@@ -69,7 +79,7 @@ export function NewsList() {
               "rounded-full border px-4 py-2 text-sm font-semibold transition-colors",
               cat === c
                 ? "border-primary bg-primary text-white"
-                : "border-border bg-card text-foreground hover:border-gold/50 hover:bg-secondary"
+                : "border-border bg-card text-foreground hover:border-gold/50 hover:bg-secondary",
             )}
           >
             {c}
@@ -89,6 +99,8 @@ export function NewsList() {
               <img
                 src={n.image}
                 alt={n.title}
+                loading="lazy"
+                decoding="async"
                 className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
               />
               <Badge variant="gold" className="absolute left-3 top-3 bg-white/90 text-primary">

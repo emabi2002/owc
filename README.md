@@ -1,102 +1,139 @@
-# Office of Workers Compensation (OWC) — Papua New Guinea
+# Office of Workers Compensation (OWC) — PNG Portal
 
-The official web portal of the **Office of Workers Compensation (OWC)**, under the
-**Ministry of Labour & Employment**, Independent State of Papua New Guinea.
+Official portal and content-management system for the **Office of Workers
+Compensation**, Ministry of Labour & Employment, Independent State of Papua New
+Guinea. Built to the OWC Website Terms of Reference.
 
-Built to support fair, timely and transparent administration of workers
-compensation under the **Workers Compensation Act 1978** — for injured workers,
-their dependants, and employers.
-
-> This repository contains the front-end implementation (UI, public site and a
-> secure admin/CMS console with mock data). It is structured so that a real
-> backend (PostgreSQL / Supabase) and authentication can be wired in next.
-
----
-
-## Features
-
-### Public website
-- **Home** — hero, quick links, claim process, statistics, news, security band
-- **About OWC** — mandate, functions, governance & structure, the Ministry
-- **Claims Services** — secure online lodgement form, claim tracker, required documents, FAQs
-- **Employer Services** — registration, obligations, injury reporting, compensation process
-- **Reports & Statistics** — KPI snapshot, SVG charts, OHS resources, downloadable reports
-- **Forms & Downloads** — searchable, filterable document library
-- **News & Public Notices** — listing + article detail pages
-- **Contact & Enquiry** — categorised enquiry form, map, emergency contacts
-
-### Secure admin console / CMS
-- Staff sign-in screen (2FA messaging, demo credentials pre-filled)
-- Dashboard with KPIs, claims overview chart, approval queue & activity feed
-- Content management with an approval workflow (Draft → Submitted → Approved → Published)
-- Claims management, audit logs, users & role-based access control
-- Settings: authentication, encryption, backup & recovery, compliance
-
-### Built for government
-- Formal navy / gold / grey identity with a custom Bird-of-Paradise seal
-- Accessibility: skip links, focus styles, semantic structure
-- CAPTCHA, encrypted-submission messaging, full audit trail
-- Aligned with **PNG Government ICT, DICT, NICTA** and national cybersecurity expectations
-
----
+- **Public portal** — Home, About, Claims (lodge/track), Employers, Reports &
+  Data, Publications, Legislation, Tenders, News, FAQs, Contact and site-wide
+  Search.
+- **Admin / CMS** — Supabase-authenticated console with role-based access,
+  editorial workflow (Draft → Submitted → Approved → Published), claims,
+  audit logs, users & roles, and settings.
+- **Integrations** — Supabase (Auth + PostgreSQL) and a CPPS claims back-end
+  (REST + GraphQL ready). Both are environment-configurable and degrade
+  gracefully to bundled seed data when not configured.
 
 ## Tech stack
 
-- [Next.js 15](https://nextjs.org) (App Router)
-- [React 18](https://react.dev) + [TypeScript](https://www.typescriptlang.org)
-- [Tailwind CSS](https://tailwindcss.com) + [shadcn/ui](https://ui.shadcn.com)
-- [Lucide](https://lucide.dev) icons
-- [Bun](https://bun.sh) package manager · [Biome](https://biomejs.dev) for formatting
+Next.js 15 (App Router) · React 18 · TypeScript · Tailwind CSS · shadcn/ui ·
+Supabase · Zod · Bun · Biome.
 
 ---
 
-## Getting started
+## 1. Quick start (local)
 
 ```bash
-# install dependencies
 bun install
-
-# run the development server
-bun run dev
+cp .env.example .env.local      # then fill in values (see §2)
+bun run dev                      # http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) in your browser.
+Without any credentials the site runs in **demo mode** using `src/lib/db/seed.ts`.
 
-### Useful scripts
+Scripts:
 
-| Command          | Description                          |
-| ---------------- | ------------------------------------ |
-| `bun run dev`    | Start the development server         |
-| `bun run build`  | Create a production build            |
-| `bun run start`  | Run the production build             |
-| `bun run lint`   | Type-check (`tsc`) + Next.js lint    |
-| `bun run format` | Format the codebase with Biome       |
+| Command | Description |
+| --- | --- |
+| `bun run dev` | Start the dev server |
+| `bun run build` | Production build |
+| `bun run start` | Run the production server |
+| `bun run lint` | Type-check (`tsc`) + ESLint |
+| `bun run setup` | Provision Supabase (admin user, role, seed) |
 
 ---
 
-## Admin console
+## 2. Environment variables
 
-Visit **`/admin/login`** and click **Secure sign in** — demo credentials are
-pre-filled. The console uses mock data from `src/lib/admin-data.ts`.
+Copy `.env.example` → `.env.local`. `.env*` is git-ignored — **never commit secrets**.
+
+| Variable | Scope | Purpose |
+| --- | --- | --- |
+| `NEXT_PUBLIC_SITE_URL` | public | Canonical site URL |
+| `NEXT_PUBLIC_SUPABASE_URL` | public | Supabase project URL |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | public | Supabase anon key |
+| `SUPABASE_SERVICE_ROLE_KEY` | **server** | Privileged key (audit writes, provisioning) |
+| `OWC_BOOTSTRAP_ADMIN_EMAILS` | server | Emails auto-treated as Administrator |
+| `CPPS_API_BASE_URL` | server | CPPS REST base URL |
+| `CPPS_API_KEY` | server | CPPS API key |
+| `CPPS_GRAPHQL_ENDPOINT` | server | CPPS GraphQL endpoint |
+| `NEXT_PUBLIC_CAPTCHA_PROVIDER` | public | `fallback` / `turnstile` / `recaptcha` / `hcaptcha` |
+| `NEXT_PUBLIC_CAPTCHA_SITE_KEY` | public | CAPTCHA site key |
+| `CAPTCHA_SECRET_KEY` | server | CAPTCHA secret (server verification) |
+
+> `NEXT_PUBLIC_*` values are inlined at **build time** — set them before building
+> (and as Docker build args / CI secrets for production).
 
 ---
 
-## Project structure
+## 3. Supabase setup
 
-```
-src/
-├── app/
-│   ├── (public)/        # public-facing pages (home, about, claims, …)
-│   └── admin/           # login + (dashboard) CMS routes
-├── components/          # shared + feature components, shadcn/ui
-└── lib/
-    ├── site-data.ts     # public content & mock data
-    └── admin-data.ts    # admin/CMS mock data
-```
+1. Create a project at [supabase.com](https://supabase.com) and copy the URL +
+   keys into `.env.local`.
+2. Open **SQL Editor** and run [`src/lib/db/schema.sql`](src/lib/db/schema.sql).
+   This creates all tables, enums, the `profiles` table, the audit log, the
+   `updated_at` triggers, the new-user trigger and **Row Level Security**
+   policies (public can read only `published` content; staff manage per role).
+   > Re-provisioning / clean slate? Run [`src/lib/db/reset.sql`](src/lib/db/reset.sql)
+   > first (drops all app tables/types/functions — auth users are kept), then
+   > run `schema.sql`.
+3. Provision the admin user, role and demo content:
+   ```bash
+   bun run setup
+   ```
+   Prints the bootstrap administrator credentials. **Change the password after
+   first login.**
+
+Data access lives in `src/lib/data/*` — every reader queries Supabase when
+configured and falls back to seed data otherwise, so the UI never depends on raw
+rows.
 
 ---
 
-## License
+## 4. CPPS integration
+
+The claims back-end client is `src/lib/cpps/api.ts` (REST + GraphQL helpers).
+Service functions: `getClaimStatus`, `checkEmployerRegistration`,
+`submitClaimLodgement`, `reportWorkplaceInjury`, `submitEnquiry`. Set
+`CPPS_API_BASE_URL` (and optionally `CPPS_GRAPHQL_ENDPOINT`) to go live; until
+then realistic mock responses are returned. See
+[`docs/API_INTEGRATION.md`](docs/API_INTEGRATION.md).
+
+---
+
+## 5. Admin roles & CMS workflow
+
+Sign in at `/admin/login` (Supabase Auth, MFA-ready).
+
+**Roles:** Administrator · Editor · Reviewer · Claims Officer · Viewer
+(matrix in `src/lib/auth/roles.ts`).
+
+**Editorial workflow:** Draft → Submitted → Approved → Published (+ Archived),
+enforced by `src/lib/data/cms.ts` and the server actions in
+`src/lib/actions/content.ts`. Every create/update/delete/approve/publish/login/
+failed-login/role-change is written to the **audit log**.
+
+---
+
+## 6. Production deployment
+
+- **Ubuntu 24.04 + Nginx + PM2/systemd** — see
+  [`docs/DEPLOYMENT_UBUNTU_24_04.md`](docs/DEPLOYMENT_UBUNTU_24_04.md).
+- **Docker** — `docker compose up -d --build` (pass `NEXT_PUBLIC_*` build args).
+- **Netlify** — dynamic via `@netlify/plugin-nextjs` (`netlify.toml`).
+- **CI/CD** — `.github/workflows/deploy.yml` (install → lint → type-check →
+  build → optional SSH deploy).
+
+---
+
+## 7. Further documentation
+
+- [`docs/DEPLOYMENT_UBUNTU_24_04.md`](docs/DEPLOYMENT_UBUNTU_24_04.md)
+- [`docs/API_INTEGRATION.md`](docs/API_INTEGRATION.md)
+- [`docs/SECURITY_CHECKLIST.md`](docs/SECURITY_CHECKLIST.md)
+- [`docs/UAT_CHECKLIST.md`](docs/UAT_CHECKLIST.md)
+- [`docs/HANDOVER.md`](docs/HANDOVER.md)
+
+---
 
 © Office of Workers Compensation, Independent State of Papua New Guinea.
-All rights reserved.

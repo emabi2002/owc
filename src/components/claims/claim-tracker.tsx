@@ -13,25 +13,43 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { SAMPLE_CLAIM } from "@/lib/site-data";
+import type { CppsClaimStatus } from "@/lib/cpps/types";
 import { cn } from "@/lib/utils";
 
-type Result = "idle" | "loading" | "found" | "notfound";
+type Result = "idle" | "loading" | "found" | "notfound" | "error";
+
+const DEMO_REF = "OWC-2026-004821";
 
 export function ClaimTracker() {
-  const [ref, setRef] = useState("");
+  const [reference, setReference] = useState("");
   const [surname, setSurname] = useState("");
   const [state, setState] = useState<Result>("idle");
+  const [claim, setClaim] = useState<CppsClaimStatus | null>(null);
 
-  const submit = (e: React.FormEvent) => {
+  const submit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!ref.trim()) return;
+    if (!reference.trim()) return;
     setState("loading");
-    setTimeout(() => {
-      const match =
-        ref.trim().toUpperCase() === SAMPLE_CLAIM.reference.toUpperCase();
-      setState(match ? "found" : "notfound");
-    }, 900);
+    try {
+      const res = await fetch("/api/claims/track", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ reference: reference.trim(), surname }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setState("error");
+        return;
+      }
+      if (data.found) {
+        setClaim(data.claim as CppsClaimStatus);
+        setState("found");
+      } else {
+        setState("notfound");
+      }
+    } catch {
+      setState("error");
+    }
   };
 
   return (
@@ -55,8 +73,8 @@ export function ClaimTracker() {
             </Label>
             <Input
               id="ref"
-              value={ref}
-              onChange={(e) => setRef(e.target.value)}
+              value={reference}
+              onChange={(e) => setReference(e.target.value)}
               placeholder="e.g. OWC-2026-004821"
               className="mt-2 font-mono"
             />
@@ -84,7 +102,7 @@ export function ClaimTracker() {
           </Button>
           <p className="rounded-md bg-secondary/70 px-3 py-2 text-xs text-muted-foreground">
             <strong className="text-foreground">Demo tip:</strong> try reference{" "}
-            <code className="font-mono text-primary">{SAMPLE_CLAIM.reference}</code>
+            <code className="font-mono text-primary">{DEMO_REF}</code>
           </p>
         </div>
       </form>
@@ -106,41 +124,40 @@ export function ClaimTracker() {
           </div>
         )}
 
-        {state === "notfound" && (
+        {(state === "notfound" || state === "error") && (
           <div className="flex h-full min-h-[300px] flex-col items-center justify-center rounded-2xl border border-destructive/30 bg-destructive/5 p-8 text-center">
             <AlertCircle className="h-10 w-10 text-destructive" />
             <h4 className="mt-3 font-serif text-lg font-bold text-foreground">
-              No claim found
+              {state === "error" ? "Something went wrong" : "No claim found"}
             </h4>
             <p className="mt-1 max-w-sm text-sm text-muted-foreground">
-              We couldn't find a claim matching that reference. Please check the
-              number and try again, or contact our office for assistance.
+              {state === "error"
+                ? "We could not reach the claims service. Please try again shortly."
+                : "We couldn't find a claim matching that reference. Please check the number and try again, or contact our office for assistance."}
             </p>
           </div>
         )}
 
-        {state === "found" && (
+        {state === "found" && claim && (
           <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
             <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border bg-primary p-5 text-white">
               <div>
                 <div className="font-mono text-sm text-white/70">
-                  {SAMPLE_CLAIM.reference}
+                  {claim.reference}
                 </div>
-                <div className="font-serif text-lg font-bold">
-                  {SAMPLE_CLAIM.type}
-                </div>
+                <div className="font-serif text-lg font-bold">{claim.type}</div>
               </div>
               <Badge variant="warning" className="flex items-center gap-1.5">
-                <Clock className="h-3.5 w-3.5" /> {SAMPLE_CLAIM.status}
+                <Clock className="h-3.5 w-3.5" /> {claim.status}
               </Badge>
             </div>
 
             <div className="grid grid-cols-2 gap-px bg-border sm:grid-cols-4">
               {[
-                { l: "Worker", v: SAMPLE_CLAIM.worker },
-                { l: "Employer", v: SAMPLE_CLAIM.employer },
-                { l: "Injury date", v: SAMPLE_CLAIM.injuryDate },
-                { l: "Lodged", v: SAMPLE_CLAIM.lodged },
+                { l: "Worker", v: claim.worker },
+                { l: "Employer", v: claim.employer },
+                { l: "Injury date", v: claim.injuryDate },
+                { l: "Lodged", v: claim.lodged },
               ].map((d) => (
                 <div key={d.l} className="bg-card p-4">
                   <div className="text-xs uppercase tracking-wide text-muted-foreground">
@@ -158,9 +175,9 @@ export function ClaimTracker() {
                 Claim progress
               </h4>
               <ol className="relative space-y-6 before:absolute before:left-[11px] before:top-2 before:h-[calc(100%-1rem)] before:w-0.5 before:bg-border">
-                {SAMPLE_CLAIM.steps.map((s, i) => {
+                {claim.steps.map((s, i) => {
                   const active =
-                    !s.done && SAMPLE_CLAIM.steps.findIndex((x) => !x.done) === i;
+                    !s.done && claim.steps.findIndex((x) => !x.done) === i;
                   return (
                     <li key={s.label} className="relative flex items-start gap-4 pl-0">
                       <span
@@ -170,7 +187,7 @@ export function ClaimTracker() {
                             ? "bg-success text-white"
                             : active
                               ? "bg-gold text-gold-foreground"
-                              : "bg-secondary text-muted-foreground"
+                              : "bg-secondary text-muted-foreground",
                         )}
                       >
                         {s.done ? (
@@ -185,7 +202,7 @@ export function ClaimTracker() {
                         <div
                           className={cn(
                             "text-sm font-semibold",
-                            s.done || active ? "text-foreground" : "text-muted-foreground"
+                            s.done || active ? "text-foreground" : "text-muted-foreground",
                           )}
                         >
                           {s.label}

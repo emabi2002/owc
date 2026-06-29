@@ -6,17 +6,17 @@ import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { FORMS, type FormDoc } from "@/lib/site-data";
+import type { FormItem } from "@/lib/data/types";
 import { cn } from "@/lib/utils";
 
 const CATEGORIES = ["All", "Claims", "Employer", "Medical", "Guidelines"] as const;
 
-export function FormsBrowser() {
+export function FormsBrowser({ forms }: { forms: FormItem[] }) {
   const [cat, setCat] = useState<(typeof CATEGORIES)[number]>("All");
   const [q, setQ] = useState("");
 
   const filtered = useMemo(() => {
-    return FORMS.filter((f) => {
+    return forms.filter((f) => {
       const matchCat = cat === "All" || f.category === cat;
       const matchQ =
         q.trim() === "" ||
@@ -24,7 +24,7 @@ export function FormsBrowser() {
         f.code.toLowerCase().includes(q.toLowerCase());
       return matchCat && matchQ;
     });
-  }, [cat, q]);
+  }, [cat, q, forms]);
 
   return (
     <div>
@@ -33,7 +33,7 @@ export function FormsBrowser() {
         <div className="flex flex-wrap gap-2">
           {CATEGORIES.map((c) => {
             const count =
-              c === "All" ? FORMS.length : FORMS.filter((f) => f.category === c).length;
+              c === "All" ? forms.length : forms.filter((f) => f.category === c).length;
             return (
               <button
                 key={c}
@@ -42,14 +42,14 @@ export function FormsBrowser() {
                   "inline-flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-semibold transition-colors",
                   cat === c
                     ? "border-primary bg-primary text-white"
-                    : "border-border bg-card text-foreground hover:border-gold/50 hover:bg-secondary"
+                    : "border-border bg-card text-foreground hover:border-gold/50 hover:bg-secondary",
                 )}
               >
                 {c}
                 <span
                   className={cn(
                     "rounded-full px-1.5 text-xs",
-                    cat === c ? "bg-white/20" : "bg-secondary text-muted-foreground"
+                    cat === c ? "bg-white/20" : "bg-secondary text-muted-foreground",
                   )}
                 >
                   {count}
@@ -65,6 +65,7 @@ export function FormsBrowser() {
             onChange={(e) => setQ(e.target.value)}
             placeholder="Search forms…"
             className="pl-9"
+            aria-label="Search forms"
           />
         </div>
       </div>
@@ -85,8 +86,15 @@ export function FormsBrowser() {
   );
 }
 
-function FormCard({ form }: { form: FormDoc }) {
+function FormCard({ form }: { form: FormItem }) {
   const FormatIcon = form.format === "PDF" ? FileText : FileType2;
+  const onDownload = () => {
+    if (form.fileUrl) {
+      window.open(form.fileUrl, "_blank", "noopener,noreferrer");
+    } else {
+      toast.info(`${form.code} — ${form.title} will be available shortly.`);
+    }
+  };
   return (
     <div className="group flex flex-col rounded-2xl border border-border bg-card p-5 shadow-sm transition-all hover:-translate-y-1 hover:border-gold/50 hover:shadow-lg">
       <div className="flex items-start justify-between gap-3">
@@ -111,7 +119,7 @@ function FormCard({ form }: { form: FormDoc }) {
           variant="ghost"
           size="sm"
           className="text-primary"
-          onClick={() => toast.success(`Downloading ${form.code} — ${form.title}`)}
+          onClick={onDownload}
         >
           <Download className="h-4 w-4" /> Download
         </Button>

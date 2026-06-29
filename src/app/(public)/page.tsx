@@ -23,13 +23,10 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { SectionHeading } from "@/components/page-hero";
 import { BirdOfParadise, NationalEmblem } from "@/components/owc-emblem";
-import {
-  QUICK_LINKS,
-  STAT_HIGHLIGHTS,
-  NEWS,
-  ORG,
-  IMG,
-} from "@/lib/site-data";
+import { QUICK_LINKS, STAT_HIGHLIGHTS, ORG, IMG } from "@/lib/site-data";
+import { getNews } from "@/lib/data/content";
+
+export const revalidate = 60;
 
 const ICONS: Record<string, React.ElementType> = {
   FileText,
@@ -45,7 +42,8 @@ const NOTICES = [
   "Public consultation on the Workers Compensation Act is open for submissions",
 ];
 
-export default function HomePage() {
+export default async function HomePage() {
+  const news = await getNews();
   return (
     <>
       {/* Notice ticker */}
@@ -398,7 +396,7 @@ export default function HomePage() {
             </Button>
           </div>
           <div className="mt-12 grid gap-6 lg:grid-cols-3">
-            {NEWS.slice(0, 3).map((n) => (
+            {news.slice(0, 3).map((n) => (
               <Link
                 key={n.slug}
                 href={`/news/${n.slug}`}

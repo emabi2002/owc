@@ -20,7 +20,9 @@ import {
 } from "@/components/ui/accordion";
 import { LodgeForm } from "@/components/claims/lodge-form";
 import { ClaimTracker } from "@/components/claims/claim-tracker";
-import { CLAIM_FAQS } from "@/lib/site-data";
+import { getFaqsByCategory } from "@/lib/data/content";
+
+export const revalidate = 60;
 
 export const metadata: Metadata = {
   title: "Claims Services",
@@ -37,7 +39,8 @@ const DOCS = [
   { icon: Users, t: "Dependant details", d: "For fatal-injury claims by dependants." },
 ];
 
-export default function ClaimsPage() {
+export default async function ClaimsPage() {
+  const faqs = await getFaqsByCategory("Claims");
   return (
     <>
       <PageHero
@@ -172,7 +175,7 @@ export default function ClaimsPage() {
           </div>
           <div className="lg:col-span-8">
             <Accordion type="single" collapsible className="space-y-3">
-              {CLAIM_FAQS.map((f, i) => (
+              {faqs.map((f, i) => (
                 <AccordionItem
                   key={i}
                   value={`item-${i}`}
