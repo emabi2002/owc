@@ -19,4 +19,41 @@ describe("claim evidence upload controls", () => {
     const path = buildEvidenceStoragePath("OWC-2026-004821", "Medical Report (Final).PDF", "abc123");
     expect(path).toBe("claims/OWC-2026-004821/abc123/medical-report-final.pdf");
   });
+
+  test("issues and verifies a short-lived claim-scoped evidence upload token", async () => {
+    const module = (await import("./evidence-upload")) as Record<string, unknown>;
+    const issueEvidenceUploadToken = module.issueEvidenceUploadToken as
+      | undefined
+      | ((claimReference: string, secret: string, options?: { nowMs?: number; ttlMs?: number }) => Promise<string>);
+    const verifyEvidenceUploadToken = module.verifyEvidenceUploadToken as
+      | undefined
+      | ((token: string, claimReference: string, secret: string, options?: { nowMs?: number }) => Promise<boolean>);
+
+    expect(typeof issueEvidenceUploadToken).toBe("function");
+    expect(typeof verifyEvidenceUploadToken).toBe("function");
+    if (!issueEvidenceUploadToken || !verifyEvidenceUploadToken) return;
+
+    const nowMs = Date.parse("2026-09-13T00:00:00Z");
+    const secret = "uat-evidence-signing-secret-with-sufficient-entropy";
+    const token = await issueEvidenceUploadToken("OWC-2026-004821", secret, {
+      nowMs,
+      ttlMs: 15 * 60_000,
+    });
+
+    expect(
+      await verifyEvidenceUploadToken(token, "OWC-2026-004821", secret, {
+        nowMs: nowMs + 14 * 60_000,
+      }),
+    ).toBe(true);
+    expect(
+      await verifyEvidenceUploadToken(token, "OWC-2026-999999", secret, {
+        nowMs: nowMs + 14 * 60_000,
+      }),
+    ).toBe(false);
+    expect(
+      await verifyEvidenceUploadToken(token, "OWC-2026-004821", secret, {
+        nowMs: nowMs + 16 * 60_000,
+      }),
+    ).toBe(false);
+  });
 });
