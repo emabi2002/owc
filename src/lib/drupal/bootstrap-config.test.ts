@@ -35,11 +35,12 @@ describe("OWC Drupal bootstrap configuration", () => {
     expect(JSON.stringify(manifest.roles)).toBe(JSON.stringify(expectedRoles));
   });
 
-  test("declares isolated Drupal and PostgreSQL services", async () => {
+  test("declares isolated Drupal and PostgreSQL services with persistent state", async () => {
     const compose = await readFile("drupal/docker-compose.yml", "utf8");
     expect(compose.includes("drupal:" )).toBe(true);
     expect(compose.includes("postgres:" )).toBe(true);
-    expect(compose.includes("drupal_data:" )).toBe(true);
+    expect(compose.includes("drupal_sites:" )).toBe(true);
     expect(compose.includes("postgres_data:" )).toBe(true);
+    expect(compose.includes("/opt/drupal/web/sites/default")).toBe(true);
   });
 });
