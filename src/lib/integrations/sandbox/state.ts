@@ -1,6 +1,7 @@
 import type { SandboxServiceName, SandboxServiceStatus } from "./types";
 
 const SERVICES: SandboxServiceName[] = [
+  "cpps",
   "nid",
   "ipa",
   "irc",
