@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { AdminPageHeader, StatusBadge } from "@/components/admin/admin-shell";
 import { EvidenceActions } from "@/components/claims/evidence-actions";
+import { EvidenceUploadForm } from "@/components/claims/evidence-upload-form";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -166,7 +167,9 @@ export default async function AdminClaimDetailPage({
             </div>
           </div>
         </CardHeader>
-        <CardContent>
+        <CardContent className="space-y-5">
+          {canManageEvidence && <EvidenceUploadForm claimReference={claim.ref} />}
+
           {claim.evidence.length === 0 ? (
             <div className="rounded-lg border border-dashed p-8 text-center text-sm text-muted-foreground">
               <FileText className="mx-auto mb-2 h-7 w-7" />
