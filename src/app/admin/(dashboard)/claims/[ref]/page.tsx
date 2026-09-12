@@ -12,10 +12,12 @@ import {
   ShieldCheck,
 } from "lucide-react";
 import { AdminPageHeader, StatusBadge } from "@/components/admin/admin-shell";
+import { EvidenceActions } from "@/components/claims/evidence-actions";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { requirePermission } from "@/lib/auth/session";
+import { hasPermission } from "@/lib/auth/roles";
 import { getClaimDetail } from "@/lib/claims/detail";
 import { formatEvidenceSize } from "@/lib/claims/evidence";
 
@@ -24,12 +26,13 @@ export default async function AdminClaimDetailPage({
 }: {
   params: Promise<{ ref: string }>;
 }) {
-  await requirePermission("claims.view");
+  const user = await requirePermission("claims.view");
   const { ref } = await params;
   const claim = await getClaimDetail(decodeURIComponent(ref));
   if (!claim) notFound();
 
   const completedSteps = claim.steps.filter((step) => step.done).length;
+  const canManageEvidence = hasPermission(user.role, "claims.manage");
 
   return (
     <>
@@ -171,7 +174,7 @@ export default async function AdminClaimDetailPage({
             </div>
           ) : (
             <div className="overflow-x-auto">
-              <table className="w-full min-w-[820px] text-left text-sm">
+              <table className="w-full min-w-[980px] text-left text-sm">
                 <thead className="border-b text-xs uppercase tracking-wide text-muted-foreground">
                   <tr>
                     <th className="py-2 pr-4">Category</th>
@@ -179,7 +182,8 @@ export default async function AdminClaimDetailPage({
                     <th className="py-2 pr-4">Uploaded by</th>
                     <th className="py-2 pr-4">Size</th>
                     <th className="py-2 pr-4">Status</th>
-                    <th className="py-2">Integrity</th>
+                    <th className="py-2 pr-4">Integrity</th>
+                    <th className="py-2">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -197,8 +201,17 @@ export default async function AdminClaimDetailPage({
                           {item.status}
                         </Badge>
                       </td>
-                      <td className="py-3 font-mono text-[11px] text-muted-foreground">
+                      <td className="py-3 pr-4 font-mono text-[11px] text-muted-foreground">
                         {item.sha256 ? `${item.sha256.slice(0, 12)}…` : "Pending"}
+                      </td>
+                      <td className="py-3">
+                        <EvidenceActions
+                          claimReference={claim.ref}
+                          evidenceId={item.id}
+                          status={item.status}
+                          canManage={canManageEvidence}
+                          hasStoredObject={Boolean(item.storagePath)}
+                        />
                       </td>
                     </tr>
                   ))}
