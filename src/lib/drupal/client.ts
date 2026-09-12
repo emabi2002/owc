@@ -1,4 +1,5 @@
 import type { NewsItem } from "@/lib/data/types";
+import { IMG } from "@/lib/site-data";
 
 export type DrupalJsonApiNode = {
   id: string;
@@ -66,7 +67,7 @@ export function mapDrupalNewsNode(node: DrupalJsonApiNode): NewsItem {
     title: attributes.title ?? "Untitled",
     excerpt: textAttribute(attributes, "field_excerpt"),
     body: extractDrupalText(attributes.body) || undefined,
-    image: textAttribute(attributes, "field_image_url") || undefined,
+    image: textAttribute(attributes, "field_image_url") || IMG.harbour,
     featured: booleanAttribute(attributes, "field_featured"),
   };
 }
