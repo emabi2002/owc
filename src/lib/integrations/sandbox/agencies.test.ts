@@ -22,6 +22,16 @@ describe("OWC synthetic agency sandbox", () => {
     expect(verifyBankAccount("BANK-ACC-7842").data.verified).toBe(true);
   });
 
+  test("supports additional coherent agency records", () => {
+    expect(verifyIdentity("NID-00010002").data.matched).toBe(true);
+    expect(verifyEmployer("IPA-2018-2044").data.active).toBe(true);
+    expect(checkTaxCompliance("TIN-90010002").data.status).toBe("COMPLIANT");
+    expect(verifyEmployment("EMP-0001002").data.employed).toBe(true);
+    expect(verifyMedicalCertificate("MED-2026-00452").data.valid).toBe(true);
+    expect(verifyInsurancePolicy("WC-POL-2026-01903").data.active).toBe(true);
+    expect(verifyBankAccount("BANK-ACC-3921").data.verified).toBe(true);
+  });
+
   test("returns an explicit not-found result for unknown identity", () => {
     const result = verifyIdentity("NID-00019999");
     expect(result.data.matched).toBe(false);
