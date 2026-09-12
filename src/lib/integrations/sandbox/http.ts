@@ -34,10 +34,14 @@ export function sandboxServiceUnavailableResponse(service: SandboxServiceName) {
   );
 }
 
+function inferService(rateLimitKey: string): SandboxServiceName {
+  return rateLimitKey.split(":", 1)[0] as SandboxServiceName;
+}
+
 export async function handleSandboxPost<T>(
   request: Request,
   options: {
-    service: SandboxServiceName;
+    service?: SandboxServiceName;
     rateLimitKey: string;
     schema: z.ZodType<T>;
     execute: (input: T) => unknown;
@@ -45,8 +49,10 @@ export async function handleSandboxPost<T>(
   },
 ) {
   if (!isSandboxEnabled()) return sandboxUnavailableResponse();
-  if (getSandboxServiceStatus(options.service) !== "online") {
-    return sandboxServiceUnavailableResponse(options.service);
+
+  const service = options.service ?? inferService(options.rateLimitKey);
+  if (getSandboxServiceStatus(service) !== "online") {
+    return sandboxServiceUnavailableResponse(service);
   }
 
   const ip = getClientIp(request.headers);
