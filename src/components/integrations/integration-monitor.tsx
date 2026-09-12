@@ -12,14 +12,18 @@ import {
 import type { IntegrationEvent } from "@/lib/integrations/sandbox/events";
 
 type HealthResponse = {
-  source: "sandbox";
   services: SandboxHealthRow[];
 };
 
 type EventsResponse = {
-  source: "sandbox";
   events: IntegrationEvent[];
 };
+
+function healthVariant(status: SandboxHealthRow["status"]) {
+  if (status === "online") return "success" as const;
+  if (status === "degraded") return "warning" as const;
+  return "destructive" as const;
+}
 
 export function IntegrationMonitor() {
   const [health, setHealth] = useState<SandboxHealthRow[]>([]);
@@ -91,7 +95,7 @@ export function IntegrationMonitor() {
             <CardHeader className="space-y-2 pb-3">
               <div className="flex items-start justify-between gap-2">
                 <ServerCog className="h-5 w-5 text-primary" />
-                <Badge variant={row.health === "online" ? "success" : "destructive"}>
+                <Badge variant={healthVariant(row.health)}>
                   {row.health.toUpperCase()}
                 </Badge>
               </div>
