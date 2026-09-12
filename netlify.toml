@@ -8,5 +8,12 @@
 [build.environment]
   NODE_VERSION = "20"
 
+# Pull-request deploy previews are the controlled evaluation environment. This
+# enables the internal service adapters used by the operational presentation
+# routes while keeping production deployments disabled by default unless an
+# administrator explicitly configures the equivalent production endpoints.
+[context.deploy-preview.environment]
+  OWC_ENABLE_SANDBOX = "true"
+
 [[plugins]]
   package = "@netlify/plugin-nextjs"
