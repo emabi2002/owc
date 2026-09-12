@@ -9,6 +9,7 @@ import {
   FileCheck2,
   FileText,
   HardHat,
+  Mail,
   ShieldCheck,
 } from "lucide-react";
 import { AdminPageHeader, StatusBadge } from "@/components/admin/admin-shell";
@@ -221,6 +222,68 @@ export default async function AdminClaimDetailPage({
                           canManage={canManageEvidence}
                           hasStoredObject={Boolean(item.storagePath)}
                         />
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      <Card id="communications" className="mt-5">
+        <CardHeader>
+          <div className="flex items-center gap-2">
+            <Mail className="h-5 w-5 text-primary" />
+            <CardTitle>Claimant communications</CardTitle>
+          </div>
+          <p className="text-sm text-muted-foreground">
+            Lifecycle messages generated from claim processing events and delivery status.
+          </p>
+        </CardHeader>
+        <CardContent>
+          {claim.notifications.length === 0 ? (
+            <div className="rounded-lg border border-dashed p-7 text-center text-sm text-muted-foreground">
+              No claimant communications have been recorded for this claim.
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[860px] text-left text-sm">
+                <thead className="border-b text-xs uppercase tracking-wide text-muted-foreground">
+                  <tr>
+                    <th className="py-2 pr-4">Date / Time</th>
+                    <th className="py-2 pr-4">Event</th>
+                    <th className="py-2 pr-4">Channel</th>
+                    <th className="py-2 pr-4">Recipient</th>
+                    <th className="py-2 pr-4">Message</th>
+                    <th className="py-2">Delivery</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {claim.notifications.map((item) => (
+                    <tr key={item.id} className="border-b last:border-0">
+                      <td className="py-3 pr-4 text-xs">
+                        {item.createdAt ? new Date(item.createdAt).toLocaleString("en-GB") : "—"}
+                      </td>
+                      <td className="py-3 pr-4 font-mono text-xs">{item.event}</td>
+                      <td className="py-3 pr-4"><Badge variant="secondary">{item.channel}</Badge></td>
+                      <td className="py-3 pr-4">{item.recipient}</td>
+                      <td className="py-3 pr-4">{item.subject}</td>
+                      <td className="py-3">
+                        <Badge
+                          variant={
+                            item.status === "Sent"
+                              ? "success"
+                              : item.status === "Failed"
+                                ? "destructive"
+                                : item.status === "Suppressed"
+                                  ? "secondary"
+                                  : "warning"
+                          }
+                        >
+                          {item.status}
+                        </Badge>
                       </td>
                     </tr>
                   ))}
