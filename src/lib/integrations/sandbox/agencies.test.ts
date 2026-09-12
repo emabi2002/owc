@@ -12,27 +12,27 @@ import {
 import { clearIntegrationEvents, listIntegrationEvents } from "./events";
 
 describe("OWC synthetic agency sandbox", () => {
-  test("verifies the coherent demonstration claimant and employer", () => {
-    expect(verifyIdentity("NID-DEMO-0001").data.matched).toBe(true);
-    expect(verifyEmployer("IPA-DEMO-1001").data.active).toBe(true);
-    expect(checkTaxCompliance("TIN-DEMO-9001").data.status).toBe("COMPLIANT");
-    expect(verifyEmployment("EMP-DEMO-001").data.employed).toBe(true);
-    expect(verifyMedicalCertificate("MED-DEMO-001").data.valid).toBe(true);
-    expect(verifyInsurancePolicy("POL-DEMO-001").data.active).toBe(true);
-    expect(verifyBankAccount("BANK-DEMO-001").data.verified).toBe(true);
+  test("verifies the coherent reference claimant and employer", () => {
+    expect(verifyIdentity("NID-00010001").data.matched).toBe(true);
+    expect(verifyEmployer("IPA-2020-1001").data.active).toBe(true);
+    expect(checkTaxCompliance("TIN-90010001").data.status).toBe("COMPLIANT");
+    expect(verifyEmployment("EMP-0001001").data.employed).toBe(true);
+    expect(verifyMedicalCertificate("MED-2026-00451").data.valid).toBe(true);
+    expect(verifyInsurancePolicy("WC-POL-2026-01872").data.active).toBe(true);
+    expect(verifyBankAccount("BANK-ACC-7842").data.verified).toBe(true);
   });
 
   test("returns an explicit not-found result for unknown identity", () => {
-    const result = verifyIdentity("NID-DEMO-MISSING");
+    const result = verifyIdentity("NID-00019999");
     expect(result.data.matched).toBe(false);
     expect(result.source).toBe("sandbox");
   });
 
   test("makes payment processing idempotent for the same request key", () => {
     const input = {
-      idempotencyKey: "PAY-DEMO-OWC-0001",
-      claimReference: "OWC-DEMO-CLAIM-0001",
-      accountReference: "BANK-DEMO-001",
+      idempotencyKey: "PAY-OWC-2026-005112",
+      claimReference: "OWC-2026-005112",
+      accountReference: "BANK-ACC-7842",
       amountPgk: 18450,
     };
 
@@ -45,7 +45,7 @@ describe("OWC synthetic agency sandbox", () => {
 
   test("records safe integration telemetry for agency calls", () => {
     clearIntegrationEvents();
-    verifyIdentity("NID-DEMO-0001");
+    verifyIdentity("NID-00010001");
 
     const events = listIntegrationEvents();
     expect(events).toHaveLength(1);
@@ -57,7 +57,7 @@ describe("OWC synthetic agency sandbox", () => {
 
   test("records failed lookups as not-found rather than successful integrations", () => {
     clearIntegrationEvents();
-    verifyIdentity("NID-DEMO-MISSING");
+    verifyIdentity("NID-00019999");
 
     expect(listIntegrationEvents()[0]).toMatchObject({
       service: "nid",
