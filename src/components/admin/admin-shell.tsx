@@ -18,6 +18,7 @@ import {
   ChevronDown,
   ExternalLink,
   ShieldCheck,
+  Network,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -45,6 +46,7 @@ const NAV = [
   { label: "Content", href: "/admin/content", icon: FileEdit, badge: "3" },
   { label: "Approvals", href: "/admin/content#approvals", icon: ClipboardCheck },
   { label: "Claims", href: "/admin/claims", icon: FileText },
+  { label: "Integrations", href: "/admin/integrations", icon: Network },
   { label: "Audit Logs", href: "/admin/audit", icon: ScrollText },
   { label: "Users & Roles", href: "/admin/users", icon: Users },
   { label: "Settings", href: "/admin/settings", icon: Settings },
@@ -155,13 +157,11 @@ export function AdminShell({
 
   return (
     <div className="flex min-h-screen bg-secondary/40">
-      {/* Desktop sidebar */}
       <aside className="sticky top-0 hidden h-screen w-64 shrink-0 lg:block">
         <SidebarContent />
       </aside>
 
       <div className="flex min-w-0 flex-1 flex-col">
-        {/* Topbar */}
         <header className="sticky top-0 z-30 flex h-16 items-center gap-3 border-b border-border bg-white px-4 lg:px-6">
           <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
             <SheetTrigger asChild>
