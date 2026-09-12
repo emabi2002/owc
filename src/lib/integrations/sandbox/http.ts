@@ -5,6 +5,9 @@ import {
   rateLimit,
   rateLimitHeaders,
 } from "@/lib/security/rate-limit";
+import { makeCorrelationId } from "./service";
+import { getSandboxServiceStatus } from "./state";
+import type { SandboxServiceName } from "./types";
 import { parseSandboxBody } from "./validation";
 
 export function isSandboxEnabled(
@@ -17,9 +20,24 @@ export function sandboxUnavailableResponse() {
   return NextResponse.json({ error: "Not found" }, { status: 404 });
 }
 
+export function sandboxServiceUnavailableResponse(service: SandboxServiceName) {
+  return NextResponse.json(
+    {
+      source: "sandbox",
+      service,
+      status: "unavailable",
+      correlationId: makeCorrelationId(),
+      timestamp: new Date().toISOString(),
+      error: "Simulated service unavailable",
+    },
+    { status: 503 },
+  );
+}
+
 export async function handleSandboxPost<T>(
   request: Request,
   options: {
+    service: SandboxServiceName;
     rateLimitKey: string;
     schema: z.ZodType<T>;
     execute: (input: T) => unknown;
@@ -27,6 +45,9 @@ export async function handleSandboxPost<T>(
   },
 ) {
   if (!isSandboxEnabled()) return sandboxUnavailableResponse();
+  if (getSandboxServiceStatus(options.service) !== "online") {
+    return sandboxServiceUnavailableResponse(options.service);
+  }
 
   const ip = getClientIp(request.headers);
   const limited = rateLimit(
