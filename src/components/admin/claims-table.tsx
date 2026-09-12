@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useMemo, useState } from "react";
 import { Search, Eye, FileText, Filter } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -80,26 +81,31 @@ export function ClaimsTable({ claims }: { claims: AdminClaim[] }) {
             </tr>
           </thead>
           <tbody className="divide-y divide-border">
-            {filtered.map((c) => (
-              <tr key={c.ref} className="hover:bg-secondary/40">
-                <td className="whitespace-nowrap px-5 py-3 font-mono text-xs font-semibold text-primary">{c.ref}</td>
-                <td className="px-5 py-3 font-medium text-foreground">{c.worker}</td>
-                <td className="hidden px-5 py-3 text-muted-foreground md:table-cell">{c.employer}</td>
-                <td className="hidden px-5 py-3 text-muted-foreground sm:table-cell">{c.type}</td>
-                <td className="hidden px-5 py-3 text-muted-foreground lg:table-cell">{c.lodged}</td>
-                <td className="px-5 py-3"><StatusBadge status={c.status} /></td>
-                <td className="px-5 py-3 text-right">
-                  <div className="flex items-center justify-end gap-1">
-                    <button className="grid h-8 w-8 place-items-center rounded-md text-muted-foreground hover:bg-secondary hover:text-primary" aria-label="View claim">
-                      <Eye className="h-4 w-4" />
-                    </button>
-                    <button className="grid h-8 w-8 place-items-center rounded-md text-muted-foreground hover:bg-secondary hover:text-primary" aria-label="View documents">
-                      <FileText className="h-4 w-4" />
-                    </button>
-                  </div>
-                </td>
-              </tr>
-            ))}
+            {filtered.map((c) => {
+              const href = `/admin/claims/${encodeURIComponent(c.ref)}`;
+              return (
+                <tr key={c.ref} className="hover:bg-secondary/40">
+                  <td className="whitespace-nowrap px-5 py-3 font-mono text-xs font-semibold text-primary">
+                    <Link href={href} className="hover:underline">{c.ref}</Link>
+                  </td>
+                  <td className="px-5 py-3 font-medium text-foreground">{c.worker}</td>
+                  <td className="hidden px-5 py-3 text-muted-foreground md:table-cell">{c.employer}</td>
+                  <td className="hidden px-5 py-3 text-muted-foreground sm:table-cell">{c.type}</td>
+                  <td className="hidden px-5 py-3 text-muted-foreground lg:table-cell">{c.lodged}</td>
+                  <td className="px-5 py-3"><StatusBadge status={c.status} /></td>
+                  <td className="px-5 py-3 text-right">
+                    <div className="flex items-center justify-end gap-1">
+                      <Link href={href} className="grid h-8 w-8 place-items-center rounded-md text-muted-foreground hover:bg-secondary hover:text-primary" aria-label={`View claim ${c.ref}`}>
+                        <Eye className="h-4 w-4" />
+                      </Link>
+                      <Link href={`${href}#evidence`} className="grid h-8 w-8 place-items-center rounded-md text-muted-foreground hover:bg-secondary hover:text-primary" aria-label={`View evidence for ${c.ref}`}>
+                        <FileText className="h-4 w-4" />
+                      </Link>
+                    </div>
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>
