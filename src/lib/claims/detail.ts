@@ -2,15 +2,17 @@ import { getAdminClaims } from "@/lib/data/cms";
 import { SEED_CLAIM } from "@/lib/db/seed";
 import { getClaimEvidence } from "./evidence";
 import { getClaimNotificationHistory } from "./notification-history";
+import { getClaimNotificationPreference } from "./notification-preference-data";
 
 export async function getClaimDetail(reference: string) {
   const claims = await getAdminClaims();
   const claim = claims.find((item) => item.ref === reference) ?? null;
   if (!claim) return null;
 
-  const [evidence, notifications] = await Promise.all([
+  const [evidence, notifications, notificationPreference] = await Promise.all([
     getClaimEvidence(reference),
     getClaimNotificationHistory(reference),
+    getClaimNotificationPreference(reference),
   ]);
   const isReferenceClaim = reference === SEED_CLAIM.reference;
 
@@ -37,5 +39,6 @@ export async function getClaimDetail(reference: string) {
         ],
     evidence,
     notifications,
+    notificationPreference,
   };
 }
