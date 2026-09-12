@@ -153,14 +153,14 @@ export function runWorkerClaimDemo(
   if (!bankPassed) return stopped(claimReference, steps);
 
   const payment = processSandboxPayment({
-    idempotencyKey: `PAY-DEMO-${claimReference}`,
+    idempotencyKey: `PAY-${claimReference}`,
     claimReference,
     accountReference: DEMO_BANK_ACCOUNT.accountReference,
     amountPgk: 18_450,
   });
   steps.push({
     key: "payment",
-    label: "Compensation payment simulation",
+    label: "Compensation payment",
     status: "passed",
     summary: `K18,450.00 payment processed as ${payment.data.transactionReference}`,
     correlationId: payment.correlationId,
@@ -170,14 +170,14 @@ export function runWorkerClaimDemo(
     channel: "sms",
     recipient: "+67570000001",
     event: "PAYMENT_PROCESSED",
-    message: `Demo notification: payment for ${claimReference} has been processed.`,
+    message: `Payment for ${claimReference} has been processed.`,
   });
   steps.push({
     key: "notification",
     label: "Claimant notification",
     status: notification.data.accepted ? "passed" : "failed",
     summary: notification.data.accepted
-      ? "Synthetic SMS notification accepted"
+      ? "SMS notification accepted for delivery"
       : "Notification could not be sent",
     correlationId: notification.correlationId,
   });
