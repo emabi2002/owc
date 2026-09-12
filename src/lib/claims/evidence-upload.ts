@@ -164,3 +164,18 @@ export async function verifyEvidenceUploadToken(
     return false;
   }
 }
+
+export async function buildEvidenceUploadGrant(
+  claimReference: string,
+  secret: string,
+  options: { nowMs?: number } = {},
+): Promise<{ token: string; expiresInSeconds: number }> {
+  const token = await issueEvidenceUploadToken(claimReference, secret, {
+    nowMs: options.nowMs,
+    ttlMs: DEFAULT_EVIDENCE_TOKEN_TTL_MS,
+  });
+  return {
+    token,
+    expiresInSeconds: DEFAULT_EVIDENCE_TOKEN_TTL_MS / 1000,
+  };
+}
