@@ -19,6 +19,7 @@ export interface IntegrationMonitorRow {
 }
 
 const LABELS: Record<SandboxServiceName, string> = {
+  cpps: "Claims Processing (CPPS)",
   nid: "National Identity (NID)",
   ipa: "Employer Registry (IPA)",
   irc: "IRC Tax Compliance",
