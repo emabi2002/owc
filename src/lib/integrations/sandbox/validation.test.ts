@@ -2,6 +2,7 @@ import { describe, expect, test } from "bun:test";
 import {
   bankAccountSchema,
   bankPaymentSchema,
+  claimProcessSchema,
   employerSchema,
   employmentSchema,
   insuranceSchema,
@@ -12,7 +13,7 @@ import {
 } from "./validation";
 
 describe("sandbox API validation", () => {
-  test("accepts the documented demo identifiers", () => {
+  test("accepts the documented integration identifiers", () => {
     expect(nidSchema.safeParse({ nid: "NID-DEMO-0001" }).success).toBe(true);
     expect(employerSchema.safeParse({ registrationNo: "IPA-DEMO-1001" }).success).toBe(true);
     expect(ircSchema.safeParse({ tin: "TIN-DEMO-9001" }).success).toBe(true);
@@ -20,6 +21,20 @@ describe("sandbox API validation", () => {
     expect(medicalSchema.safeParse({ certificateNo: "MED-DEMO-001" }).success).toBe(true);
     expect(insuranceSchema.safeParse({ policyNo: "POL-DEMO-001" }).success).toBe(true);
     expect(bankAccountSchema.safeParse({ accountReference: "BANK-DEMO-001" }).success).toBe(true);
+  });
+
+  test("accepts a complete claim processing request", () => {
+    expect(
+      claimProcessSchema.safeParse({
+        nid: "NID-DEMO-0001",
+        registrationNo: "IPA-DEMO-1001",
+        tin: "TIN-DEMO-9001",
+        employeeNo: "EMP-DEMO-001",
+        certificateNo: "MED-DEMO-001",
+        policyNo: "POL-DEMO-001",
+        accountReference: "BANK-DEMO-001",
+      }).success,
+    ).toBe(true);
   });
 
   test("rejects malformed payment requests", () => {
