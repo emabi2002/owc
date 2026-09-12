@@ -54,4 +54,15 @@ describe("OWC synthetic agency sandbox", () => {
     expect(events[0].status).toBe("success");
     expect(events[0].source).toBe("sandbox");
   });
+
+  test("records failed lookups as not-found rather than successful integrations", () => {
+    clearIntegrationEvents();
+    verifyIdentity("NID-DEMO-MISSING");
+
+    expect(listIntegrationEvents()[0]).toMatchObject({
+      service: "nid",
+      operation: "verify_identity",
+      status: "not_found",
+    });
+  });
 });
