@@ -38,6 +38,7 @@ Scripts:
 | `bun run dev` | Start the dev server |
 | `bun run build` | Production build |
 | `bun run start` | Run the production server |
+| `bun run test` | Run Bun automated tests |
 | `bun run lint` | Type-check (`tsc`) + ESLint |
 | `bun run setup` | Provision Supabase (admin user, role, seed) |
 
@@ -57,6 +58,7 @@ Copy `.env.example` → `.env.local`. `.env*` is git-ignored — **never commit 
 | `CPPS_API_BASE_URL` | server | CPPS REST base URL |
 | `CPPS_API_KEY` | server | CPPS API key |
 | `CPPS_GRAPHQL_ENDPOINT` | server | CPPS GraphQL endpoint |
+| `OWC_ENABLE_SANDBOX` | server | Explicitly enable synthetic RFQ integration sandbox (`true` only in controlled demo/UAT) |
 | `NEXT_PUBLIC_CAPTCHA_PROVIDER` | public | `fallback` / `turnstile` / `recaptcha` / `hcaptcha` |
 | `NEXT_PUBLIC_CAPTCHA_SITE_KEY` | public | CAPTCHA site key |
 | `CAPTCHA_SECRET_KEY` | server | CAPTCHA secret (server verification) |
@@ -121,15 +123,40 @@ failed-login/role-change is written to the **audit log**.
   [`docs/DEPLOYMENT_UBUNTU_24_04.md`](docs/DEPLOYMENT_UBUNTU_24_04.md).
 - **Docker** — `docker compose up -d --build` (pass `NEXT_PUBLIC_*` build args).
 - **Netlify** — dynamic via `@netlify/plugin-nextjs` (`netlify.toml`).
-- **CI/CD** — `.github/workflows/deploy.yml` (install → lint → type-check →
-  build → optional SSH deploy).
+- **CI/CD** — `.github/workflows/deploy.yml` (test → lint/type-check → build →
+  optional SSH deploy on direct pushes to `main`).
 
 ---
 
-## 7. Further documentation
+## 7. RFQ integration sandbox
+
+The RFQ presentation environment includes a controlled multi-system integration
+sandbox for demonstrating real API orchestration with synthetic data. It models
+NID identity verification, IPA/employer registration, IRC tax compliance,
+employer HR/payroll, medical certification, insurance, bank/payment and
+email/SMS notification services.
+
+The sandbox is **off by default**. Set `OWC_ENABLE_SANDBOX=true` only in an
+approved demo/UAT environment. All responses are explicitly marked
+`source: "sandbox"`; production connections to external agencies must never be
+implied from these demonstration services.
+
+Authenticated staff can use:
+
+- `/admin/integrations` — health and transaction trace monitor.
+- `/admin/integrations/demo` — guided end-to-end worker claim demonstration.
+
+See [`docs/INTEGRATION_SANDBOX.md`](docs/INTEGRATION_SANDBOX.md) and
+[`docs/RFQ_LIVE_DEMO_SCRIPT.md`](docs/RFQ_LIVE_DEMO_SCRIPT.md).
+
+---
+
+## 8. Further documentation
 
 - [`docs/DEPLOYMENT_UBUNTU_24_04.md`](docs/DEPLOYMENT_UBUNTU_24_04.md)
 - [`docs/API_INTEGRATION.md`](docs/API_INTEGRATION.md)
+- [`docs/INTEGRATION_SANDBOX.md`](docs/INTEGRATION_SANDBOX.md)
+- [`docs/RFQ_LIVE_DEMO_SCRIPT.md`](docs/RFQ_LIVE_DEMO_SCRIPT.md)
 - [`docs/SECURITY_CHECKLIST.md`](docs/SECURITY_CHECKLIST.md)
 - [`docs/UAT_CHECKLIST.md`](docs/UAT_CHECKLIST.md)
 - [`docs/HANDOVER.md`](docs/HANDOVER.md)
