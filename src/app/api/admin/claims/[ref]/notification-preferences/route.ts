@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { hasPermission } from "@/lib/auth/roles";
 import { getSessionUser } from "@/lib/auth/session";
 import { claimNotificationPreferenceSchema } from "@/lib/claims/notification-preferences";
@@ -28,13 +29,14 @@ export async function PUT(
     );
   }
 
-  const admin = createAdminSupabaseClient();
-  if (!admin) {
+  const adminClient = createAdminSupabaseClient();
+  if (!adminClient) {
     return NextResponse.json(
       { error: "Claims database is not configured" },
       { status: 503 },
     );
   }
+  const admin = adminClient as unknown as SupabaseClient;
 
   const { ref } = await params;
   const claimReference = decodeURIComponent(ref).trim().toUpperCase();
