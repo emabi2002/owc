@@ -9,6 +9,7 @@ import {
   verifyInsurancePolicy,
   verifyMedicalCertificate,
 } from "./agencies";
+import { clearIntegrationEvents, listIntegrationEvents } from "./events";
 
 describe("OWC synthetic agency sandbox", () => {
   test("verifies the coherent demonstration claimant and employer", () => {
@@ -40,5 +41,17 @@ describe("OWC synthetic agency sandbox", () => {
 
     expect(first.data.status).toBe("PROCESSED");
     expect(second.data.transactionReference).toBe(first.data.transactionReference);
+  });
+
+  test("records safe integration telemetry for agency calls", () => {
+    clearIntegrationEvents();
+    verifyIdentity("NID-DEMO-0001");
+
+    const events = listIntegrationEvents();
+    expect(events).toHaveLength(1);
+    expect(events[0].service).toBe("nid");
+    expect(events[0].operation).toBe("verify_identity");
+    expect(events[0].status).toBe("success");
+    expect(events[0].source).toBe("sandbox");
   });
 });
