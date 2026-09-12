@@ -4,6 +4,7 @@ import { nidSchema } from "@/lib/integrations/sandbox/validation";
 
 export async function POST(request: Request) {
   return handleSandboxPost(request, {
+    service: "nid",
     rateLimitKey: "nid:verify",
     schema: nidSchema,
     execute: ({ nid }) => verifyIdentity(nid),
