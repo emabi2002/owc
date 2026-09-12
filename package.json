@@ -6,6 +6,7 @@
     "dev": "next dev -H 0.0.0.0 --turbopack",
     "build": "next build",
     "start": "next start -H 0.0.0.0",
+    "test": "bun test",
     "lint": "bunx tsc --noEmit && next lint",
     "format": "bunx biome format --write",
     "setup": "bun scripts/setup-supabase.ts",
