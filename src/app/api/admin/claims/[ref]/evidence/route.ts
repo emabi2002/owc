@@ -10,6 +10,7 @@ import {
   scanEvidenceBytes,
   shouldBlockEvidenceUpload,
 } from "@/lib/claims/malware-scan";
+import { recordAudit } from "@/lib/data/audit";
 import { serverEnv } from "@/lib/env";
 import { createAdminSupabaseClient } from "@/lib/supabase/admin";
 
@@ -80,6 +81,21 @@ export async function POST(
   });
 
   if (shouldBlockEvidenceUpload(malwareScan, serverEnv.requireMalwareScan)) {
+    await recordAudit({
+      action: "update",
+      entity: "claim_evidence",
+      entityId: claimReference,
+      summary: `claim evidence: upload blocked for ${claimReference}`,
+      actorId: user.id === "demo-admin" ? undefined : user.id,
+      actorEmail: user.email,
+      metadata: {
+        category,
+        mimeType: file.type,
+        sizeBytes: file.size,
+        securityScan: malwareScan.status,
+      },
+    });
+
     if (malwareScan.status === "infected") {
       return NextResponse.json(
         { error: "Evidence file failed security scanning" },
@@ -144,6 +160,22 @@ export async function POST(
       { status: 502 },
     );
   }
+
+  await recordAudit({
+    action: "create",
+    entity: "claim_evidence",
+    entityId: claimReference,
+    summary: `claim evidence: ${category} evidence uploaded for ${claimReference}`,
+    actorId: user.id === "demo-admin" ? undefined : user.id,
+    actorEmail: user.email,
+    metadata: {
+      category,
+      mimeType: file.type,
+      sizeBytes: file.size,
+      sha256,
+      securityScan: malwareScan.status,
+    },
+  });
 
   return NextResponse.json(
     {
