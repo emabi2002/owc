@@ -8,12 +8,14 @@ describe("OWC end-to-end integration workflow", () => {
     expect(result.status).toBe("completed");
     expect(result.claimReference).toBe("OWC-2026-005112");
     expect(result.steps.map((step) => step.key)).toEqual([
+      "claim_registration",
       "identity",
       "employer_registry",
       "tax_compliance",
       "employment",
       "medical",
       "insurance",
+      "determination",
       "bank_account",
       "payment",
       "notification",
@@ -26,8 +28,12 @@ describe("OWC end-to-end integration workflow", () => {
     const result = runWorkerClaimDemo({ nid: "NID-00019999" });
 
     expect(result.status).toBe("stopped");
-    expect(result.steps).toHaveLength(1);
-    expect(result.steps[0]).toMatchObject({ key: "identity", status: "failed" });
+    expect(result.steps).toHaveLength(2);
+    expect(result.steps[0]).toMatchObject({
+      key: "claim_registration",
+      status: "passed",
+    });
+    expect(result.steps[1]).toMatchObject({ key: "identity", status: "failed" });
     expect(result.paymentTransactionReference).toBeNull();
   });
 
