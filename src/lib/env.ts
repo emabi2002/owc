@@ -42,6 +42,9 @@ export const serverEnv = {
   drupalBaseUrl: process.env.DRUPAL_BASE_URL ?? "",
   drupalApiToken: process.env.DRUPAL_API_TOKEN ?? "",
   contentSource: (process.env.OWC_CONTENT_SOURCE ?? "auto") as ContentSource,
+  malwareScanUrl: process.env.OWC_MALWARE_SCAN_URL ?? "",
+  malwareScanApiKey: process.env.OWC_MALWARE_SCAN_API_KEY ?? "",
+  requireMalwareScan: process.env.OWC_REQUIRE_MALWARE_SCAN === "true",
 } as const;
 
 /** True when Supabase (Auth + Postgres) credentials are present. */
