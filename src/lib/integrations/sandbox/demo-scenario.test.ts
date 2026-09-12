@@ -15,8 +15,9 @@ describe("OWC end-to-end integration workflow", () => {
       "employment",
       "medical",
       "insurance",
-      "determination",
       "bank_account",
+      "record_reconciliation",
+      "determination",
       "payment",
       "notification",
     ]);
@@ -35,6 +36,24 @@ describe("OWC end-to-end integration workflow", () => {
     });
     expect(result.steps[1]).toMatchObject({ key: "identity", status: "failed" });
     expect(result.paymentTransactionReference).toBeNull();
+  });
+
+  test("stops a claim when valid records belong to different workers", () => {
+    const result = runWorkerClaimDemo({
+      nid: "NID-00010001",
+      registrationNo: "IPA-2018-2044",
+      tin: "TIN-90010002",
+      employeeNo: "EMP-0001002",
+      certificateNo: "MED-2026-00452",
+      policyNo: "WC-POL-2026-01903",
+      accountReference: "BANK-ACC-3921",
+    });
+
+    expect(result.status).toBe("stopped");
+    expect(result.steps.at(-1)).toMatchObject({
+      key: "record_reconciliation",
+      status: "failed",
+    });
   });
 
   test("reuses the same payment transaction for a repeated claim run", () => {
