@@ -21,11 +21,11 @@ describe("claim evidence upload controls", () => {
   });
 
   test("issues and verifies a short-lived claim-scoped evidence upload token", async () => {
-    const module = (await import("./evidence-upload")) as Record<string, unknown>;
-    const issueEvidenceUploadToken = module.issueEvidenceUploadToken as
+    const evidenceModule = (await import("./evidence-upload")) as Record<string, unknown>;
+    const issueEvidenceUploadToken = evidenceModule.issueEvidenceUploadToken as
       | undefined
       | ((claimReference: string, secret: string, options?: { nowMs?: number; ttlMs?: number }) => Promise<string>);
-    const verifyEvidenceUploadToken = module.verifyEvidenceUploadToken as
+    const verifyEvidenceUploadToken = evidenceModule.verifyEvidenceUploadToken as
       | undefined
       | ((token: string, claimReference: string, secret: string, options?: { nowMs?: number }) => Promise<boolean>);
 
