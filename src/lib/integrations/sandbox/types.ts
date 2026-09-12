@@ -1,4 +1,5 @@
 export type SandboxServiceName =
+  | "cpps"
   | "nid"
   | "ipa"
   | "irc"
