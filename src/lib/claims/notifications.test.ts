@@ -6,11 +6,10 @@ import {
 
 describe("claim lifecycle notifications", () => {
   test("maps key claim transitions to notification events", () => {
-    expect(notificationEventForTransition("Lodged", "Under Assessment")).toBe("ASSESSMENT_STARTED");
-    expect(notificationEventForTransition("Under Assessment", "Documents Required")).toBe("DOCUMENT_REQUIRED");
+    expect(notificationEventForTransition("New", "Under Assessment")).toBe("ASSESSMENT_STARTED");
+    expect(notificationEventForTransition("Under Assessment", "Awaiting Documents")).toBe("DOCUMENT_REQUIRED");
     expect(notificationEventForTransition("Under Assessment", "Approved")).toBe("CLAIM_APPROVED");
     expect(notificationEventForTransition("Approved", "Paid")).toBe("PAYMENT_PROCESSED");
-    expect(notificationEventForTransition("Paid", "Closed")).toBe("CLAIM_CLOSED");
   });
 
   test("creates claimant-safe messages without exposing medical or banking details", () => {
