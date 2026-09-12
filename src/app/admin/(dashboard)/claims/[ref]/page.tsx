@@ -12,6 +12,7 @@ import {
   ShieldCheck,
 } from "lucide-react";
 import { AdminPageHeader, StatusBadge } from "@/components/admin/admin-shell";
+import { ClaimStatusActions } from "@/components/claims/claim-status-actions";
 import { EvidenceActions } from "@/components/claims/evidence-actions";
 import { EvidenceUploadForm } from "@/components/claims/evidence-upload-form";
 import { Badge } from "@/components/ui/badge";
@@ -79,8 +80,13 @@ export default async function AdminClaimDetailPage({
               <ShieldCheck className="h-4 w-4 text-primary" /> Claim status
             </CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="space-y-3">
             <StatusBadge status={claim.status} />
+            <ClaimStatusActions
+              claimReference={claim.ref}
+              status={claim.status}
+              canManage={canManageEvidence}
+            />
           </CardContent>
         </Card>
       </div>
