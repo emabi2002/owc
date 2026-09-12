@@ -45,6 +45,8 @@ export const serverEnv = {
   malwareScanUrl: process.env.OWC_MALWARE_SCAN_URL ?? "",
   malwareScanApiKey: process.env.OWC_MALWARE_SCAN_API_KEY ?? "",
   requireMalwareScan: process.env.OWC_REQUIRE_MALWARE_SCAN === "true",
+  notificationApiUrl: process.env.OWC_NOTIFICATION_API_URL ?? "",
+  notificationApiKey: process.env.OWC_NOTIFICATION_API_KEY ?? "",
 } as const;
 
 /** True when Supabase (Auth + Postgres) credentials are present. */
