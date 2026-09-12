@@ -1,10 +1,9 @@
 /**
  * Public content data access layer.
  *
- * Every reader queries Supabase when configured (returning only `published`
- * content via RLS) and transparently falls back to the local seed dataset in
- * demo mode. UI code should depend on these functions — never on raw rows or
- * the seed module directly.
+ * Drupal is the preferred enterprise CMS when configured. During migration the
+ * existing Supabase content tables remain available as a controlled fallback,
+ * followed by the local seed dataset.
  */
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { isSupabaseConfigured, publicEnv } from "@/lib/env";
@@ -29,13 +28,12 @@ import {
   SEED_REPORTS,
   SEED_TENDERS,
 } from "@/lib/db/seed";
+import { getDrupalNews } from "@/lib/drupal/content";
 
-/** Cache-friendly revalidation window (seconds) for ISR. */
 export const CONTENT_REVALIDATE = 60;
 
 let cached: SupabaseClient<Database> | null = null;
 
-/** Anon, cookie-less client for public reads (safe at build time + ISR). */
 function publicClient(): SupabaseClient<Database> | null {
   if (!isSupabaseConfigured) return null;
   if (!cached) {
@@ -52,6 +50,9 @@ const iso = (d: string | null, fallback: string) => (d ?? fallback).slice(0, 10)
 
 /* -------------------------------- News --------------------------------- */
 export async function getNews(): Promise<NewsItem[]> {
+  const drupal = await getDrupalNews();
+  if (drupal?.length) return drupal;
+
   const db = publicClient();
   if (!db) return SEED_NEWS;
   const { data, error } = await db
