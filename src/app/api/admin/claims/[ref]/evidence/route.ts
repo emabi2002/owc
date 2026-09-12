@@ -6,6 +6,11 @@ import {
   sha256Hex,
   validateEvidenceFile,
 } from "@/lib/claims/evidence-upload";
+import {
+  scanEvidenceBytes,
+  shouldBlockEvidenceUpload,
+} from "@/lib/claims/malware-scan";
+import { serverEnv } from "@/lib/env";
 import { createAdminSupabaseClient } from "@/lib/supabase/admin";
 
 const CATEGORIES = new Set([
@@ -66,6 +71,27 @@ export async function POST(
   }
 
   const bytes = await file.arrayBuffer();
+  const malwareScan = await scanEvidenceBytes({
+    bytes,
+    fileName: file.name,
+    mimeType: file.type,
+    endpoint: serverEnv.malwareScanUrl,
+    apiKey: serverEnv.malwareScanApiKey,
+  });
+
+  if (shouldBlockEvidenceUpload(malwareScan, serverEnv.requireMalwareScan)) {
+    if (malwareScan.status === "infected") {
+      return NextResponse.json(
+        { error: "Evidence file failed security scanning" },
+        { status: 400 },
+      );
+    }
+    return NextResponse.json(
+      { error: "Evidence security scanning is temporarily unavailable" },
+      { status: 503 },
+    );
+  }
+
   const sha256 = await sha256Hex(bytes);
   const objectId = crypto.randomUUID();
   const storagePath = buildEvidenceStoragePath(claimReference, file.name, objectId);
@@ -105,7 +131,10 @@ export async function POST(
     status: "Pending Review",
     uploaded_by: user.fullName,
     uploaded_by_id: user.id === "demo-admin" ? null : user.id,
-    metadata: { original_name: file.name },
+    metadata: {
+      original_name: file.name,
+      malware_scan_status: malwareScan.status,
+    },
   });
 
   if (metadataError) {
@@ -125,6 +154,7 @@ export async function POST(
       sizeBytes: file.size,
       sha256,
       status: "Pending Review",
+      securityScan: malwareScan.status,
     },
     { status: 201 },
   );
