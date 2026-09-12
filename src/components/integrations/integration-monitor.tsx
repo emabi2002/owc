@@ -34,7 +34,7 @@ export function IntegrationMonitor() {
         fetch("/api/sandbox/events", { cache: "no-store" }),
       ]);
       if (!healthResponse.ok || !eventsResponse.ok) {
-        throw new Error("Sandbox integration services are disabled or unavailable.");
+        throw new Error("Integration services are unavailable.");
       }
       const healthJson = (await healthResponse.json()) as HealthResponse;
       const eventsJson = (await eventsResponse.json()) as EventsResponse;
@@ -62,11 +62,8 @@ export function IntegrationMonitor() {
         <div className="flex items-start gap-3">
           <ShieldAlert className="mt-0.5 h-5 w-5 text-destructive" />
           <div className="flex-1">
-            <p className="font-semibold">Integration sandbox unavailable</p>
+            <p className="font-semibold">Integration services unavailable</p>
             <p className="mt-1 text-sm text-muted-foreground">{error}</p>
-            <p className="mt-2 text-xs text-muted-foreground">
-              Enable only in the controlled demo/UAT environment with OWC_ENABLE_SANDBOX=true.
-            </p>
           </div>
           <Button variant="outline" size="sm" onClick={refresh}>
             <RefreshCw className="h-4 w-4" /> Retry
@@ -81,7 +78,7 @@ export function IntegrationMonitor() {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
           <Activity className="h-4 w-4 text-success" />
-          {loading ? "Loading telemetry…" : `${rows.length} sandbox services monitored`}
+          {loading ? "Loading telemetry…" : `${rows.length} integration services monitored`}
         </div>
         <Button variant="outline" size="sm" onClick={refresh} disabled={loading}>
           <RefreshCw className="h-4 w-4" /> Refresh
@@ -94,17 +91,13 @@ export function IntegrationMonitor() {
             <CardHeader className="space-y-2 pb-3">
               <div className="flex items-start justify-between gap-2">
                 <ServerCog className="h-5 w-5 text-primary" />
-                <Badge variant="warning">SANDBOX</Badge>
-              </div>
-              <CardTitle className="text-base">{row.label}</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-2 text-sm">
-              <div className="flex items-center justify-between gap-2">
-                <span className="text-muted-foreground">Health</span>
                 <Badge variant={row.health === "online" ? "success" : "destructive"}>
                   {row.health.toUpperCase()}
                 </Badge>
               </div>
+              <CardTitle className="text-base">{row.label}</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2 text-sm">
               <div>
                 <div className="text-xs text-muted-foreground">Last operation</div>
                 <div className="truncate font-medium">{row.lastOperation ?? "No activity yet"}</div>
@@ -134,7 +127,7 @@ export function IntegrationMonitor() {
         </CardHeader>
         <CardContent>
           {events.length === 0 ? (
-            <p className="text-sm text-muted-foreground">Run the demonstration scenario to populate transaction traces.</p>
+            <p className="text-sm text-muted-foreground">No integration transactions recorded yet.</p>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full min-w-[760px] text-left text-sm">
