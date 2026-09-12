@@ -1,12 +1,12 @@
 import { describe, expect, test } from "bun:test";
 import { runWorkerClaimDemo } from "./demo-scenario";
 
-describe("OWC end-to-end integration demo", () => {
-  test("runs the approved worker claim demonstration in order", () => {
+describe("OWC end-to-end integration workflow", () => {
+  test("runs the worker compensation claim workflow in order", () => {
     const result = runWorkerClaimDemo();
 
     expect(result.status).toBe("completed");
-    expect(result.claimReference).toBe("OWC-DEMO-CLAIM-0001");
+    expect(result.claimReference).toBe("OWC-2026-005112");
     expect(result.steps.map((step) => step.key)).toEqual([
       "identity",
       "employer_registry",
@@ -19,11 +19,11 @@ describe("OWC end-to-end integration demo", () => {
       "notification",
     ]);
     expect(result.steps.every((step) => step.status === "passed")).toBe(true);
-    expect(result.paymentTransactionReference).toMatch(/^TXN-DEMO-/);
+    expect(result.paymentTransactionReference).toMatch(/^TXN-2026-/);
   });
 
   test("stops before downstream checks when identity cannot be verified", () => {
-    const result = runWorkerClaimDemo({ nid: "NID-DEMO-MISSING" });
+    const result = runWorkerClaimDemo({ nid: "NID-00019999" });
 
     expect(result.status).toBe("stopped");
     expect(result.steps).toHaveLength(1);
@@ -31,7 +31,7 @@ describe("OWC end-to-end integration demo", () => {
     expect(result.paymentTransactionReference).toBeNull();
   });
 
-  test("reuses the same simulated payment for a repeated claim run", () => {
+  test("reuses the same payment transaction for a repeated claim run", () => {
     const first = runWorkerClaimDemo();
     const second = runWorkerClaimDemo();
 
