@@ -28,7 +28,15 @@ import {
   SEED_REPORTS,
   SEED_TENDERS,
 } from "@/lib/db/seed";
-import { getDrupalNews } from "@/lib/drupal/content";
+import {
+  getDrupalFaqs,
+  getDrupalForms,
+  getDrupalLegislation,
+  getDrupalNews,
+  getDrupalPublications,
+  getDrupalReports,
+  getDrupalTenders,
+} from "@/lib/drupal/content";
 
 export const CONTENT_REVALIDATE = 60;
 
@@ -86,6 +94,9 @@ export async function getNewsSlugs(): Promise<string[]> {
 
 /* -------------------------------- Forms -------------------------------- */
 export async function getForms(): Promise<FormItem[]> {
+  const drupal = await getDrupalForms();
+  if (drupal?.length) return drupal;
+
   const db = publicClient();
   if (!db) return SEED_FORMS;
   const { data, error } = await db
@@ -108,6 +119,9 @@ export async function getForms(): Promise<FormItem[]> {
 
 /* ------------------------------- Reports ------------------------------- */
 export async function getReports(): Promise<ReportItem[]> {
+  const drupal = await getDrupalReports();
+  if (drupal?.length) return drupal;
+
   const db = publicClient();
   if (!db) return SEED_REPORTS;
   const { data, error } = await db
@@ -128,6 +142,9 @@ export async function getReports(): Promise<ReportItem[]> {
 
 /* -------------------------------- FAQs --------------------------------- */
 export async function getFaqs(): Promise<FaqItem[]> {
+  const drupal = await getDrupalFaqs();
+  if (drupal?.length) return drupal;
+
   const db = publicClient();
   if (!db) return SEED_FAQS;
   const { data, error } = await db
@@ -155,6 +172,9 @@ export async function getFaqsByCategory(
 
 /* ----------------------------- Publications ---------------------------- */
 export async function getPublications(): Promise<PublicationItem[]> {
+  const drupal = await getDrupalPublications();
+  if (drupal?.length) return drupal;
+
   const db = publicClient();
   if (!db) return SEED_PUBLICATIONS;
   const { data, error } = await db
@@ -177,6 +197,9 @@ export async function getPublications(): Promise<PublicationItem[]> {
 
 /* ----------------------------- Legislation ----------------------------- */
 export async function getLegislation(): Promise<LegislationItem[]> {
+  const drupal = await getDrupalLegislation();
+  if (drupal?.length) return drupal;
+
   const db = publicClient();
   if (!db) return SEED_LEGISLATION;
   const { data, error } = await db
@@ -198,6 +221,9 @@ export async function getLegislation(): Promise<LegislationItem[]> {
 
 /* ------------------------------- Tenders ------------------------------- */
 export async function getTenders(): Promise<TenderItem[]> {
+  const drupal = await getDrupalTenders();
+  if (drupal?.length) return drupal;
+
   const db = publicClient();
   if (!db) return SEED_TENDERS;
   const { data, error } = await db
