@@ -19,14 +19,17 @@ import {
   DEMO_MEDICAL_CERTIFICATE,
   DEMO_TAXPAYER,
 } from "./data";
+import { recordClaimDetermination, registerClaimProcessing } from "./cpps";
 
 export type DemoStepKey =
+  | "claim_registration"
   | "identity"
   | "employer_registry"
   | "tax_compliance"
   | "employment"
   | "medical"
   | "insurance"
+  | "determination"
   | "bank_account"
   | "payment"
   | "notification";
@@ -72,6 +75,22 @@ export function runWorkerClaimDemo(
 ): DemoScenarioResult {
   const claimReference = DEMO_CLAIM_REFERENCE;
   const steps: DemoStep[] = [];
+
+  const registration = registerClaimProcessing({
+    claimReference,
+    workerName: `${DEMO_IDENTITY.firstName} ${DEMO_IDENTITY.surname}`,
+    employerName: DEMO_EMPLOYER.legalName,
+  });
+  steps.push({
+    key: "claim_registration",
+    label: "Claims processing registration",
+    status: registration.data.accepted ? "passed" : "failed",
+    summary: registration.data.accepted
+      ? `Claim ${claimReference} registered for assessment`
+      : "Claim could not be registered",
+    correlationId: registration.correlationId,
+  });
+  if (!registration.data.accepted) return stopped(claimReference, steps);
 
   const identity = verifyIdentity(overrides.nid ?? DEMO_IDENTITY.nid);
   const identityPassed = identity.data.matched === true;
@@ -140,6 +159,21 @@ export function runWorkerClaimDemo(
     correlationId: insurance.correlationId,
   });
   if (!insurancePassed) return stopped(claimReference, steps);
+
+  const determination = recordClaimDetermination({
+    claimReference,
+    approvedAmountPgk: 18_450,
+  });
+  steps.push({
+    key: "determination",
+    label: "Claim determination",
+    status: determination.data.accepted ? "passed" : "failed",
+    summary: determination.data.accepted
+      ? "Claim approved for K18,450.00 compensation"
+      : "Claim determination could not be recorded",
+    correlationId: determination.correlationId,
+  });
+  if (!determination.data.accepted) return stopped(claimReference, steps);
 
   const bank = verifyBankAccount(overrides.accountReference ?? DEMO_BANK_ACCOUNT.accountReference);
   const bankPassed = bank.data.verified === true;
