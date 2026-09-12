@@ -16,7 +16,7 @@ export function DemoRunner() {
     setRunning(true);
     setError(null);
     try {
-      const response = await fetch("/api/sandbox/demo/run", {
+      const response = await fetch("/api/integrations/claim/process", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
       });
