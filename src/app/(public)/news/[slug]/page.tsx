@@ -47,7 +47,6 @@ export default async function NewsArticlePage({
 
   return (
     <article>
-      {/* Hero */}
       <header className="relative overflow-hidden bg-flag-diag text-white">
         <div className="absolute inset-0 bg-grid-faint opacity-30" aria-hidden />
         <div className="container-gov relative py-12 lg:py-16">
@@ -69,51 +68,36 @@ export default async function NewsArticlePage({
         </div>
       </header>
 
-      {/* Body */}
       <div className="container-gov grid gap-10 py-12 lg:grid-cols-12 lg:py-16">
         <div className="lg:col-span-8">
           <div className="overflow-hidden rounded-2xl border border-border shadow-sm">
             <img src={article.image} alt={article.title} className="h-[360px] w-full object-cover" />
           </div>
 
-          <div className="prose-gov mt-8 space-y-5 text-[16px] leading-relaxed text-foreground/90">
-            <p className="text-lg font-medium text-foreground">{article.excerpt}</p>
-            <p>
-              The Office of Workers Compensation continues to strengthen the
-              services it provides to injured workers, dependants and employers
-              across Papua New Guinea. This initiative reflects the Office's
-              commitment to administering the {ORG.act} fairly, efficiently and
-              transparently.
-            </p>
-            <p>
-              Under the leadership of the Ministry of Labour and Employment, the
-              Office is investing in modern systems and clearer processes that
-              reduce the time it takes to determine claims and improve the
-              experience for everyone who interacts with the compensation scheme.
-            </p>
-            <blockquote className="rounded-r-xl border-l-4 border-gold bg-secondary/60 p-5 font-serif text-lg italic text-primary">
-              "Protecting the wellbeing of workers is at the heart of everything we
-              do. Every claim represents a person and a family who depend on a fair
-              and timely outcome."
-            </blockquote>
-            <p>
-              Workers and employers are encouraged to make use of the online
-              services available on this portal, including lodging and tracking
-              claims, downloading official forms, and contacting the Office
-              directly with any enquiry.
-            </p>
-            <h2 className="font-serif text-2xl font-bold text-primary">
-              What this means for you
-            </h2>
-            <p>
-              If you have an active claim, you can continue to track its progress
-              using your reference number. Employers are reminded to keep their
-              registration and insurance details up to date to remain compliant
-              with their obligations under the Act.
-            </p>
+          <div className="prose-gov mt-8 text-[16px] leading-relaxed text-foreground/90">
+            {article.excerpt && (
+              <p className="mb-5 text-lg font-medium text-foreground">{article.excerpt}</p>
+            )}
+            {article.body ? (
+              <div dangerouslySetInnerHTML={{ __html: article.body }} />
+            ) : (
+              <div className="space-y-5">
+                <p>
+                  The Office of Workers Compensation continues to strengthen the
+                  services it provides to injured workers, dependants and employers
+                  across Papua New Guinea. This initiative reflects the Office&apos;s
+                  commitment to administering the {ORG.act} fairly, efficiently and
+                  transparently.
+                </p>
+                <p>
+                  Workers and employers are encouraged to use the online services
+                  available on this portal, including lodging and tracking claims,
+                  downloading official forms, and contacting the Office directly.
+                </p>
+              </div>
+            )}
           </div>
 
-          {/* Share */}
           <div className="mt-8 flex items-center gap-3 border-t border-border pt-6">
             <span className="text-sm font-medium text-muted-foreground">Share:</span>
             <Button variant="outline" size="sm"><Share2 className="h-4 w-4" /> Share</Button>
@@ -121,7 +105,6 @@ export default async function NewsArticlePage({
           </div>
         </div>
 
-        {/* Sidebar */}
         <aside className="lg:col-span-4">
           <div className="sticky top-28 space-y-6">
             <div className="rounded-2xl border border-border bg-card p-6">
@@ -146,12 +129,9 @@ export default async function NewsArticlePage({
             </div>
 
             <div className="rounded-2xl border border-gold/30 bg-gold/10 p-6">
-              <h3 className="font-serif text-lg font-bold text-primary">
-                Need assistance?
-              </h3>
+              <h3 className="font-serif text-lg font-bold text-primary">Need assistance?</h3>
               <p className="mt-1 text-sm text-muted-foreground">
-                Contact the Office of Workers Compensation for help with claims or
-                enquiries.
+                Contact the Office of Workers Compensation for help with claims or enquiries.
               </p>
               <Button asChild variant="default" size="sm" className="mt-4">
                 <Link href="/contact">Contact us <ArrowRight /></Link>
