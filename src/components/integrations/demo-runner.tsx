@@ -20,10 +20,10 @@ export function DemoRunner() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
       });
-      if (!response.ok) throw new Error("The controlled integration sandbox is disabled or unavailable.");
+      if (!response.ok) throw new Error("One or more integration services are unavailable.");
       setResult((await response.json()) as DemoScenarioResult);
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "Demo execution failed.");
+      setError(cause instanceof Error ? cause.message : "Claim processing could not be completed.");
     } finally {
       setRunning(false);
     }
@@ -35,22 +35,22 @@ export function DemoRunner() {
         <CardHeader>
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
-              <CardTitle>Scenario: Worker Compensation Claim</CardTitle>
+              <CardTitle>Worker Compensation Claim Processing</CardTitle>
               <p className="mt-2 max-w-3xl text-sm text-muted-foreground">
-                Demonstrates real API orchestration against synthetic NID, employer registry, IRC, employer HR, medical, insurance, banking and notification services.
+                Orchestrates identity, employer registration, tax compliance, employment, medical, insurance, banking and notification services through the OWC integration layer.
               </p>
             </div>
-            <Badge variant="warning">SANDBOX DATA ONLY</Badge>
+            <Badge variant="success">READY</Badge>
           </div>
         </CardHeader>
         <CardContent className="flex flex-wrap gap-3">
           <Button onClick={run} disabled={running}>
             <PlayCircle className="h-4 w-4" />
-            {running ? "Running integrations…" : "Run end-to-end demonstration"}
+            {running ? "Processing integrations…" : "Process claim workflow"}
           </Button>
           {result && (
             <Button variant="outline" onClick={() => setResult(null)} disabled={running}>
-              <RotateCcw className="h-4 w-4" /> Reset screen
+              <RotateCcw className="h-4 w-4" /> Clear result
             </Button>
           )}
         </CardContent>
@@ -66,7 +66,7 @@ export function DemoRunner() {
         <Card>
           <CardContent className="py-10 text-center text-sm text-muted-foreground">
             <Circle className="mx-auto mb-3 h-8 w-8" />
-            Run the scenario to demonstrate the complete cross-agency transaction chain.
+            Select Process claim workflow to execute the complete cross-agency transaction chain.
           </CardContent>
         </Card>
       ) : (
@@ -77,7 +77,7 @@ export function DemoRunner() {
               <CardContent className="font-mono text-sm">{result.claimReference}</CardContent>
             </Card>
             <Card>
-              <CardHeader className="pb-2"><CardTitle className="text-sm">Scenario Status</CardTitle></CardHeader>
+              <CardHeader className="pb-2"><CardTitle className="text-sm">Processing Status</CardTitle></CardHeader>
               <CardContent><Badge variant={result.status === "completed" ? "success" : "destructive"}>{result.status.toUpperCase()}</Badge></CardContent>
             </Card>
             <Card>
