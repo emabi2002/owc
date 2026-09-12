@@ -1,4 +1,13 @@
 import {
+  ADDITIONAL_BANK_ACCOUNTS,
+  ADDITIONAL_EMPLOYERS,
+  ADDITIONAL_EMPLOYMENTS,
+  ADDITIONAL_IDENTITIES,
+  ADDITIONAL_INSURANCE_POLICIES,
+  ADDITIONAL_MEDICAL_CERTIFICATES,
+  ADDITIONAL_TAXPAYERS,
+} from "./additional-data";
+import {
   DEMO_BANK_ACCOUNT,
   DEMO_EMPLOYER,
   DEMO_EMPLOYMENT,
@@ -11,139 +20,173 @@ import { makeSandboxEnvelope } from "./service";
 
 const payments = new Map<string, { transactionReference: string; status: "PROCESSED" }>();
 
+const identities = [DEMO_IDENTITY, ...ADDITIONAL_IDENTITIES];
+const employers = [DEMO_EMPLOYER, ...ADDITIONAL_EMPLOYERS];
+const taxpayers = [DEMO_TAXPAYER, ...ADDITIONAL_TAXPAYERS];
+const employments = [DEMO_EMPLOYMENT, ...ADDITIONAL_EMPLOYMENTS];
+const medicalCertificates = [
+  DEMO_MEDICAL_CERTIFICATE,
+  ...ADDITIONAL_MEDICAL_CERTIFICATES,
+];
+const insurancePolicies = [
+  DEMO_INSURANCE_POLICY,
+  ...ADDITIONAL_INSURANCE_POLICIES,
+];
+const bankAccounts = [DEMO_BANK_ACCOUNT, ...ADDITIONAL_BANK_ACCOUNTS];
+
+const code = (value: string) => value.trim().toUpperCase();
+
 export function verifyIdentity(nid: string) {
-  const matched = nid.trim().toUpperCase() === DEMO_IDENTITY.nid;
+  const normalized = code(nid);
+  const record = identities.find((item) => item.nid === normalized);
+  const matched = Boolean(record);
   return makeSandboxEnvelope(
     "nid",
     "verify_identity",
-    matched
+    record
       ? {
           matched: true,
-          nid: DEMO_IDENTITY.nid,
-          firstName: DEMO_IDENTITY.firstName,
-          surname: DEMO_IDENTITY.surname,
-          dateOfBirth: DEMO_IDENTITY.dateOfBirth,
-          province: DEMO_IDENTITY.province,
-          identityStatus: DEMO_IDENTITY.identityStatus,
+          nid: record.nid,
+          firstName: record.firstName,
+          surname: record.surname,
+          dateOfBirth: record.dateOfBirth,
+          province: record.province,
+          identityStatus: record.identityStatus,
         }
-      : { matched: false, nid: nid.trim().toUpperCase() },
+      : { matched: false, nid: normalized },
     matched ? "success" : "not_found",
   );
 }
 
 export function verifyEmployer(registrationNo: string) {
-  const active = registrationNo.trim().toUpperCase() === DEMO_EMPLOYER.registrationNo;
+  const normalized = code(registrationNo);
+  const record = employers.find((item) => item.registrationNo === normalized);
+  const active = record?.status === "ACTIVE";
   return makeSandboxEnvelope(
     "ipa",
     "verify_company",
-    active
+    record && active
       ? {
           active: true,
-          registrationNo: DEMO_EMPLOYER.registrationNo,
-          legalName: DEMO_EMPLOYER.legalName,
-          tradingName: DEMO_EMPLOYER.tradingName,
-          industry: DEMO_EMPLOYER.industry,
-          registeredAddress: DEMO_EMPLOYER.registeredAddress,
+          registrationNo: record.registrationNo,
+          legalName: record.legalName,
+          tradingName: record.tradingName,
+          industry: record.industry,
+          registeredAddress: record.registeredAddress,
         }
-      : { active: false, registrationNo: registrationNo.trim().toUpperCase() },
+      : { active: false, registrationNo: normalized },
     active ? "success" : "not_found",
   );
 }
 
 export function checkTaxCompliance(tin: string) {
-  const matched = tin.trim().toUpperCase() === DEMO_TAXPAYER.tin;
+  const normalized = code(tin);
+  const record = taxpayers.find((item) => item.tin === normalized);
+  const matched = Boolean(record);
   return makeSandboxEnvelope(
     "irc",
     "check_compliance",
-    matched
+    record
       ? {
           found: true,
-          tin: DEMO_TAXPAYER.tin,
-          taxpayerName: DEMO_TAXPAYER.taxpayerName,
-          registrationNo: DEMO_TAXPAYER.registrationNo,
-          status: DEMO_TAXPAYER.status,
+          tin: record.tin,
+          taxpayerName: record.taxpayerName,
+          registrationNo: record.registrationNo,
+          status: record.status,
         }
-      : { found: false, tin: tin.trim().toUpperCase(), status: "UNKNOWN" as const },
+      : { found: false, tin: normalized, status: "UNKNOWN" as const },
     matched ? "success" : "not_found",
   );
 }
 
 export function verifyEmployment(employeeNo: string) {
-  const employed = employeeNo.trim().toUpperCase() === DEMO_EMPLOYMENT.employeeNo;
+  const normalized = code(employeeNo);
+  const record = employments.find((item) => item.employeeNo === normalized);
+  const employed = record?.employmentStatus === "ACTIVE";
   return makeSandboxEnvelope(
     "employer",
     "verify_employment",
-    employed
+    record && employed
       ? {
           employed: true,
-          employeeNo: DEMO_EMPLOYMENT.employeeNo,
-          nid: DEMO_EMPLOYMENT.nid,
-          employerRegistrationNo: DEMO_EMPLOYMENT.employerRegistrationNo,
-          employeeName: DEMO_EMPLOYMENT.employeeName,
-          position: DEMO_EMPLOYMENT.position,
-          workLocation: DEMO_EMPLOYMENT.workLocation,
-          fortnightlySalaryPgk: DEMO_EMPLOYMENT.fortnightlySalaryPgk,
-          employmentStatus: DEMO_EMPLOYMENT.employmentStatus,
+          employeeNo: record.employeeNo,
+          nid: record.nid,
+          employerRegistrationNo: record.employerRegistrationNo,
+          employeeName: record.employeeName,
+          position: record.position,
+          workLocation: record.workLocation,
+          fortnightlySalaryPgk: record.fortnightlySalaryPgk,
+          employmentStatus: record.employmentStatus,
         }
-      : { employed: false, employeeNo: employeeNo.trim().toUpperCase() },
+      : { employed: false, employeeNo: normalized },
     employed ? "success" : "not_found",
   );
 }
 
 export function verifyMedicalCertificate(certificateNo: string) {
-  const valid = certificateNo.trim().toUpperCase() === DEMO_MEDICAL_CERTIFICATE.certificateNo;
+  const normalized = code(certificateNo);
+  const record = medicalCertificates.find(
+    (item) => item.certificateNo === normalized,
+  );
+  const valid = record?.status === "VALID";
   return makeSandboxEnvelope(
     "medical",
     "verify_certificate",
-    valid
+    record && valid
       ? {
           valid: true,
-          certificateNo: DEMO_MEDICAL_CERTIFICATE.certificateNo,
-          patientNid: DEMO_MEDICAL_CERTIFICATE.patientNid,
-          provider: DEMO_MEDICAL_CERTIFICATE.provider,
-          practitioner: DEMO_MEDICAL_CERTIFICATE.practitioner,
-          injuryCategory: DEMO_MEDICAL_CERTIFICATE.injuryCategory,
-          incapacityDays: DEMO_MEDICAL_CERTIFICATE.incapacityDays,
-          issuedAt: DEMO_MEDICAL_CERTIFICATE.issuedAt,
+          certificateNo: record.certificateNo,
+          patientNid: record.patientNid,
+          provider: record.provider,
+          practitioner: record.practitioner,
+          injuryCategory: record.injuryCategory,
+          incapacityDays: record.incapacityDays,
+          issuedAt: record.issuedAt,
         }
-      : { valid: false, certificateNo: certificateNo.trim().toUpperCase() },
+      : { valid: false, certificateNo: normalized },
     valid ? "success" : "not_found",
   );
 }
 
 export function verifyInsurancePolicy(policyNo: string) {
-  const active = policyNo.trim().toUpperCase() === DEMO_INSURANCE_POLICY.policyNo;
+  const normalized = code(policyNo);
+  const record = insurancePolicies.find((item) => item.policyNo === normalized);
+  const active = record?.status === "ACTIVE";
   return makeSandboxEnvelope(
     "insurance",
     "verify_policy",
-    active
+    record && active
       ? {
           active: true,
-          policyNo: DEMO_INSURANCE_POLICY.policyNo,
-          employerRegistrationNo: DEMO_INSURANCE_POLICY.employerRegistrationNo,
-          insurer: DEMO_INSURANCE_POLICY.insurer,
-          coverType: DEMO_INSURANCE_POLICY.coverType,
-          expiryDate: DEMO_INSURANCE_POLICY.expiryDate,
+          policyNo: record.policyNo,
+          employerRegistrationNo: record.employerRegistrationNo,
+          insurer: record.insurer,
+          coverType: record.coverType,
+          expiryDate: record.expiryDate,
         }
-      : { active: false, policyNo: policyNo.trim().toUpperCase() },
+      : { active: false, policyNo: normalized },
     active ? "success" : "not_found",
   );
 }
 
 export function verifyBankAccount(accountReference: string) {
-  const verified = accountReference.trim().toUpperCase() === DEMO_BANK_ACCOUNT.accountReference;
+  const normalized = code(accountReference);
+  const record = bankAccounts.find(
+    (item) => item.accountReference === normalized,
+  );
+  const verified = record?.status === "VERIFIED";
   return makeSandboxEnvelope(
     "bank",
     "verify_account",
-    verified
+    record && verified
       ? {
           verified: true,
-          accountReference: DEMO_BANK_ACCOUNT.accountReference,
-          bankName: DEMO_BANK_ACCOUNT.bankName,
-          accountName: DEMO_BANK_ACCOUNT.accountName,
-          maskedAccountNumber: DEMO_BANK_ACCOUNT.maskedAccountNumber,
+          accountReference: record.accountReference,
+          bankName: record.bankName,
+          accountName: record.accountName,
+          maskedAccountNumber: record.maskedAccountNumber,
         }
-      : { verified: false, accountReference: accountReference.trim().toUpperCase() },
+      : { verified: false, accountReference: normalized },
     verified ? "success" : "not_found",
   );
 }
