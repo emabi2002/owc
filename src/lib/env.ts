@@ -45,6 +45,7 @@ export const serverEnv = {
   malwareScanUrl: process.env.OWC_MALWARE_SCAN_URL ?? "",
   malwareScanApiKey: process.env.OWC_MALWARE_SCAN_API_KEY ?? "",
   requireMalwareScan: process.env.OWC_REQUIRE_MALWARE_SCAN === "true",
+  evidenceUploadSigningSecret: process.env.OWC_EVIDENCE_UPLOAD_SIGNING_SECRET ?? "",
   notificationApiUrl: process.env.OWC_NOTIFICATION_API_URL ?? "",
   notificationApiKey: process.env.OWC_NOTIFICATION_API_KEY ?? "",
 } as const;
