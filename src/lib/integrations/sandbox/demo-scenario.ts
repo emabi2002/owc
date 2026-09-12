@@ -9,6 +9,7 @@ import {
   verifyInsurancePolicy,
   verifyMedicalCertificate,
 } from "./agencies";
+import { validateIntegrationCoherence } from "./coherence";
 import {
   DEMO_BANK_ACCOUNT,
   DEMO_CLAIM_REFERENCE,
@@ -29,8 +30,9 @@ export type DemoStepKey =
   | "employment"
   | "medical"
   | "insurance"
-  | "determination"
   | "bank_account"
+  | "record_reconciliation"
+  | "determination"
   | "payment"
   | "notification";
 
@@ -160,6 +162,71 @@ export function runWorkerClaimDemo(
   });
   if (!insurancePassed) return stopped(claimReference, steps);
 
+  const bank = verifyBankAccount(overrides.accountReference ?? DEMO_BANK_ACCOUNT.accountReference);
+  const bankPassed = bank.data.verified === true;
+  steps.push({
+    key: "bank_account",
+    label: "Bank account verification",
+    status: bankPassed ? "passed" : "failed",
+    summary: bankPassed ? "Claimant bank account verified" : "Bank account not verified",
+    correlationId: bank.correlationId,
+  });
+  if (!bankPassed) return stopped(claimReference, steps);
+
+  const identityData = identity.data as {
+    matched: true;
+    nid: string;
+    firstName: string;
+    surname: string;
+  };
+  const employerData = employer.data as {
+    active: true;
+    registrationNo: string;
+  };
+  const taxData = tax.data as {
+    found: true;
+    registrationNo: string;
+  };
+  const employmentData = employment.data as {
+    employed: true;
+    nid: string;
+    employerRegistrationNo: string;
+  };
+  const medicalData = medical.data as {
+    valid: true;
+    patientNid: string;
+  };
+  const insuranceData = insurance.data as {
+    active: true;
+    employerRegistrationNo: string;
+  };
+  const bankData = bank.data as {
+    verified: true;
+    accountName: string;
+  };
+
+  const reconciliation = validateIntegrationCoherence({
+    nid: identityData.nid,
+    identityName: `${identityData.firstName} ${identityData.surname}`,
+    employerRegistrationNo: employerData.registrationNo,
+    taxpayerRegistrationNo: taxData.registrationNo,
+    employmentNid: employmentData.nid,
+    employmentEmployerRegistrationNo: employmentData.employerRegistrationNo,
+    medicalPatientNid: medicalData.patientNid,
+    insuranceEmployerRegistrationNo: insuranceData.employerRegistrationNo,
+    bankAccountName: bankData.accountName,
+  });
+  steps.push({
+    key: "record_reconciliation",
+    label: "Cross-agency record reconciliation",
+    status: reconciliation.ok ? "passed" : "failed",
+    summary: reconciliation.ok
+      ? "Identity, employer, medical, insurance and banking records reconciled"
+      : reconciliation.reason,
+    correlationId: `RECON-${Date.now().toString(36).toUpperCase()}`,
+  });
+  if (!reconciliation.ok) return stopped(claimReference, steps);
+
   const determination = recordClaimDetermination({
     claimReference,
     approvedAmountPgk: 18_450,
@@ -175,21 +242,10 @@ export function runWorkerClaimDemo(
   });
   if (!determination.data.accepted) return stopped(claimReference, steps);
 
-  const bank = verifyBankAccount(overrides.accountReference ?? DEMO_BANK_ACCOUNT.accountReference);
-  const bankPassed = bank.data.verified === true;
-  steps.push({
-    key: "bank_account",
-    label: "Bank account verification",
-    status: bankPassed ? "passed" : "failed",
-    summary: bankPassed ? "Claimant bank account verified" : "Bank account not verified",
-    correlationId: bank.correlationId,
-  });
-  if (!bankPassed) return stopped(claimReference, steps);
-
   const payment = processSandboxPayment({
     idempotencyKey: `PAY-${claimReference}`,
     claimReference,
-    accountReference: DEMO_BANK_ACCOUNT.accountReference,
+    accountReference: overrides.accountReference ?? DEMO_BANK_ACCOUNT.accountReference,
     amountPgk: 18_450,
   });
   steps.push({
