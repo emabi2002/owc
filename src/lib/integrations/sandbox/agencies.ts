@@ -167,7 +167,7 @@ export function processSandboxPayment(input: SandboxPaymentInput) {
     });
   }
 
-  const transactionReference = `TXN-DEMO-${String(payments.size + 1).padStart(6, "0")}`;
+  const transactionReference = `TXN-2026-${String(payments.size + 1).padStart(8, "0")}`;
   const result = { transactionReference, status: "PROCESSED" as const };
   payments.set(input.idempotencyKey, result);
 
@@ -188,7 +188,7 @@ export function sendSandboxNotification(input: {
 }) {
   return makeSandboxEnvelope("notifications", "send_notification", {
     accepted: true,
-    deliveryReference: `NOTIFY-DEMO-${Date.now().toString(36).toUpperCase()}`,
+    deliveryReference: `MSG-${Date.now().toString(36).toUpperCase()}`,
     ...input,
   });
 }
