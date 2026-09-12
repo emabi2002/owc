@@ -56,4 +56,23 @@ describe("claim evidence upload controls", () => {
       }),
     ).toBe(false);
   });
+
+  test("builds a 15-minute evidence upload grant for a newly lodged claim", async () => {
+    const evidenceModule = (await import("./evidence-upload")) as Record<string, unknown>;
+    const buildEvidenceUploadGrant = evidenceModule.buildEvidenceUploadGrant as
+      | undefined
+      | ((claimReference: string, secret: string, options?: { nowMs?: number }) => Promise<{ token: string; expiresInSeconds: number }>);
+
+    expect(typeof buildEvidenceUploadGrant).toBe("function");
+    if (!buildEvidenceUploadGrant) return;
+
+    const grant = await buildEvidenceUploadGrant(
+      "OWC-2026-004821",
+      "uat-evidence-signing-secret-with-sufficient-entropy",
+      { nowMs: Date.parse("2026-09-13T00:00:00Z") },
+    );
+
+    expect(grant.token.length).toBeGreaterThan(40);
+    expect(grant.expiresInSeconds).toBe(900);
+  });
 });
