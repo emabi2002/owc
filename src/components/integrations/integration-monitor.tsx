@@ -34,8 +34,8 @@ export function IntegrationMonitor() {
   const refresh = useCallback(async () => {
     try {
       const [healthResponse, eventsResponse] = await Promise.all([
-        fetch("/api/sandbox/health", { cache: "no-store" }),
-        fetch("/api/sandbox/events", { cache: "no-store" }),
+        fetch("/api/integrations/health", { cache: "no-store" }),
+        fetch("/api/integrations/events", { cache: "no-store" }),
       ]);
       if (!healthResponse.ok || !eventsResponse.ok) {
         throw new Error("Integration services are unavailable.");
