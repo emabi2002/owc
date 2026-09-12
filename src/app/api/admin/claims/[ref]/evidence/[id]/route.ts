@@ -6,6 +6,7 @@ import {
   buildEvidenceReviewUpdate,
   type EvidenceReviewStatus,
 } from "@/lib/claims/evidence-review";
+import { recordAudit } from "@/lib/data/audit";
 import { createAdminSupabaseClient } from "@/lib/supabase/admin";
 
 function normalizeClaimReference(value: string) {
@@ -73,6 +74,16 @@ export async function GET(
   if (error || !data?.signedUrl) {
     return NextResponse.json({ error: "Unable to open evidence" }, { status: 502 });
   }
+
+  await recordAudit({
+    action: "update",
+    entity: "claim_evidence",
+    entityId: id,
+    summary: `claim evidence: secure access issued for ${claimReference}`,
+    actorId: user.id === "demo-admin" ? undefined : user.id,
+    actorEmail: user.email,
+    metadata: { claimReference, evidenceId: id },
+  });
 
   return NextResponse.json({
     claimReference,
@@ -156,6 +167,21 @@ export async function PATCH(
   if (error) {
     return NextResponse.json({ error: "Unable to update evidence review" }, { status: 502 });
   }
+
+  await recordAudit({
+    action: update.status === "Verified" ? "approve" : "update",
+    entity: "claim_evidence",
+    entityId: id,
+    summary: `claim evidence: ${update.status.toLowerCase()} for ${claimReference}`,
+    actorId: user.id === "demo-admin" ? undefined : user.id,
+    actorEmail: user.email,
+    metadata: {
+      claimReference,
+      evidenceId: id,
+      previousStatus: evidence.status,
+      status: update.status,
+    },
+  });
 
   return NextResponse.json({
     claimReference,
