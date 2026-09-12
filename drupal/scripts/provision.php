@@ -48,7 +48,8 @@ $fields = [
   'field_navigation_weight' => ['type' => 'integer', 'label' => 'Navigation Weight'],
 ];
 
-$bundleFields = json_decode(file_get_contents('/opt/owc-drupal/manifest.json') ?: '{}', true)['fields'] ?? [];
+$manifest = json_decode(file_get_contents('/opt/owc-drupal/manifest.json') ?: '{}', true);
+$bundleFields = $manifest['fields'] ?? [];
 foreach ($bundleFields as $bundle => $names) {
   foreach ($names as $fieldName) {
     $definition = $fields[$fieldName];
@@ -108,6 +109,32 @@ if (!Workflow::load('owc_editorial')) {
       'default_moderation_state' => 'draft',
     ],
   ])->save();
+}
+
+$allContentPermissions = [];
+foreach (array_keys($contentTypes) as $type) {
+  $allContentPermissions[] = "create {$type} content";
+  $allContentPermissions[] = "edit own {$type} content";
+  $allContentPermissions[] = "edit any {$type} content";
+}
+
+$rolePermissions = [
+  'cms_administrator' => array_merge($allContentPermissions, ['administer nodes', 'administer content types', 'administer users', 'administer permissions', 'administer workflows', 'access content overview', 'view all revisions']),
+  'content_editor' => array_merge($allContentPermissions, ['access content overview', 'view latest version', 'use owc_editorial transition submit_for_review', 'use owc_editorial transition return_to_draft']),
+  'reviewer' => ['access content overview', 'view latest version', 'view any unpublished content', 'use owc_editorial transition approve', 'use owc_editorial transition return_to_draft'],
+  'publisher' => ['access content overview', 'view latest version', 'view any unpublished content', 'use owc_editorial transition publish', 'use owc_editorial transition archive'],
+  'auditor' => ['access content overview', 'view all revisions', 'view latest version'],
+];
+
+foreach ($rolePermissions as $roleId => $permissions) {
+  $role = Role::load($roleId);
+  if (!$role) {
+    continue;
+  }
+  foreach ($permissions as $permission) {
+    $role->grantPermission($permission);
+  }
+  $role->save();
 }
 
 $anonymous = Role::load(Role::ANONYMOUS_ID);

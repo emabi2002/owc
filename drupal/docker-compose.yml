@@ -36,7 +36,7 @@ services:
     ports:
       - "${DRUPAL_HTTP_PORT:-8088}:80"
     volumes:
-      - drupal_data:/opt/drupal/web/sites/default/files
+      - drupal_sites:/opt/drupal/web/sites/default
     healthcheck:
       test: ["CMD-SHELL", "curl -fsS http://localhost/ >/dev/null || exit 1"]
       interval: 15s
@@ -45,4 +45,4 @@ services:
 
 volumes:
   postgres_data:
-  drupal_data:
+  drupal_sites:
