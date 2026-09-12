@@ -13,6 +13,7 @@ const bodySchema = z.discriminatedUnion("action", [
   z.object({
     action: z.literal("set"),
     service: z.enum([
+      "cpps",
       "nid",
       "ipa",
       "irc",
