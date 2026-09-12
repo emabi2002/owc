@@ -9,6 +9,15 @@ export const employmentSchema = z.object({ employeeNo: nonEmptyCode });
 export const medicalSchema = z.object({ certificateNo: nonEmptyCode });
 export const insuranceSchema = z.object({ policyNo: nonEmptyCode });
 export const bankAccountSchema = z.object({ accountReference: nonEmptyCode });
+export const claimProcessSchema = z.object({
+  nid: nonEmptyCode,
+  registrationNo: nonEmptyCode,
+  tin: nonEmptyCode,
+  employeeNo: nonEmptyCode,
+  certificateNo: nonEmptyCode,
+  policyNo: nonEmptyCode,
+  accountReference: nonEmptyCode,
+});
 export const bankPaymentSchema = z.object({
   idempotencyKey: nonEmptyCode,
   claimReference: nonEmptyCode,
