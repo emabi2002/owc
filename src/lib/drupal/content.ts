@@ -28,11 +28,19 @@ function text(node: DrupalJsonApiNode, key: string): string {
 }
 
 function date(node: DrupalJsonApiNode, key: string, fallback = ""): string {
-  const value = text(node, key) || fallback || node.attributes.changed || node.attributes.created || "";
+  const value =
+    text(node, key) ||
+    fallback ||
+    node.attributes.changed ||
+    node.attributes.created ||
+    "";
   return value ? value.slice(0, 10) : "";
 }
 
-async function collection(contentType: string, sort?: string): Promise<DrupalJsonApiNode[] | null> {
+async function collection(
+  contentType: string,
+  sort?: string,
+): Promise<DrupalJsonApiNode[] | null> {
   if (!shouldUseDrupalContent()) return null;
   try {
     return await fetchDrupalCollection(serverEnv.drupalBaseUrl, contentType, {
@@ -41,7 +49,10 @@ async function collection(contentType: string, sort?: string): Promise<DrupalJso
       token: serverEnv.drupalApiToken || undefined,
     });
   } catch (error) {
-    console.error(`Drupal ${contentType} read failed; falling back to existing content source`, error);
+    console.error(
+      `Drupal ${contentType} read failed; falling back to existing content source`,
+      error,
+    );
     return null;
   }
 }
@@ -56,8 +67,12 @@ export async function getDrupalFaqs(): Promise<FaqItem[] | null> {
   return nodes
     ? nodes.map((node) => ({
         id: node.id,
-        q: node.attributes.title ?? text(node, "field_question") || "Question",
-        a: text(node, "field_answer") || extractDrupalText(node.attributes.body),
+        q:
+          node.attributes.title ??
+          (text(node, "field_question") || "Question"),
+        a:
+          text(node, "field_answer") ||
+          extractDrupalText(node.attributes.body),
         category: text(node, "field_category") || "General",
       }))
     : null;
@@ -71,7 +86,9 @@ export async function getDrupalForms(): Promise<FormItem[] | null> {
         code: text(node, "field_code") || "OWC",
         title: node.attributes.title ?? "Form",
         category: (text(node, "field_category") || "Claims") as FormCategory,
-        format: (text(node, "field_file_format") || "PDF") as "PDF" | "DOCX",
+        format: (text(node, "field_file_format") || "PDF") as
+          | "PDF"
+          | "DOCX",
         size: text(node, "field_file_size") || "—",
         updated: date(node, "field_updated_date"),
         fileUrl: text(node, "field_file_url") || undefined,
@@ -87,7 +104,9 @@ export async function getDrupalReports(): Promise<ReportItem[] | null> {
         title: node.attributes.title ?? "Report",
         year: text(node, "field_year") || "—",
         size: text(node, "field_file_size") || "—",
-        desc: text(node, "field_description") || extractDrupalText(node.attributes.body),
+        desc:
+          text(node, "field_description") ||
+          extractDrupalText(node.attributes.body),
         fileUrl: text(node, "field_file_url") || undefined,
       }))
     : null;
@@ -100,7 +119,9 @@ export async function getDrupalPublications(): Promise<PublicationItem[] | null>
         id: node.id,
         title: node.attributes.title ?? "Publication",
         category: text(node, "field_category") || "Publication",
-        description: text(node, "field_description") || extractDrupalText(node.attributes.body),
+        description:
+          text(node, "field_description") ||
+          extractDrupalText(node.attributes.body),
         year: text(node, "field_year") || "—",
         format: text(node, "field_file_format") || "PDF",
         size: text(node, "field_file_size") || "—",
@@ -117,7 +138,9 @@ export async function getDrupalLegislation(): Promise<LegislationItem[] | null> 
         title: node.attributes.title ?? "Legislation",
         reference: text(node, "field_reference"),
         category: text(node, "field_category") || "Legislation",
-        description: text(node, "field_description") || extractDrupalText(node.attributes.body),
+        description:
+          text(node, "field_description") ||
+          extractDrupalText(node.attributes.body),
         enactedYear: text(node, "field_enacted_year") || "—",
         fileUrl: text(node, "field_file_url") || undefined,
       }))
@@ -132,9 +155,15 @@ export async function getDrupalTenders(): Promise<TenderItem[] | null> {
         reference: text(node, "field_reference") || "OWC",
         title: node.attributes.title ?? "Tender",
         category: text(node, "field_category") || "Procurement",
-        description: text(node, "field_description") || extractDrupalText(node.attributes.body),
+        description:
+          text(node, "field_description") ||
+          extractDrupalText(node.attributes.body),
         status: (text(node, "field_tender_status") || "open") as TenderStatus,
-        publishedDate: date(node, "field_published_date", node.attributes.created),
+        publishedDate: date(
+          node,
+          "field_published_date",
+          node.attributes.created ?? "",
+        ),
         closingDate: date(node, "field_closing_date"),
         fileUrl: text(node, "field_file_url") || undefined,
       }))
