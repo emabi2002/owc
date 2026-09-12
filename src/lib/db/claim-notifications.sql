@@ -1,5 +1,38 @@
--- OWC claimant notification outbox and delivery audit baseline.
+-- OWC claimant notification preferences, outbox and delivery audit baseline.
 -- Apply after schema.sql in DEV/UAT before enabling persistent lifecycle notifications.
+
+create table if not exists public.claim_notification_preferences (
+  claim_reference text primary key,
+  email           text,
+  mobile          text,
+  preferred_channel text not null default 'sms'
+                    check (preferred_channel in ('email','sms')),
+  notifications_enabled boolean not null default true,
+  created_at      timestamptz not null default now(),
+  updated_at      timestamptz not null default now()
+);
+
+drop trigger if exists claim_notification_preferences_set_updated_at on public.claim_notification_preferences;
+create trigger claim_notification_preferences_set_updated_at
+before update on public.claim_notification_preferences
+for each row execute function public.set_updated_at();
+
+alter table public.claim_notification_preferences enable row level security;
+
+drop policy if exists claim_notification_preferences_staff_read on public.claim_notification_preferences;
+create policy claim_notification_preferences_staff_read
+on public.claim_notification_preferences
+for select
+to authenticated
+using (public.is_staff());
+
+drop policy if exists claim_notification_preferences_claims_write on public.claim_notification_preferences;
+create policy claim_notification_preferences_claims_write
+on public.claim_notification_preferences
+for all
+to authenticated
+using (public.current_app_role() in ('administrator','claims_officer'))
+with check (public.current_app_role() in ('administrator','claims_officer'));
 
 create table if not exists public.claim_notifications (
   id                  uuid primary key default gen_random_uuid(),
@@ -51,4 +84,4 @@ using (public.current_app_role() in ('administrator','claims_officer'))
 with check (public.current_app_role() in ('administrator','claims_officer'));
 
 -- Delivery is performed server-side only. Do not expose notification-provider
--- credentials to the browser or allow anonymous inserts into this table.
+-- credentials to the browser or allow anonymous inserts into either table.
