@@ -15,7 +15,7 @@ export default async function IntegrationsPage() {
         description="Real-time health, transaction telemetry and service orchestration across the OWC claims ecosystem."
       >
         <Button asChild size="sm">
-          <Link href="/admin/integrations/demo">
+          <Link href="/admin/integrations/process">
             <PlayCircle className="h-4 w-4" /> Process claim workflow
           </Link>
         </Button>
