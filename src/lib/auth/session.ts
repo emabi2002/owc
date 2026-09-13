@@ -1,16 +1,25 @@
 /**
  * Server-side session helpers.
  *
- * `getSessionUser` returns the authenticated staff member (with role) from
- * Supabase Auth. In demo mode (no Supabase configured) it returns a synthetic
- * Administrator so the console remains demonstrable; the login form itself only
- * ever authenticates against Supabase — there is no fake credential check.
+ * The admin console supports two explicit identity providers:
+ * - `live`: Supabase Auth + the OWC profile table.
+ * - `demonstration`: the signed OWC reference identity session.
+ *
+ * There is no implicit administrator fallback when live authentication is not
+ * configured. A missing live provider therefore fails closed.
  */
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { isSupabaseConfigured, serverEnv } from "@/lib/env";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import type { AppRole } from "@/lib/supabase/types";
 import { hasPermission, type Permission } from "@/lib/auth/roles";
+import { isDemonstrationIdentityMode } from "@/lib/auth/identity-mode";
+import {
+  DEMO_SESSION_COOKIE,
+  recordDemoIdentityEvent,
+  verifyDemoSessionToken,
+} from "@/lib/auth/demo-identity";
 
 /** Emails that should always be treated as Administrator (bootstrap). */
 function bootstrapAdmins(): string[] {
@@ -29,20 +38,35 @@ export type SessionUser = {
   demo: boolean;
 };
 
-const DEMO_USER: SessionUser = {
-  id: "demo-admin",
-  email: "l.aila@owc.gov.pg",
-  fullName: "Lawrence Aila",
-  role: "administrator",
-  mfaEnabled: true,
-  demo: true,
-};
+async function getDemonstrationSessionUser(): Promise<SessionUser | null> {
+  const store = await cookies();
+  const token = store.get(DEMO_SESSION_COOKIE)?.value;
+  if (!token) return null;
+
+  const principal = verifyDemoSessionToken(token);
+  if (!principal || principal.principalType !== "staff" || !principal.role) {
+    return null;
+  }
+
+  return {
+    id: principal.id,
+    email: principal.email,
+    fullName: principal.fullName,
+    role: principal.role,
+    mfaEnabled: principal.mfaRequired,
+    demo: true,
+  };
+}
 
 export async function getSessionUser(): Promise<SessionUser | null> {
-  if (!isSupabaseConfigured) return DEMO_USER;
+  if (isDemonstrationIdentityMode()) {
+    return getDemonstrationSessionUser();
+  }
+
+  if (!isSupabaseConfigured) return null;
 
   const supabase = await createServerSupabaseClient();
-  if (!supabase) return DEMO_USER;
+  if (!supabase) return null;
 
   const {
     data: { user },
@@ -54,6 +78,8 @@ export async function getSessionUser(): Promise<SessionUser | null> {
     .select("*")
     .eq("id", user.id)
     .maybeSingle();
+
+  if (profile && profile.status !== "active") return null;
 
   const email = user.email ?? "";
   // Bootstrap elevation: ensures the seeded administrator can manage the
@@ -82,6 +108,23 @@ export async function requirePermission(
   permission: Permission,
 ): Promise<SessionUser> {
   const user = await requireUser();
-  if (!hasPermission(user.role, permission)) redirect("/admin");
+  if (!hasPermission(user.role, permission)) {
+    if (user.demo) {
+      recordDemoIdentityEvent("authorization_denied", {
+        personaId:
+          user.role === "administrator"
+            ? "administrator"
+            : user.role === "claims_officer"
+              ? "claims-officer"
+              : user.role === "assessment_officer"
+                ? "assessment-officer"
+                : user.role === "finance_officer"
+                  ? "finance-officer"
+                  : "content-editor",
+        email: user.email,
+      });
+    }
+    redirect("/admin");
+  }
   return user;
 }
