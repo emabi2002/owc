@@ -1,0 +1,8 @@
+name: OWC Identity Policy
+type: module
+description: Enforces OWC Drupal editor SSO policy, break-glass controls and identity audit events.
+package: OWC
+core_version_requirement: ^11
+dependencies:
+  - openid_connect:openid_connect
+  - externalauth:externalauth
