@@ -1,0 +1,15 @@
+uuid: f45ff064-a70d-4ed0-9409-3135f05ce78f
+langcode: en
+status: true
+dependencies:
+  module:
+    - content_moderation
+    - node
+id: auditor
+label: 'Auditor / Read-only'
+weight: 7
+is_admin: false
+permissions:
+  - 'access content overview'
+  - 'view all revisions'
+  - 'view latest version'

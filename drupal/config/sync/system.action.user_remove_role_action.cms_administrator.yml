@@ -1,0 +1,14 @@
+uuid: 01993ba1-afc1-419e-a9a6-148b57bfa992
+langcode: en
+status: true
+dependencies:
+  config:
+    - user.role.cms_administrator
+  module:
+    - user
+id: user_remove_role_action.cms_administrator
+label: 'Remove the CMS Administrator role from the selected user(s)'
+type: user
+plugin: user_remove_role_action
+configuration:
+  rid: cms_administrator

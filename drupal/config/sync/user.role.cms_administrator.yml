@@ -1,0 +1,52 @@
+uuid: c9f40a71-620e-4c8c-89cd-ec41f30a4566
+langcode: en
+status: true
+dependencies:
+  config:
+    - node.type.faq
+    - node.type.form
+    - node.type.legislation
+    - node.type.news
+    - node.type.page
+    - node.type.publication
+    - node.type.report
+    - node.type.tender
+  module:
+    - node
+    - workflows
+id: cms_administrator
+label: 'CMS Administrator'
+weight: 4
+is_admin: false
+permissions:
+  - 'access content overview'
+  - 'administer content types'
+  - 'administer nodes'
+  - 'administer permissions'
+  - 'administer users'
+  - 'administer workflows'
+  - 'create faq content'
+  - 'create form content'
+  - 'create legislation content'
+  - 'create news content'
+  - 'create page content'
+  - 'create publication content'
+  - 'create report content'
+  - 'create tender content'
+  - 'edit any faq content'
+  - 'edit any form content'
+  - 'edit any legislation content'
+  - 'edit any news content'
+  - 'edit any page content'
+  - 'edit any publication content'
+  - 'edit any report content'
+  - 'edit any tender content'
+  - 'edit own faq content'
+  - 'edit own form content'
+  - 'edit own legislation content'
+  - 'edit own news content'
+  - 'edit own page content'
+  - 'edit own publication content'
+  - 'edit own report content'
+  - 'edit own tender content'
+  - 'view all revisions'

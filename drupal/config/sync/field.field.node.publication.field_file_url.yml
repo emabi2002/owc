@@ -1,0 +1,19 @@
+uuid: f71d026b-3979-49b8-a0c0-8e994a7d5e92
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_file_url
+    - node.type.publication
+id: node.publication.field_file_url
+field_name: field_file_url
+entity_type: node
+bundle: publication
+label: 'File URL'
+description: ''
+required: false
+translatable: true
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: uri

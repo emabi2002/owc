@@ -1,0 +1,23 @@
+uuid: 339f62f6-7fb1-42ca-a09c-558d04d7e593
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_sort_order
+    - node.type.faq
+id: node.faq.field_sort_order
+field_name: field_sort_order
+entity_type: node
+bundle: faq
+label: 'Sort Order'
+description: ''
+required: false
+translatable: true
+default_value: {  }
+default_value_callback: ''
+settings:
+  min: null
+  max: null
+  prefix: ''
+  suffix: ''
+field_type: integer

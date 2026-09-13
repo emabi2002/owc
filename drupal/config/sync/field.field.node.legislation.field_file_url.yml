@@ -1,0 +1,19 @@
+uuid: cd7c36b4-aa07-4b17-bcc2-83331914424b
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_file_url
+    - node.type.legislation
+id: node.legislation.field_file_url
+field_name: field_file_url
+entity_type: node
+bundle: legislation
+label: 'File URL'
+description: ''
+required: false
+translatable: true
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: uri

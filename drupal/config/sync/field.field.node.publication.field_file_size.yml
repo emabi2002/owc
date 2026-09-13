@@ -1,0 +1,19 @@
+uuid: cb2a4a68-d9cb-4a94-99f5-f9c6e76b72d0
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_file_size
+    - node.type.publication
+id: node.publication.field_file_size
+field_name: field_file_size
+entity_type: node
+bundle: publication
+label: 'File Size'
+description: ''
+required: false
+translatable: true
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: string

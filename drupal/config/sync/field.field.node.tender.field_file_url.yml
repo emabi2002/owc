@@ -1,0 +1,19 @@
+uuid: dab45e76-743b-4f26-93b9-554e30826cbc
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_file_url
+    - node.type.tender
+id: node.tender.field_file_url
+field_name: field_file_url
+entity_type: node
+bundle: tender
+label: 'File URL'
+description: ''
+required: false
+translatable: true
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: uri

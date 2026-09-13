@@ -1,0 +1,14 @@
+uuid: bc6cf79c-c785-4453-af62-ac3e5bf4b341
+langcode: en
+status: true
+dependencies:
+  config:
+    - user.role.auditor
+  module:
+    - user
+id: user_add_role_action.auditor
+label: 'Add the Auditor / Read-only role to the selected user(s)'
+type: user
+plugin: user_add_role_action
+configuration:
+  rid: auditor

@@ -1,0 +1,11 @@
+uuid: 136377c0-1026-4684-a1a8-453e06835fb0
+langcode: en
+status: true
+dependencies: {  }
+name: 'News / Notice'
+type: news
+description: null
+help: null
+new_revision: true
+preview_mode: 1
+display_submitted: true

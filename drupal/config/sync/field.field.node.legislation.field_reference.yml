@@ -1,0 +1,19 @@
+uuid: 68ce1c60-d946-4a45-bb91-34eaba965199
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_reference
+    - node.type.legislation
+id: node.legislation.field_reference
+field_name: field_reference
+entity_type: node
+bundle: legislation
+label: Reference
+description: ''
+required: false
+translatable: true
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: string

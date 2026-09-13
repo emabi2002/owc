@@ -1,0 +1,14 @@
+uuid: ed58f7bf-3e1f-4661-a8f6-ac92ef716ef1
+langcode: en
+status: true
+dependencies:
+  config:
+    - user.role.cms_administrator
+  module:
+    - user
+id: user_add_role_action.cms_administrator
+label: 'Add the CMS Administrator role to the selected user(s)'
+type: user
+plugin: user_add_role_action
+configuration:
+  rid: cms_administrator

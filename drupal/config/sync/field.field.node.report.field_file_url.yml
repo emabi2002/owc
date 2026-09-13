@@ -1,0 +1,19 @@
+uuid: b0670231-f8b1-4704-800e-4efa14bdb38f
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_file_url
+    - node.type.report
+id: node.report.field_file_url
+field_name: field_file_url
+entity_type: node
+bundle: report
+label: 'File URL'
+description: ''
+required: false
+translatable: true
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: uri
