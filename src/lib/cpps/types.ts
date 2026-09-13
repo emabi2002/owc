@@ -75,7 +75,7 @@ export type CppsEnquiryResult = {
   receivedAt: string;
 };
 
-/** Discriminated result so callers can tell live vs. mock responses apart. */
+/** Discriminated result so callers can distinguish live from reference CPPS. */
 export type CppsResult<T> =
-  | { ok: true; data: T; source: "cpps" | "mock" }
-  | { ok: false; error: string; source: "cpps" | "mock" };
+  | { ok: true; data: T; source: "cpps" | "reference" }
+  | { ok: false; error: string; source: "cpps" | "reference" };
