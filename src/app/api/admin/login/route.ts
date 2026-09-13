@@ -13,6 +13,7 @@ import {
   authenticateDemoPrincipal,
   DEMO_MFA_COOKIE,
   demoMfaCookieOptions,
+  isDemoIdentityConfigured,
   issueDemoMfaToken,
   recordDemoIdentityEvent,
 } from "@/lib/auth/demo-identity";
@@ -20,7 +21,6 @@ import {
 export async function POST(request: Request) {
   const ip = getClientIp(request.headers);
 
-  // Brute-force protection: 5 attempts / minute / IP.
   const limit = rateLimit(`login:${ip}`, 5, 60_000);
   if (!limit.success) {
     return NextResponse.json(
@@ -41,6 +41,16 @@ export async function POST(request: Request) {
   const { email, password } = parsed.data;
 
   if (isDemonstrationIdentityMode()) {
+    if (!isDemoIdentityConfigured()) {
+      return NextResponse.json(
+        {
+          error:
+            "The OWC demonstration identity service is not configured. Contact the presentation administrator.",
+        },
+        { status: 503 },
+      );
+    }
+
     const principal = authenticateDemoPrincipal(email, password);
     if (!principal || principal.principalType !== "staff" || !principal.role) {
       recordDemoIdentityEvent("login_failed");
@@ -116,7 +126,6 @@ export async function POST(request: Request) {
     );
   }
 
-  // MFA-ready: detect whether a second factor is required.
   let mfaRequired = false;
   let factorId: string | undefined;
   try {
@@ -140,7 +149,6 @@ export async function POST(request: Request) {
     ip,
   });
 
-  // Update last-active timestamp (best effort).
   await supabase
     .from("profiles")
     .update({ last_active_at: new Date().toISOString() })
