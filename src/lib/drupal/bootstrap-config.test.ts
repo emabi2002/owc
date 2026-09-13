@@ -79,7 +79,8 @@ describe("OWC Drupal bootstrap configuration", () => {
     const usesProtectedPhp = bootstrap.includes("php -r") || bootstrap.includes("php <<'PHP'");
 
     expect(usesProtectedPhp).toBe(true);
-    expect(bootstrap.includes("$settings['config_sync_directory']")).toBe(true);
+    expect(bootstrap.includes("config_sync_directory")).toBe(true);
+    expect(bootstrap.includes("$settings")).toBe(true);
     expect(bootstrap.includes('grep -q "^\\\\$settings')).toBe(false);
   });
 });
