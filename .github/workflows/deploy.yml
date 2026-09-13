@@ -23,13 +23,16 @@ jobs:
           bun-version: latest
       - name: Install dependencies
         run: bun install --frozen-lockfile
-      - name: Validate deployment shell
+      - name: Validate deployment and assurance shell
         run: |
           bash -n deploy/release.sh
           bash -n deploy/monitor-check.sh
           for script in deploy/backup/*.sh; do
             bash -n "$script"
           done
+          bash -n scripts/security/repository-assurance.sh
+      - name: Run repository security assurance
+        run: bash scripts/security/repository-assurance.sh
       - name: Run tests
         run: bun test
       - name: Lint & type-check
