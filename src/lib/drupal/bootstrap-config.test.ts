@@ -37,11 +37,12 @@ describe("OWC Drupal bootstrap configuration", () => {
 
   test("declares isolated Drupal and PostgreSQL services with persistent state", async () => {
     const compose = await readFile("drupal/docker-compose.yml", "utf8");
-    expect(compose.includes("drupal:" )).toBe(true);
-    expect(compose.includes("postgres:" )).toBe(true);
-    expect(compose.includes("drupal_sites:" )).toBe(true);
-    expect(compose.includes("postgres_data:" )).toBe(true);
+    expect(compose.includes("drupal:")).toBe(true);
+    expect(compose.includes("postgres:")).toBe(true);
+    expect(compose.includes("drupal_sites:")).toBe(true);
+    expect(compose.includes("postgres_data:")).toBe(true);
     expect(compose.includes("/opt/drupal/web/sites/default")).toBe(true);
+    expect(compose.includes("./config/sync:/opt/drupal/config/sync:ro")).toBe(true);
   });
 
   test("packages the manifest into the Drupal image", async () => {
@@ -49,11 +50,35 @@ describe("OWC Drupal bootstrap configuration", () => {
     expect(dockerfile.includes("COPY manifest.json /opt/owc-drupal/manifest.json")).toBe(true);
   });
 
-  test("provisions editable field widgets and a published-to-draft transition", async () => {
+  test("preserves the recovery provisioner with editable widgets and revision workflow", async () => {
     const provision = await readFile("drupal/scripts/provision.php", "utf8");
     expect(provision.includes("EntityFormDisplay")).toBe(true);
     expect(provision.includes("setComponent($fieldName")).toBe(true);
     expect(provision.includes("create_new_draft")).toBe(true);
     expect(provision.includes("'from' => ['published']")).toBe(true);
+  });
+
+  test("installs fresh environments from the committed Drupal configuration", async () => {
+    const bootstrap = await readFile("drupal/scripts/bootstrap.sh", "utf8");
+
+    expect(bootstrap.includes("CONFIG_SYNC=\"/opt/drupal/config/sync\"")).toBe(true);
+    expect(bootstrap.includes("core.extension.yml")).toBe(true);
+    expect(bootstrap.includes("site:install")).toBe(true);
+    expect(bootstrap.includes("--existing-config")).toBe(true);
+    expect(bootstrap.includes("config:status")).toBe(true);
+  });
+
+  test("does not rebuild authoritative CMS configuration through provision.php during normal bootstrap", async () => {
+    const bootstrap = await readFile("drupal/scripts/bootstrap.sh", "utf8");
+
+    expect(bootstrap.includes("php:script /opt/owc-drupal/scripts/provision.php")).toBe(false);
+  });
+
+  test("writes config_sync_directory without shell-expanding Drupal's settings variable", async () => {
+    const bootstrap = await readFile("drupal/scripts/bootstrap.sh", "utf8");
+
+    expect(bootstrap.includes("php -r")).toBe(true);
+    expect(bootstrap.includes("$settings['config_sync_directory']")).toBe(true);
+    expect(bootstrap.includes('grep -q "^\\\\$settings')).toBe(false);
   });
 });
