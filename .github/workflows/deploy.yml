@@ -42,9 +42,50 @@ jobs:
           NEXT_PUBLIC_CAPTCHA_PROVIDER: ${{ secrets.NEXT_PUBLIC_CAPTCHA_PROVIDER }}
           NEXT_PUBLIC_CAPTCHA_SITE_KEY: ${{ secrets.NEXT_PUBLIC_CAPTCHA_SITE_KEY }}
 
+  drupal-clean-room:
+    name: Drupal clean-room reconstruction
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate Drupal bootstrap shell
+        run: bash -n drupal/scripts/bootstrap.sh
+
+      - name: Build isolated Drupal stack
+        working-directory: drupal
+        run: docker compose -p owc-drupal-ci up -d --build
+
+      - name: Reconstruct CMS from committed configuration
+        working-directory: drupal
+        run: docker compose -p owc-drupal-ci exec -T drupal /opt/owc-drupal/scripts/bootstrap.sh
+
+      - name: Verify reconstructed CMS
+        working-directory: drupal
+        run: |
+          docker compose -p owc-drupal-ci exec -T drupal /opt/owc-drupal/scripts/verify.sh
+          docker compose -p owc-drupal-ci exec -T drupal vendor/bin/drush config:status
+          docker compose -p owc-drupal-ci exec -T drupal vendor/bin/drush config:get system.site uuid
+          docker compose -p owc-drupal-ci exec -T drupal vendor/bin/drush config:get workflows.workflow.owc_editorial label
+
+      - name: Verify bootstrap is idempotent
+        working-directory: drupal
+        run: docker compose -p owc-drupal-ci exec -T drupal /opt/owc-drupal/scripts/bootstrap.sh
+
+      - name: Show Drupal logs on failure
+        if: failure()
+        working-directory: drupal
+        run: docker compose -p owc-drupal-ci logs --no-color drupal postgres
+
+      - name: Remove isolated Drupal stack
+        if: always()
+        working-directory: drupal
+        run: docker compose -p owc-drupal-ci down -v
+
   deploy:
     name: Deploy to Ubuntu (SSH)
-    needs: build
+    needs: [build, drupal-clean-room]
     runs-on: ubuntu-latest
     # Only deploy on direct pushes to main, and only when SSH secrets are set.
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
