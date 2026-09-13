@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Drupal\Core\Entity\Entity\EntityFormDisplay;
 use Drupal\field\Entity\FieldConfig;
 use Drupal\field\Entity\FieldStorageConfig;
 use Drupal\node\Entity\NodeType;
@@ -48,9 +49,29 @@ $fields = [
   'field_navigation_weight' => ['type' => 'integer', 'label' => 'Navigation Weight'],
 ];
 
+$widgetTypes = [
+  'string' => 'string_textfield',
+  'string_long' => 'string_textarea',
+  'boolean' => 'boolean_checkbox',
+  'uri' => 'uri',
+  'datetime' => 'datetime_default',
+  'text_long' => 'text_textarea',
+  'integer' => 'number',
+];
+
 $manifest = json_decode(file_get_contents('/opt/owc-drupal/manifest.json') ?: '{}', true);
 $bundleFields = $manifest['fields'] ?? [];
 foreach ($bundleFields as $bundle => $names) {
+  $formDisplay = EntityFormDisplay::load("node.{$bundle}.default");
+  if (!$formDisplay) {
+    $formDisplay = EntityFormDisplay::create([
+      'targetEntityType' => 'node',
+      'bundle' => $bundle,
+      'mode' => 'default',
+      'status' => true,
+    ]);
+  }
+
   foreach ($names as $fieldName) {
     $definition = $fields[$fieldName];
     if (!FieldStorageConfig::loadByName('node', $fieldName)) {
@@ -69,7 +90,13 @@ foreach ($bundleFields as $bundle => $names) {
         'label' => $definition['label'],
       ])->save();
     }
+
+    $formDisplay->setComponent($fieldName, [
+      'type' => $widgetTypes[$definition['type']] ?? 'string_textfield',
+      'weight' => 10,
+    ]);
   }
+  $formDisplay->save();
 }
 
 $roles = [
@@ -85,31 +112,38 @@ foreach ($roles as $id => $label) {
   }
 }
 
-if (!Workflow::load('owc_editorial')) {
-  Workflow::create([
+$workflowSettings = [
+  'states' => [
+    'draft' => ['label' => 'Draft', 'weight' => 0, 'published' => false, 'default_revision' => false],
+    'review' => ['label' => 'Review', 'weight' => 1, 'published' => false, 'default_revision' => false],
+    'approved' => ['label' => 'Approved', 'weight' => 2, 'published' => false, 'default_revision' => false],
+    'published' => ['label' => 'Published', 'weight' => 3, 'published' => true, 'default_revision' => true],
+    'archived' => ['label' => 'Archived', 'weight' => 4, 'published' => false, 'default_revision' => true],
+  ],
+  'transitions' => [
+    'submit_for_review' => ['label' => 'Submit for review', 'from' => ['draft'], 'to' => 'review', 'weight' => 0],
+    'approve' => ['label' => 'Approve', 'from' => ['review'], 'to' => 'approved', 'weight' => 1],
+    'publish' => ['label' => 'Publish', 'from' => ['approved'], 'to' => 'published', 'weight' => 2],
+    'archive' => ['label' => 'Archive', 'from' => ['published'], 'to' => 'archived', 'weight' => 3],
+    'create_new_draft' => ['label' => 'Create new draft', 'from' => ['published'], 'to' => 'draft', 'weight' => 4],
+    'return_to_draft' => ['label' => 'Return to draft', 'from' => ['review', 'approved'], 'to' => 'draft', 'weight' => 5],
+  ],
+  'entity_types' => ['node' => array_keys($contentTypes)],
+  'default_moderation_state' => 'draft',
+];
+
+$workflow = Workflow::load('owc_editorial');
+if (!$workflow) {
+  $workflow = Workflow::create([
     'id' => 'owc_editorial',
     'label' => 'OWC Editorial Workflow',
     'type' => 'content_moderation',
-    'type_settings' => [
-      'states' => [
-        'draft' => ['label' => 'Draft', 'weight' => 0, 'published' => false, 'default_revision' => false],
-        'review' => ['label' => 'Review', 'weight' => 1, 'published' => false, 'default_revision' => false],
-        'approved' => ['label' => 'Approved', 'weight' => 2, 'published' => false, 'default_revision' => false],
-        'published' => ['label' => 'Published', 'weight' => 3, 'published' => true, 'default_revision' => true],
-        'archived' => ['label' => 'Archived', 'weight' => 4, 'published' => false, 'default_revision' => true],
-      ],
-      'transitions' => [
-        'submit_for_review' => ['label' => 'Submit for review', 'from' => ['draft'], 'to' => 'review', 'weight' => 0],
-        'approve' => ['label' => 'Approve', 'from' => ['review'], 'to' => 'approved', 'weight' => 1],
-        'publish' => ['label' => 'Publish', 'from' => ['approved'], 'to' => 'published', 'weight' => 2],
-        'archive' => ['label' => 'Archive', 'from' => ['published'], 'to' => 'archived', 'weight' => 3],
-        'return_to_draft' => ['label' => 'Return to draft', 'from' => ['review', 'approved'], 'to' => 'draft', 'weight' => 4],
-      ],
-      'entity_types' => ['node' => array_keys($contentTypes)],
-      'default_moderation_state' => 'draft',
-    ],
-  ])->save();
+    'type_settings' => $workflowSettings,
+  ]);
+} else {
+  $workflow->set('type_settings', $workflowSettings);
 }
+$workflow->save();
 
 $allContentPermissions = [];
 foreach (array_keys($contentTypes) as $type) {
@@ -120,7 +154,7 @@ foreach (array_keys($contentTypes) as $type) {
 
 $rolePermissions = [
   'cms_administrator' => array_merge($allContentPermissions, ['administer nodes', 'administer content types', 'administer users', 'administer permissions', 'administer workflows', 'access content overview', 'view all revisions']),
-  'content_editor' => array_merge($allContentPermissions, ['access content overview', 'view latest version', 'use owc_editorial transition submit_for_review', 'use owc_editorial transition return_to_draft']),
+  'content_editor' => array_merge($allContentPermissions, ['access content overview', 'view latest version', 'use owc_editorial transition submit_for_review', 'use owc_editorial transition create_new_draft', 'use owc_editorial transition return_to_draft']),
   'reviewer' => ['access content overview', 'view latest version', 'view any unpublished content', 'use owc_editorial transition approve', 'use owc_editorial transition return_to_draft'],
   'publisher' => ['access content overview', 'view latest version', 'view any unpublished content', 'use owc_editorial transition publish', 'use owc_editorial transition archive'],
   'auditor' => ['access content overview', 'view all revisions', 'view latest version'],
