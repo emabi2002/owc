@@ -5,5 +5,6 @@ COPY --from=composer /usr/bin/composer /usr/local/bin/composer
 WORKDIR /opt/drupal
 RUN composer require drush/drush:^13 --no-interaction --no-progress
 
+COPY manifest.json /opt/owc-drupal/manifest.json
 COPY scripts /opt/owc-drupal/scripts
 RUN chmod +x /opt/owc-drupal/scripts/*.sh
