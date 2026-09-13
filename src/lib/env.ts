@@ -38,6 +38,7 @@ export const serverEnv = {
   cppsApiBaseUrl: process.env.CPPS_API_BASE_URL ?? "",
   cppsApiKey: process.env.CPPS_API_KEY ?? "",
   cppsGraphqlEndpoint: process.env.CPPS_GRAPHQL_ENDPOINT ?? "",
+  enableReferenceEcosystem: process.env.OWC_ENABLE_REFERENCE_ECOSYSTEM === "true",
   captchaSecretKey: process.env.CAPTCHA_SECRET_KEY ?? "",
   bootstrapAdminEmails: process.env.OWC_BOOTSTRAP_ADMIN_EMAILS ?? "",
   drupalBaseUrl: process.env.DRUPAL_BASE_URL ?? "",
@@ -73,6 +74,9 @@ export const isSupabaseAdminConfigured = Boolean(
 
 /** True when the CPPS claims back-end is reachable. */
 export const isCppsConfigured = Boolean(serverEnv.cppsApiBaseUrl);
+
+/** True when the explicitly synthetic OWC reference ecosystem is enabled. */
+export const isReferenceEcosystemEnabled = serverEnv.enableReferenceEcosystem;
 
 /** True when Drupal has an API base URL configured. */
 export const isDrupalConfigured = Boolean(serverEnv.drupalBaseUrl);

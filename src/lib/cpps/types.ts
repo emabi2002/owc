@@ -75,7 +75,12 @@ export type CppsEnquiryResult = {
   receivedAt: string;
 };
 
-/** Discriminated result so callers can tell live vs. mock responses apart. */
+export type CppsDataSource = "cpps" | "reference";
+
+/**
+ * Successful responses always identify a real or reference CPPS data source.
+ * `unavailable` is error-only and means neither backend was authorized.
+ */
 export type CppsResult<T> =
-  | { ok: true; data: T; source: "cpps" | "mock" }
-  | { ok: false; error: string; source: "cpps" | "mock" };
+  | { ok: true; data: T; source: CppsDataSource }
+  | { ok: false; error: string; source: CppsDataSource | "unavailable" };
