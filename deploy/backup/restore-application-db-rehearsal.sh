@@ -2,6 +2,7 @@
 set -euo pipefail
 umask 077
 
+# Safety gate: OWC_DR_REHEARSAL_CONFIRM=NONPRODUCTION is mandatory.
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=common.sh
 source "$SCRIPT_DIR/common.sh"
