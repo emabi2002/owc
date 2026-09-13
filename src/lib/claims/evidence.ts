@@ -11,6 +11,12 @@ export type EvidenceCategory =
   | "Correspondence"
   | "Other";
 
+export type EvidenceSecurityScanStatus =
+  | "clean"
+  | "infected"
+  | "unavailable"
+  | "not_configured";
+
 export type ClaimEvidence = {
   id: string;
   claimReference: string;
@@ -24,6 +30,9 @@ export type ClaimEvidence = {
   status: "Verified" | "Pending Review" | "Rejected";
   sha256?: string;
   storagePath?: string;
+  securityScan?: EvidenceSecurityScanStatus;
+  retentionUntil?: string;
+  legalHold: boolean;
 };
 
 const REFERENCE_EVIDENCE: ClaimEvidence[] = [
@@ -39,6 +48,8 @@ const REFERENCE_EVIDENCE: ClaimEvidence[] = [
     uploadedBy: "J. Kaupa",
     status: "Verified",
     sha256: "42b9b1474c58c4de5ab6a2229081db579cc6f07ef55e5bd857495eab9e4732e1",
+    securityScan: "clean",
+    legalHold: false,
   },
   {
     id: "ev-2",
@@ -52,6 +63,8 @@ const REFERENCE_EVIDENCE: ClaimEvidence[] = [
     uploadedBy: "J. Kaupa",
     status: "Verified",
     sha256: "08ddac9c9d28a57b52049f70f7c95932302cc430ef7891686d02b98ef6a71385",
+    securityScan: "clean",
+    legalHold: false,
   },
   {
     id: "ev-3",
@@ -65,6 +78,8 @@ const REFERENCE_EVIDENCE: ClaimEvidence[] = [
     uploadedBy: "Highlands Construction Ltd",
     status: "Verified",
     sha256: "c6df1e4de6fb27eb63ac1947e12218aa0280038152f51daf70e66bc31af1bbc6",
+    securityScan: "clean",
+    legalHold: false,
   },
   {
     id: "ev-4",
@@ -78,6 +93,8 @@ const REFERENCE_EVIDENCE: ClaimEvidence[] = [
     uploadedBy: "Highlands Construction Ltd",
     status: "Verified",
     sha256: "e9de1e68b0433d914adb7907379415347945151173dbf507f240e4c612b0bc7f",
+    securityScan: "clean",
+    legalHold: false,
   },
 ];
 
@@ -117,6 +134,11 @@ export async function getClaimEvidence(
     status: String(row.status) as ClaimEvidence["status"],
     sha256: row.sha256 ? String(row.sha256) : undefined,
     storagePath: row.storage_path ? String(row.storage_path) : undefined,
+    securityScan: row.security_scan_status
+      ? (String(row.security_scan_status) as EvidenceSecurityScanStatus)
+      : undefined,
+    retentionUntil: row.retention_until ? String(row.retention_until) : undefined,
+    legalHold: Boolean(row.legal_hold),
   }));
 }
 
