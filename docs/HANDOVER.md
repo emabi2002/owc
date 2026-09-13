@@ -1,81 +1,109 @@
-# Handover Document — OWC PNG Portal
+# Handover Document — OWC PNG Digital Service
 
-A concise operational handover for the team taking ownership of the system.
+This document summarizes the repository implementation and the controls required for an OWC team to take operational ownership. Repository completeness is **not** the same as production activation: live hosting, credentials, external integrations, UAT, security acceptance and go-live approval remain separate gates.
 
 ## 1. What this is
-A TOR-compliant, production-ready portal + CMS for the Office of Workers
-Compensation (PNG), built on Next.js 15, Supabase and a CPPS-ready claims
-integration. It runs with live Supabase credentials and degrades to bundled seed
-data when integrations are absent.
 
-## 2. Repository & tech
-- Repo: `https://github.com/emabi2002/owc.git`
-- Stack: Next.js 15 (App Router), React 18, TypeScript, Tailwind, shadcn/ui,
-  Supabase, Zod, Bun, Biome.
+The OWC solution is a layered digital service built around:
 
-## 3. Project structure (key paths)
+- **Next.js 15** public portal and application/API layer;
+- **Drupal 11** enterprise CMS and editorial workflow;
+- **Supabase/PostgreSQL** application data, authentication/audit and claims-support storage pathways;
+- a stable **CPPS integration boundary**, with a realistic reference CPPS available only for explicit development/UAT use;
+- evidence, notification, security, integration, monitoring and recovery controls designed to fail closed when production dependencies are absent.
+
+The real CPPS remains authoritative for production claims/payment state. The application no longer fabricates successful CPPS responses when neither live nor explicitly enabled reference CPPS is available.
+
+## 2. Repository and technology
+
+- Repository: `https://github.com/emabi2002/owc.git`
+- Application: Next.js 15, React 18, TypeScript, Tailwind, shadcn/ui, Zod, Bun
+- Data/Auth: Supabase/PostgreSQL
+- CMS: Drupal 11/PostgreSQL, JSON:API, moderation workflow, OIDC identity foundation
+- Operations: Nginx, PM2/systemd options, GitHub Actions, health/preflight/monitoring, backup/DR tooling
+
+## 3. Key paths
+
+```text
+src/app/                       Public/admin UI and route handlers
+src/lib/cpps/                  Live/reference CPPS boundary
+src/lib/integrations/          Synthetic and production Integration Hub controls
+src/lib/claims/                Claims, evidence, scanning and notification controls
+src/lib/security/              Validation, CAPTCHA, rate limiting and security helpers
+src/lib/operations/            Health/readiness/monitoring/recovery/operating tests
+src/lib/drupal/                Drupal client, migration and identity contracts
+drupal/                        Drupal image, config, scripts and isolated stack
+deploy/                        Nginx, service, release, monitoring and backup/DR scripts
+docs/operations/               Operational runbooks and evidence templates
+docs/verification/             TDD/verification evidence
 ```
-src/
-├─ app/
-│  ├─ (public)/         Public pages (home, about, claims, employers, reports,
-│  │                    publications, legislation, tenders, news, faqs, contact, search)
-│  ├─ admin/login       Supabase-authenticated sign-in (+ MFA)
-│  ├─ admin/(dashboard) Console: dashboard, content, claims, audit, users, settings
-│  └─ api/              Route handlers (auth, enquiries, claims, employers, injuries)
-├─ components/          UI + feature components (resources/, admin/, search/, …)
-└─ lib/
-   ├─ env.ts            Centralised env + capability flags
-   ├─ supabase/         client / server / admin / middleware / types
-   ├─ db/               schema.sql + seed.ts (fallback data)
-   ├─ data/             Data access layer (content, cms, audit, search) + types
-   ├─ cpps/             CPPS REST/GraphQL client + types
-   ├─ auth/             roles (RBAC) + session helpers
-   ├─ security/         validation (zod), rate-limit, captcha verify
-   └─ actions/          server actions (content workflow)
-scripts/setup-supabase.ts   Provision admin user, role, seed
-deploy/                 nginx.conf, owc.service
-docs/                   Deployment, API, Security, UAT, this handover
-```
 
-## 4. Environments & secrets
-- Configure via `.env.local` (git-ignored). See `README.md §2` for the full list.
-- `NEXT_PUBLIC_*` are build-time; server secrets (service-role, CPPS, CAPTCHA
-  secret) are runtime-only and never sent to the browser.
-- **Rotate the bootstrap admin password** (set during `bun run setup`) after the
-  first sign-in, and store production secrets in your secret manager / host env.
+## 4. Environment and secrets
 
-## 5. First-time setup (live)
-1. Run `src/lib/db/schema.sql` in Supabase (SQL editor).
-2. `bun install && bun run setup` (creates admin + role + seed).
-3. `bun run build && bun run start` (or deploy per the Ubuntu guide).
+Production secrets are runtime-only and must be stored in the approved host/secret manager. Do not commit service-role keys, CPPS credentials, OIDC secrets, evidence-signing secrets, scanner/notification credentials or external-agency credentials.
 
-## 6. Day-to-day operations
-- **Content**: staff sign in → Content → use the Draft→Submitted→Approved→
-  Published workflow. Published items appear on the public site (ISR, ~60s).
-- **Users & roles**: Administrators manage roles in Supabase (`profiles.role`)
-  or the Users page; the matrix is in `src/lib/auth/roles.ts`.
-- **Audit**: every privileged action is logged (Admin → Audit logs).
-- **Claims**: tracking/lodgement proxy to CPPS; configure `CPPS_*` to go live.
+Configuration being present does not prove a dependency is production-accepted. The authenticated System Readiness/preflight model separates configured components from external verification requirements.
 
-## 7. Updating production
-```bash
-cd /var/www/owc && git pull --ff-only
-bun install --frozen-lockfile && bun run build
-pm2 reload ecosystem.config.js --update-env
-```
-Or push to `main` with `DEPLOY_*` GitHub secrets set (CI deploys over SSH).
+## 5. CMS and content
 
-## 8. Monitoring & backups
-- Logs: `pm2 logs owc-png` / `journalctl -u owc -f`; Nginx logs in `/var/log/nginx`.
-- Supabase: enable Point-in-Time Recovery; review auth + audit logs regularly.
+Drupal provides the enterprise editorial CMS foundation, including content types, media, moderation states and OWC roles. Migration/export/import/parity controls support deterministic reconstruction. Next.js can use Drupal as the authoritative public-content source with fail-closed behavior in Drupal-authoritative mode.
 
-## 9. Known follow-ups / roadmap
-- Rich-text editor for content bodies (hook into Content "New content").
-- Wire real file storage (Supabase Storage) for form/publication/tender files.
-- Distributed rate limiting (Upstash) for multi-instance scaling.
-- Email notifications for enquiries and workflow transitions (SMTP/Resend).
-- Regenerate `supabase/types.ts` from the live schema after any DB change.
+Production content migration still requires the approved source dataset and cutover reconciliation.
 
-## 10. Support
-- Technical docs: `docs/` and inline code comments.
-- Same platform support: `support@same.new`.
+## 6. Identity and access
+
+The repository implements application RBAC controls and Drupal OIDC/SSO foundations, including group-to-role mapping, MFA-at-IdP boundary, local-login enforcement and break-glass recovery. Production acceptance requires the actual OWC/agency identity provider, approved client registration, users/groups and UAT.
+
+## 7. Claims, evidence and CPPS
+
+OWC claim lodgement/tracking uses the stable CPPS boundary. Backend selection is:
+
+1. configured live CPPS;
+2. explicitly enabled reference CPPS for development/UAT;
+3. fail closed.
+
+The reference CPPS is synthetic, process-local and non-production. It supports realistic claim lifecycle testing but does not move real funds or replace live CPPS discovery/UAT.
+
+Evidence controls include claim-scoped upload grants, private-storage pathways, metadata/checksum, retention/legal-hold and fail-closed malware-scanning policy. Actual production storage/scanner/provider activation remains external.
+
+## 8. External integrations and notifications
+
+The production Integration Hub defines safe connector boundaries for identity/NID, employer registry, insurance, payments and medical-provider services. Real endpoints, schemas, authentication, networking and agency acceptance remain required.
+
+Notifications use a server-side gateway/outbox/retry model. Production provider credentials, delivery operations and template/delivery UAT remain required.
+
+## 9. Deployment, monitoring and recovery
+
+- Deployment guide: `docs/DEPLOYMENT_UBUNTU_24_04.md`
+- Monitoring: `docs/operations/production-monitoring.md`
+- Backup/DR: `docs/operations/backup-disaster-recovery.md`
+- Incident management: `docs/operations/incident-management.md`
+- SLA/Tier-3 support: `docs/operations/support-sla.md`
+- Maintenance: `docs/operations/maintenance-and-patching.md`
+- Runbook index: `docs/operations/runbook-index.md`
+
+The versioned release script performs application health checking and application-code rollback. Backup/DR tooling creates integrity-checked recovery artifacts and deliberately restricts repository restore scripts to confirmed non-production rehearsals. Production PITR, off-host retention, RPO/RTO and restore acceptance remain external gates.
+
+## 10. Operational ownership and support
+
+OWC must assign named owners for the Service Owner, Operations Coordinator, Tier-1/Tier-2, Application/Tier-3 Engineering, Infrastructure, Database/Storage, CMS, Identity/Security and CPPS/Integration functions.
+
+The required operating model includes **12-month Tier-3 support**, but binding service hours and acknowledgement/response/restoration/resolution targets remain `UNAPPROVED` until formally accepted. Support ownership must be recorded in the OWC service register; no third-party placeholder support address is authoritative.
+
+## 11. Production go-live gates
+
+Before production go-live, obtain evidence for at least:
+
+- approved host/DNS/TLS/network and secret storage;
+- authoritative OWC database/storage and production schema verification;
+- real Drupal hosting/content/identity acceptance;
+- real CPPS and agency endpoint/contract/UAT acceptance;
+- scanner and notification-provider UAT;
+- monitoring/alert routing and named operational ownership;
+- approved SLA/support arrangements;
+- approved RPO/RTO, backups/off-host copy and restore rehearsal;
+- formal security assessment and remediation;
+- end-to-end production-like UAT and business/security sign-off;
+- approved cutover, smoke, rollback/reconciliation and go-live authority.
+
+The master reconciliation is maintained in `docs/OWC_TASK_STATUS.md`, and unresolved external cutover gates are tracked in GitHub issue #8.
