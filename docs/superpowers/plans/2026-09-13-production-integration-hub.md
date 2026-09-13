@@ -32,11 +32,11 @@
 **Interfaces:**
 - Produces `ProductionServiceName`, `ProductionConnectorConfig`, `getProductionConnectorConfig(service)`, `buildProductionConnectorReadiness(config)`.
 
-- [ ] Write a failing registry test proving all five service keys exist and missing base URLs report `configuration-required`.
-- [ ] Run `bun test src/lib/integrations/production/registry.test.ts` and confirm the intended RED failure.
-- [ ] Implement server-only environment mappings and the readiness registry.
-- [ ] Re-run the focused test and confirm PASS.
-- [ ] Commit as `feat(integrations): add production connector registry`.
+- [x] Write a failing registry test proving all five service keys exist and missing base URLs report `configuration-required`.
+- [x] Run `bun test src/lib/integrations/production/registry.test.ts` and confirm the intended RED failure.
+- [x] Implement server-only environment mappings and the readiness registry.
+- [x] Re-run the focused test and confirm PASS.
+- [x] Commit as `feat(integrations): add production connector registry`.
 
 ### Task 2: Safe HTTP transport
 
@@ -48,11 +48,11 @@
 - Consumes `ProductionConnectorConfig`.
 - Produces `callProductionConnector<T>(config, operation, request)` returning a normalized `ProductionIntegrationResult<T>`.
 
-- [ ] Write failing tests proving unconfigured services do not call fetch, HTTPS is required outside localhost, bearer credentials stay in request headers only, 2xx JSON is normalized, and upstream/network failures are isolated.
-- [ ] Run focused tests and verify RED.
-- [ ] Implement the minimum transport with 10-second default timeout and generated correlation ID.
-- [ ] Re-run focused tests and verify GREEN.
-- [ ] Commit as `feat(integrations): add safe production connector transport`.
+- [x] Write failing tests proving unconfigured services do not call fetch, HTTPS is required outside localhost, bearer credentials stay in request headers only, 2xx JSON is normalized, and upstream/network failures are isolated.
+- [x] Run focused tests and verify RED.
+- [x] Implement the minimum transport with 10-second default timeout and generated correlation ID.
+- [x] Re-run focused tests and verify GREEN.
+- [x] Commit as `feat(integrations): add safe production connector transport`.
 
 ### Task 3: Safe telemetry projection
 
@@ -64,11 +64,11 @@
 - Consumes normalized production integration result metadata.
 - Produces telemetry containing only service, operation, correlation ID, outcome, HTTP status, duration and timestamp.
 
-- [ ] Write failing test with identity/medical/bank payload fields and assert none appear in serialized telemetry.
-- [ ] Verify RED.
-- [ ] Implement metadata-only telemetry projection.
-- [ ] Verify GREEN.
-- [ ] Commit as `feat(integrations): add safe production telemetry`.
+- [x] Write failing test with identity/medical/bank payload fields and assert none appear in serialized telemetry.
+- [x] Verify RED.
+- [x] Implement metadata-only telemetry projection.
+- [x] Verify GREEN.
+- [x] Commit as `feat(integrations): add safe production telemetry`.
 
 ### Task 4: Operational readiness and verification
 
@@ -80,11 +80,18 @@
 **Interfaces:**
 - Adds an external-integration readiness check summarizing the five registered connectors without claiming live verification.
 
-- [ ] Add failing readiness test for partial connector configuration.
-- [ ] Verify RED.
-- [ ] Implement registry-backed readiness summary.
-- [ ] Verify GREEN.
-- [ ] Document endpoint/credential/schema prerequisites and smoke-test procedure.
-- [ ] Run `bun test && bun run lint && bun run build` and GitHub Actions clean-room CI.
-- [ ] Review diff for secrets, payload logging, browser credentials, CPPS authority changes and unsupported connectivity claims.
+- [x] Add failing readiness test for partial connector configuration.
+- [x] Verify RED.
+- [x] Implement registry-backed readiness summary.
+- [x] Verify GREEN.
+- [x] Document endpoint/credential/schema prerequisites and smoke-test procedure.
+- [x] Run `bun test && bun run lint && bun run build` and GitHub Actions clean-room CI.
+- [x] Review diff for secrets, payload logging, browser credentials, CPPS authority changes and unsupported connectivity claims.
 - [ ] Open a draft layered PR only on a green exact head.
+
+## Verification evidence
+
+- Integration Hub code-validation run `34756232579` on head `4268cc11a51cdc01c28ee1f65f8bbcd8db7748c0`: tests, lint/type-check and build passed.
+- The same run completed Drupal clean-room reconstruction successfully, including canonical content import, idempotency, source-to-Drupal parity, CI OIDC provisioning, editor-identity readiness, CMS verification and bootstrap idempotency.
+- Ubuntu production deployment was skipped as required for a feature branch.
+- Live agency connectivity is intentionally not claimed. Agency endpoints, credentials and authoritative API contracts remain external acceptance dependencies.
