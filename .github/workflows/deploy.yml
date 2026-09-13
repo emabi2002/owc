@@ -2,7 +2,7 @@ name: CI / Deploy
 
 on:
   push:
-    branches: [main, feature/drupal-enterprise-cms, feature/drupal-content-migration, feature/drupal-editor-identity, feature/claims-evidence-production-readiness, feature/production-integration-hub, feature/production-infrastructure-readiness, feature/reference-cpps-ecosystem, feature/backup-disaster-recovery-readiness, feature/operational-administration-sla, feature/security-assessment-readiness]
+    branches: [main, feature/drupal-enterprise-cms, feature/drupal-content-migration, feature/drupal-editor-identity, feature/claims-evidence-production-readiness, feature/production-integration-hub, feature/production-infrastructure-readiness, feature/reference-cpps-ecosystem, feature/backup-disaster-recovery-readiness, feature/operational-administration-sla, feature/security-assessment-readiness, feature/end-to-end-uat-readiness]
   pull_request:
     branches: [main]
   workflow_dispatch:
@@ -35,6 +35,18 @@ jobs:
         run: bash scripts/security/repository-assurance.sh
       - name: Run tests
         run: bun test
+      - name: Run reference end-to-end UAT
+        run: bun run uat:reference
+        env:
+          OWC_UAT_EVIDENCE_PATH: artifacts/reference-uat-evidence.json
+      - name: Upload reference UAT evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: reference-uat-evidence
+          path: artifacts/reference-uat-evidence.json
+          if-no-files-found: warn
+          retention-days: 30
       - name: Lint & type-check
         run: bun run lint
       - name: Build
