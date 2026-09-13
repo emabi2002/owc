@@ -2,6 +2,7 @@ import { serverEnv } from "@/lib/env";
 import type { ClaimNotificationEvent } from "./notifications";
 
 export type NotificationChannel = "email" | "sms";
+export type NotificationDeliveryStatus = "sent" | "queued" | "failed" | "suppressed";
 
 export type NotificationDeliveryRequest = {
   channel: NotificationChannel;
@@ -13,7 +14,7 @@ export type NotificationDeliveryRequest = {
 };
 
 export type NotificationDeliveryResult = {
-  status: "sent" | "queued" | "failed" | "suppressed";
+  status: NotificationDeliveryStatus;
   providerMessageId?: string;
   error?: string;
 };
@@ -27,6 +28,17 @@ export function buildNotificationGatewayPayload(input: NotificationDeliveryReque
     reference: input.claimReference,
     metadata: { event: input.event },
   };
+}
+
+export function shouldRetryNotification(
+  status: NotificationDeliveryStatus,
+  attemptCount: number,
+  maxAttempts = 3,
+): boolean {
+  if (status === "sent" || status === "suppressed") return false;
+  if (!Number.isFinite(attemptCount) || attemptCount < 0) return false;
+  if (!Number.isFinite(maxAttempts) || maxAttempts <= 0) return false;
+  return attemptCount < maxAttempts;
 }
 
 export async function deliverClaimNotification(
