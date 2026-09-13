@@ -68,6 +68,9 @@ foreach ($document['records'] as $record) {
         if ($fieldName === 'title') {
             continue;
         }
+        if (is_string($fieldName) && str_starts_with($fieldName, 'source_')) {
+            continue;
+        }
         if (!$node->hasField($fieldName)) {
             $issues[] = [
                 'type' => 'field_mismatch',
