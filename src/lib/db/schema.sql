@@ -266,7 +266,11 @@ as $$
 declare
   v_role public.app_role;
 begin
-  select role into v_role from public.profiles where id = auth.uid();
+  select role
+    into v_role
+    from public.profiles
+   where id = auth.uid()
+     and status = 'active';
   return coalesce(v_role, 'viewer'::public.app_role);
 end;
 $$;
@@ -281,11 +285,44 @@ as $$
 declare
   v_exists boolean;
 begin
-  select exists (select 1 from public.profiles where id = auth.uid())
-    into v_exists;
+  select exists (
+    select 1
+      from public.profiles
+     where id = auth.uid()
+       and status = 'active'
+  ) into v_exists;
   return coalesce(v_exists, false);
 end;
 $$;
+
+-- Prevent direct-API self-escalation of role/account/security fields. Service
+-- role updates and administrator management of other profiles remain available.
+create or replace function public.protect_profile_privileged_fields()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if auth.uid() = old.id
+     and public.current_app_role() <> 'administrator'::public.app_role
+     and (
+       new.email is distinct from old.email
+       or new.role is distinct from old.role
+       or new.status is distinct from old.status
+       or new.mfa_enabled is distinct from old.mfa_enabled
+     ) then
+    raise exception 'Privileged profile fields require administrator authority'
+      using errcode = '42501';
+  end if;
+  return new;
+end;
+$$;
+
+drop trigger if exists protect_profile_privileged_fields on public.profiles;
+create trigger protect_profile_privileged_fields
+  before update on public.profiles
+  for each row execute function public.protect_profile_privileged_fields();
 
 -- ----------------------------------------------------------------------------
 -- New auth user → create a profile (default role: viewer)
@@ -425,7 +462,9 @@ create policy "enquiries_staff_update" on public.enquiries
   using (public.is_staff())
   with check (public.is_staff());
 
--- Profiles: users read/update their own; administrators manage all.
+-- Profiles: active users read/update their own non-privileged fields;
+-- administrators manage all profiles. The trigger above protects privileged
+-- fields even if the API is called directly instead of through the UI.
 alter table public.profiles enable row level security;
 drop policy if exists "profiles_self_read"   on public.profiles;
 drop policy if exists "profiles_self_update"  on public.profiles;
@@ -435,8 +474,8 @@ create policy "profiles_self_read" on public.profiles
   using (id = auth.uid() or public.current_app_role() = 'administrator');
 create policy "profiles_self_update" on public.profiles
   for update to authenticated
-  using (id = auth.uid())
-  with check (id = auth.uid());
+  using (id = auth.uid() and status = 'active')
+  with check (id = auth.uid() and status = 'active');
 create policy "profiles_admin_manage" on public.profiles
   for all to authenticated
   using (public.current_app_role() = 'administrator')
