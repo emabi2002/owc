@@ -2,7 +2,7 @@ name: CI / Deploy
 
 on:
   push:
-    branches: [main, feature/drupal-enterprise-cms, feature/drupal-content-migration, feature/drupal-editor-identity, feature/claims-evidence-production-readiness, feature/production-integration-hub, feature/production-infrastructure-readiness, feature/reference-cpps-ecosystem, feature/backup-disaster-recovery-readiness, feature/operational-administration-sla, feature/security-assessment-readiness]
+    branches: [main, feature/drupal-enterprise-cms, feature/drupal-content-migration, feature/drupal-editor-identity, feature/claims-evidence-production-readiness, feature/production-integration-hub, feature/production-infrastructure-readiness, feature/reference-cpps-ecosystem, feature/backup-disaster-recovery-readiness, feature/operational-administration-sla, feature/security-assessment-readiness, feature/end-to-end-uat-readiness]
   pull_request:
     branches: [main]
   workflow_dispatch:
@@ -105,7 +105,7 @@ jobs:
             -e OWC_OIDC_AUTHORIZATION_ENDPOINT=https://identity.invalid/authorize \
             -e OWC_OIDC_TOKEN_ENDPOINT=https://identity.invalid/token \
             -e OWC_OIDC_USERINFO_ENDPOINT=https://identity.invalid/userinfo \
-            drupal /opt/owc-drupal/scripts/verify-identity.sh
+            drupal /opt/owc-drupal/scripts/configure-identity.sh
           docker compose -p owc-drupal-ci exec -T drupal vendor/bin/drush config:delete openid_connect.client.owc_corporate -y
       - name: Verify Drupal editor identity readiness
         working-directory: drupal
