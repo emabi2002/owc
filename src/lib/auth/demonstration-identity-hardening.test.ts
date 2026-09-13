@@ -10,28 +10,28 @@ describe("OWC demonstration identity hardening", () => {
     expect(
       isDemoIdentityConfigured({
         sessionSecret: "12345678901234567890123456789012",
-        password: "Demo-Password",
+        credential: "Demo-Password",
         mfaCode: "482913",
       }),
     ).toBe(true);
     expect(
       isDemoIdentityConfigured({
         sessionSecret: "short",
-        password: "Demo-Password",
+        credential: "Demo-Password",
         mfaCode: "482913",
       }),
     ).toBe(false);
     expect(
       isDemoIdentityConfigured({
         sessionSecret: "12345678901234567890123456789012",
-        password: "",
+        credential: "",
         mfaCode: "482913",
       }),
     ).toBe(false);
     expect(
       isDemoIdentityConfigured({
         sessionSecret: "12345678901234567890123456789012",
-        password: "Demo-Password",
+        credential: "Demo-Password",
         mfaCode: "123",
       }),
     ).toBe(false);
