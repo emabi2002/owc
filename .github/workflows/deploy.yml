@@ -105,7 +105,7 @@ jobs:
             -e OWC_OIDC_AUTHORIZATION_ENDPOINT=https://identity.invalid/authorize \
             -e OWC_OIDC_TOKEN_ENDPOINT=https://identity.invalid/token \
             -e OWC_OIDC_USERINFO_ENDPOINT=https://identity.invalid/userinfo \
-            drupal /opt/owc-drupal/scripts/configure-identity.sh
+            drupal /opt/owc-drupal/scripts/verify-identity.sh
           docker compose -p owc-drupal-ci exec -T drupal vendor/bin/drush config:delete openid_connect.client.owc_corporate -y
       - name: Verify Drupal editor identity readiness
         working-directory: drupal
