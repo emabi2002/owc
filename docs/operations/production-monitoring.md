@@ -53,21 +53,35 @@ The selected OWC monitoring platform or government operations service should cov
 11. Drupal and database availability from approved internal monitoring paths;
 12. external integration failures using metadata-only/correlation telemetry, never claimant payloads.
 
-## Alert routing
+## Incident creation and alert routing
 
-Before go-live, OWC must assign named operational ownership for application, infrastructure, CMS, database/storage, CPPS and security incidents. Alert destinations, after-hours arrangements, severity thresholds and escalation times must be approved as part of the operational/SLA work package.
+A material monitoring alert creates or updates an incident under `incident-management.md`. The operating severity classes are **S1 Critical, S2 High, S3 Medium and S4 Low / Service Request**. Monitoring rules may have warning/critical thresholds, but the incident severity reflects actual or credible business/service impact rather than simply copying a tool label.
 
-Suggested severity model:
+The incident lifecycle is:
 
-- **Critical:** public service unavailable, evidence security control unavailable with fail-closed ingestion affected, confirmed security incident, database/storage outage, failed rollback.
-- **High:** sustained error rate, CPPS/critical notification dependency unavailable during service hours, backup failure, certificate near expiry.
-- **Medium:** disk/capacity threshold, non-critical integration degradation, repeated retry backlog, elevated failed-logins requiring investigation.
-- **Low/Information:** planned release, maintenance event, successful restore exercise, capacity trend requiring future action.
+**Detected → Logged → Triaged → Assigned → Investigating → Mitigated/Restored → Resolved → Validated → Closed**
+
+Before go-live, OWC must assign named operational ownership for application/Tier-3, infrastructure, CMS, database/storage, CPPS/integrations and security. Alert destinations, after-hours arrangements and escalation channels must point to those named owners.
+
+Binding acknowledgement/response/restoration/escalation times come from the approved `support-sla.md` decision record. They remain unapproved until OWC/contract acceptance; monitoring configuration must not invent them independently.
+
+## Suggested alert-to-impact mapping
+
+These examples guide triage but do not replace the incident severity assessment:
+
+- public service unavailable, failed rollback, database/storage outage or material security incident → consider S1;
+- sustained major error rate, critical dependency outage, backup failure or imminent certificate risk → consider S2;
+- capacity threshold, non-critical integration degradation or retry backlog → consider S3;
+- informational/planned maintenance and trend events → service record/S4 where action is required.
 
 ## Log/privacy rule
 
 Operational logs and monitoring events must use correlation IDs and technical metadata. They must not contain claim evidence content, medical detail, bank details, API credentials, OIDC secrets, service-role keys or complete external-system response payloads.
 
+## Service reporting
+
+The Operations Coordinator summarizes material availability evidence, alert gaps, incidents, capacity trends, certificate risks, failed changes, backup/recovery conditions and integration problems in the monthly `service-report-template.md`. Where no approved SLA/availability target exists, the report states that the target is unapproved rather than calculating a misleading compliance percentage.
+
 ## Acceptance evidence
 
-Task 11 repository readiness can show that monitoring hooks/check scripts exist. Production monitoring is only accepted after the nominated platform has actually executed these checks in the approved OWC environment, alerts have been received by the assigned operations team, and a test incident/escalation has been demonstrated.
+Task 11 repository readiness shows that monitoring hooks/check scripts exist. Production monitoring is accepted only after the nominated platform has actually executed these checks in the approved OWC environment, alerts have reached assigned owners, a test incident/escalation has been demonstrated, and the service-reporting path has evidence from the real platform.
