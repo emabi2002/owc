@@ -79,6 +79,9 @@ foreach ($document['records'] as $record) {
             if ($fieldName === 'title') {
                 continue;
             }
+            if (is_string($fieldName) && str_starts_with($fieldName, 'source_')) {
+                continue;
+            }
             if (!is_string($fieldName) || !$node->hasField($fieldName)) {
                 throw new InvalidArgumentException("Unknown Drupal field {$bundle}.{$fieldName} for {$key}");
             }
