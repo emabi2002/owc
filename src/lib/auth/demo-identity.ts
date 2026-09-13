@@ -41,7 +41,7 @@ export type DemoIdentityEvent = {
 
 export type DemoIdentityConfiguration = {
   sessionSecret: string;
-  password: string;
+  credential: string;
   mfaCode: string;
 };
 
@@ -150,13 +150,13 @@ export const demoMfaCookieOptions = {
 export function isDemoIdentityConfigured(
   configuration: DemoIdentityConfiguration = {
     sessionSecret: process.env.OWC_DEMO_SESSION_SECRET ?? "",
-    password: process.env.OWC_DEMO_PASSWORD ?? "",
+    credential: process.env.OWC_DEMO_PASSWORD ?? "",
     mfaCode: process.env.OWC_DEMO_MFA_CODE ?? "",
   },
 ): boolean {
   return (
     configuration.sessionSecret.length >= 32 &&
-    configuration.password.length >= 12 &&
+    configuration.credential.length >= 12 &&
     /^\d{6}$/.test(configuration.mfaCode)
   );
 }
