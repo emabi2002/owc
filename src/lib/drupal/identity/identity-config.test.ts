@@ -18,21 +18,21 @@ describe("Drupal editor identity foundation", () => {
 
   test("enforces SSO with an explicit UID 1 break-glass exception", async () => {
     const policy = await read("drupal/modules/custom/owc_identity/src/IdentityPolicy.php");
-    const module = await read("drupal/modules/custom/owc_identity/owc_identity.module");
+    const moduleCode = await read("drupal/modules/custom/owc_identity/owc_identity.module");
 
     expect(policy).toContain("OWC_IDENTITY_ENFORCE_SSO");
     expect(policy).toContain("OWC_BREAK_GLASS_LOCAL_LOGIN");
     expect(policy).toContain("get('uid')->value");
     expect(policy).toContain("=== '1'");
-    expect(module).toContain("owc_identity_form_user_login_form_alter");
-    expect(module).toContain("owc_identity_validate_local_login");
-    expect(module).toContain("local_login_denied");
-    expect(module).toContain("break_glass_login");
+    expect(moduleCode).toContain("owc_identity_form_user_login_form_alter");
+    expect(moduleCode).toContain("owc_identity_validate_local_login");
+    expect(moduleCode).toContain("local_login_denied");
+    expect(moduleCode).toContain("break_glass_login");
   });
 
   test("defines the exact OWC-managed roles and identity audit hooks", async () => {
     const roles = await read("drupal/modules/custom/owc_identity/src/ManagedRoles.php");
-    const module = await read("drupal/modules/custom/owc_identity/owc_identity.module");
+    const moduleCode = await read("drupal/modules/custom/owc_identity/owc_identity.module");
 
     for (const role of [
       "cms_administrator",
@@ -43,10 +43,10 @@ describe("Drupal editor identity foundation", () => {
     ]) {
       expect(roles).toContain(`'${role}'`);
     }
-    expect(module).toContain("owc_identity_openid_connect_post_authorize");
-    expect(module).toContain("owc_identity_entity_update");
-    expect(module).toContain("oidc_authorized");
-    expect(module).toContain("managed_roles_changed");
+    expect(moduleCode).toContain("owc_identity_openid_connect_post_authorize");
+    expect(moduleCode).toContain("owc_identity_entity_update");
+    expect(moduleCode).toContain("oidc_authorized");
+    expect(moduleCode).toContain("managed_roles_changed");
   });
 
   test("commits OIDC modules and all five group-to-role mappings without a secret", async () => {
