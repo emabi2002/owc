@@ -14,6 +14,8 @@ The OWC solution is a layered digital service built around:
 
 The real CPPS remains authoritative for production claims/payment state. The application no longer fabricates successful CPPS responses when neither live nor explicitly enabled reference CPPS is available.
 
+The repository also contains controlled reference/demo adapters for evidence storage, malware-scan behavior, claimant notifications and external government/provider interfaces. These are disabled by default where applicable, synthetic/non-production, and exist so development and presentation can continue without claiming that unavailable live services are connected. **Production activation remains external.**
+
 ## 2. Repository and technology
 
 - Repository: `https://github.com/emabi2002/owc.git`
@@ -64,13 +66,24 @@ OWC claim lodgement/tracking uses the stable CPPS boundary. Backend selection is
 
 The reference CPPS is synthetic, process-local and non-production. It supports realistic claim lifecycle testing but does not move real funds or replace live CPPS discovery/UAT.
 
-Evidence controls include claim-scoped upload grants, private-storage pathways, metadata/checksum, retention/legal-hold and fail-closed malware-scanning policy. Actual production storage/scanner/provider activation remains external.
+Evidence controls include claim-scoped upload grants, private-storage pathways, metadata/checksum, retention/legal-hold and fail-closed malware-scanning policy.
+
+For reference/demo use, the repository now includes:
+
+- a **reference evidence repository** — disabled by default, synthetic, process-local/non-durable and claim-scoped; it reuses evidence validation, integrity, scan/review, legal-hold and RBAC controls without real claimant data;
+- a **reference malware scanner** — disabled by default and deterministic, including clean and EICAR test outcomes for demonstration only. It does not provide production malware protection.
+
+Actual production private storage, approved retention, durable backup, scanning provider, credentials, scanning policy and DEV/UAT acceptance remain external. The reference adapters must not be used as evidence of production storage or security acceptance.
 
 ## 8. External integrations and notifications
 
 The production Integration Hub defines safe connector boundaries for identity/NID, employer registry, insurance, payments and medical-provider services. Real endpoints, schemas, authentication, networking and agency acceptance remain required.
 
-Notifications use a server-side gateway/outbox/retry model. Production provider credentials, delivery operations and template/delivery UAT remain required.
+The repository also includes a **reference government integration facade** over the controlled synthetic sandbox for NID, IPA/employer registration, IRC, employment, medical, insurance, bank account/payment and notifications. It is disabled by default, schema-bounded and rate-limited, and it does not act as an arbitrary proxy to real government or provider systems. Synthetic payment outcomes do not move real funds.
+
+Notifications use a server-side gateway/outbox/retry model. A **reference notification gateway** is available only for explicit demonstration/reference use: it is disabled by default, deterministic, non-networked and supports synthetic email/SMS delivery evidence. If a live notification gateway is configured, the live path remains authoritative.
+
+Real agency/provider endpoints, authoritative contracts, credentials, networking, security approval, message templates, operating workers/schedulers where required, provider/agency UAT and formal acceptance remain external. Reference success cannot satisfy a live integration or notification acceptance gate.
 
 ## 9. Deployment, monitoring and recovery
 
@@ -83,6 +96,8 @@ Notifications use a server-side gateway/outbox/retry model. Production provider 
 - Runbook index: `docs/operations/runbook-index.md`
 
 The versioned release script performs application health checking and application-code rollback. Backup/DR tooling creates integrity-checked recovery artifacts and deliberately restricts repository restore scripts to confirmed non-production rehearsals. Production PITR, off-host retention, RPO/RTO and restore acceptance remain external gates.
+
+The isolated Drupal CI build uses bounded retry behavior for transient Composer/GitHub dependency-download failures and still hard-fails after the retry budget; package errors are not suppressed.
 
 ## 10. Operational ownership and support
 
