@@ -10,7 +10,8 @@
     "lint": "bunx tsc --noEmit && next lint",
     "format": "bunx biome format --write",
     "setup": "bun scripts/setup-supabase.ts",
-    "db:seed": "bun scripts/setup-supabase.ts"
+    "db:seed": "bun scripts/setup-supabase.ts",
+    "drupal:export-content": "bun scripts/export-drupal-content.ts"
   },
   "dependencies": {
     "@radix-ui/react-accordion": "^1.2.14",
