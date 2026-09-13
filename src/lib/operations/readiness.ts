@@ -9,6 +9,7 @@ export type ReadinessKey =
   | "supabase"
   | "drupal"
   | "cpps"
+  | "evidenceRepository"
   | "malwareScanner"
   | "notificationGateway";
 
@@ -23,6 +24,7 @@ export function buildReadinessChecks(input: {
   supabase: boolean;
   drupal: boolean;
   cpps: boolean;
+  evidenceRepository: boolean;
   malwareScanner: boolean;
   notificationGateway: boolean;
 }): ReadinessCheck[] {
@@ -55,6 +57,13 @@ export function buildReadinessChecks(input: {
       pendingDetail: "Authorized CPPS UAT/production endpoint and credentials are required.",
     },
     {
+      key: "evidenceRepository",
+      label: "Secure claim evidence repository",
+      configured: input.evidenceRepository,
+      readyDetail: "Privileged storage access, claim-scoped upload signing and required scan controls are configured.",
+      pendingDetail: "Production evidence storage, a signing secret of at least 32 characters, and any mandatory malware-scanner endpoint are required.",
+    },
+    {
       key: "malwareScanner",
       label: "Evidence security scanner",
       configured: input.malwareScanner,
@@ -79,11 +88,20 @@ export function buildReadinessChecks(input: {
 }
 
 export function getOperationalReadiness(): ReadinessCheck[] {
+  const scannerConfigured = Boolean(serverEnv.malwareScanUrl);
+  const signingSecretConfigured = serverEnv.evidenceUploadSigningSecret.trim().length >= 32;
+  const evidenceRepositoryReady = Boolean(
+    isSupabaseAdminConfigured &&
+      signingSecretConfigured &&
+      (!serverEnv.requireMalwareScan || scannerConfigured),
+  );
+
   return buildReadinessChecks({
     supabase: isSupabaseAdminConfigured,
     drupal: isDrupalConfigured,
     cpps: isCppsConfigured,
-    malwareScanner: Boolean(serverEnv.malwareScanUrl),
+    evidenceRepository: evidenceRepositoryReady,
+    malwareScanner: scannerConfigured,
     notificationGateway: Boolean(serverEnv.notificationApiUrl),
   });
 }
