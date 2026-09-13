@@ -43,4 +43,17 @@ describe("OWC Drupal bootstrap configuration", () => {
     expect(compose.includes("postgres_data:" )).toBe(true);
     expect(compose.includes("/opt/drupal/web/sites/default")).toBe(true);
   });
+
+  test("packages the manifest into the Drupal image", async () => {
+    const dockerfile = await readFile("drupal/Dockerfile", "utf8");
+    expect(dockerfile.includes("COPY manifest.json /opt/owc-drupal/manifest.json")).toBe(true);
+  });
+
+  test("provisions editable field widgets and a published-to-draft transition", async () => {
+    const provision = await readFile("drupal/scripts/provision.php", "utf8");
+    expect(provision.includes("EntityFormDisplay")).toBe(true);
+    expect(provision.includes("setComponent($fieldName")).toBe(true);
+    expect(provision.includes("create_new_draft")).toBe(true);
+    expect(provision.includes("'from' => ['published']")).toBe(true);
+  });
 });
