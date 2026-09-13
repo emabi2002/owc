@@ -5,8 +5,9 @@
  *  - `NEXT_PUBLIC_*` variables are safe in the browser and are inlined at build
  *    time by Next.js. They are referenced *literally* below so the compiler can
  *    replace them.
- *  - Server-only secrets (service-role key, CPPS API key, Drupal token) are read
- *    from `process.env` and MUST only be consumed inside server modules.
+ *  - Server-only secrets (service-role key, CPPS API key, Drupal token and
+ *    external-agency credentials) are read from `process.env` and MUST only be
+ *    consumed inside server modules.
  *
  * The platform is designed to degrade gracefully: when an integration is not
  * configured the data/service layer falls back to the existing source or local
@@ -48,6 +49,16 @@ export const serverEnv = {
   evidenceUploadSigningSecret: process.env.OWC_EVIDENCE_UPLOAD_SIGNING_SECRET ?? "",
   notificationApiUrl: process.env.OWC_NOTIFICATION_API_URL ?? "",
   notificationApiKey: process.env.OWC_NOTIFICATION_API_KEY ?? "",
+  nidApiBaseUrl: process.env.OWC_NID_API_BASE_URL ?? "",
+  nidApiKey: process.env.OWC_NID_API_KEY ?? "",
+  employerRegistryApiBaseUrl: process.env.OWC_EMPLOYER_REGISTRY_API_BASE_URL ?? "",
+  employerRegistryApiKey: process.env.OWC_EMPLOYER_REGISTRY_API_KEY ?? "",
+  insuranceApiBaseUrl: process.env.OWC_INSURANCE_API_BASE_URL ?? "",
+  insuranceApiKey: process.env.OWC_INSURANCE_API_KEY ?? "",
+  paymentApiBaseUrl: process.env.OWC_PAYMENT_API_BASE_URL ?? "",
+  paymentApiKey: process.env.OWC_PAYMENT_API_KEY ?? "",
+  medicalApiBaseUrl: process.env.OWC_MEDICAL_API_BASE_URL ?? "",
+  medicalApiKey: process.env.OWC_MEDICAL_API_KEY ?? "",
 } as const;
 
 /** True when Supabase (Auth + Postgres) credentials are present. */
