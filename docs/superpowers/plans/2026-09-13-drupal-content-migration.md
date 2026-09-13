@@ -33,10 +33,10 @@
 - Produces `CanonicalContentRecord` and `CanonicalMigrationDocument`.
 - Produces normalization helpers for existing OWC content item types.
 
-- [ ] Write failing tests for status mapping, deterministic natural keys and bundle-specific field mapping.
-- [ ] Implement migration contracts and normalization.
-- [ ] Document source → Drupal fields for all eight bundles.
-- [ ] Run focused tests and full test/type-check/build verification.
+- [x] Write failing tests for status mapping, deterministic natural keys and bundle-specific field mapping.
+- [x] Implement migration contracts and normalization.
+- [x] Document source → Drupal fields for all eight bundles.
+- [x] Run focused tests and full test/type-check/build verification.
 
 ### Task 2: Repeatable exporter
 
@@ -50,10 +50,10 @@
 - Produces `bun run drupal:export-content`.
 - Writes canonical JSON to `drupal/migration/content-export.json` when requested.
 
-- [ ] Test deterministic ordering and duplicate-key rejection.
-- [ ] Export Supabase content when configured; otherwise export repository reference content.
-- [ ] Include explicit source metadata and generated-at timestamp.
-- [ ] Add script entry and verification tests.
+- [x] Test deterministic ordering and duplicate-key rejection.
+- [x] Export Supabase content when configured; otherwise export repository reference content.
+- [x] Include explicit source metadata and generated-at timestamp.
+- [x] Add script entry and verification tests.
 
 ### Task 3: Drupal idempotent importer
 
@@ -67,11 +67,11 @@
 - Consumes canonical migration JSON.
 - Reports created/updated/skipped/failed counts per bundle.
 
-- [ ] Validate document schema and supported bundles.
-- [ ] Upsert by deterministic natural key/migration metadata.
-- [ ] Preserve moderation state.
-- [ ] Fail non-zero on malformed records/import failures.
-- [ ] Verify second import creates no duplicate records.
+- [x] Validate document schema and supported bundles.
+- [x] Upsert by deterministic natural key/migration metadata.
+- [x] Preserve moderation state.
+- [x] Fail non-zero on malformed records/import failures.
+- [x] Verify second import creates no duplicate records.
 
 ### Task 4: Parity validation
 
@@ -83,10 +83,10 @@
 **Interfaces:**
 - Compares canonical source counts/keys with Drupal target counts/keys.
 
-- [ ] Verify all expected bundles.
-- [ ] Verify counts and deterministic keys.
-- [ ] Verify representative field mappings and moderation states.
-- [ ] Emit actionable mismatch report and fail non-zero on variance.
+- [x] Verify all expected bundles.
+- [x] Verify counts and deterministic keys.
+- [x] Verify representative field mappings and moderation states.
+- [x] Emit actionable mismatch report and fail non-zero on variance.
 
 ### Task 5: Authoritative Drupal content policy
 
@@ -101,10 +101,10 @@
 - `CONTENT_SOURCE=drupal` means Drupal is authoritative and does not silently fall back to Supabase.
 - Explicit transitional/rollback mode remains separately configurable.
 
-- [ ] Write tests proving Drupal-authoritative mode fails closed to the content-service boundary.
-- [ ] Preserve explicit migration/rollback fallback mode.
-- [ ] Ensure server-only Drupal credentials remain server-only.
-- [ ] Run full test/lint/build verification.
+- [x] Write tests proving Drupal-authoritative mode fails closed to the content-service boundary.
+- [x] Preserve explicit migration/rollback fallback mode.
+- [x] Ensure server-only Drupal credentials remain server-only.
+- [x] Run full test/lint/build verification.
 
 ### Task 6: End-to-end clean-room migration verification and PR
 
@@ -115,9 +115,16 @@
 **Interfaces:**
 - CI reconstructs Drupal, exports reference content, imports it, re-imports it, validates parity, then runs Next.js tests/build.
 
-- [ ] Add clean-room migration CI job.
-- [ ] Prove first import succeeds.
-- [ ] Prove second import is idempotent.
-- [ ] Prove parity verification passes.
-- [ ] Run branch-head CI and inspect exact result.
-- [ ] Open draft PR only after fresh verification evidence.
+- [x] Add clean-room migration CI job.
+- [x] Prove first import succeeds.
+- [x] Prove second import is idempotent.
+- [x] Prove parity verification passes.
+- [x] Run branch-head CI and inspect exact result.
+- [x] Open draft PR only after fresh verification evidence.
+
+## Verification evidence
+
+- Verified implementation head before documentation close-out: `95e1102f41166b2482f884bb1169a7544f2e96c1`.
+- GitHub Actions run `34750465952`: application tests/lint/type-check/build passed; clean-room Drupal reconstruction, first import, second idempotency import, source-to-Drupal parity verification, CMS verification and bootstrap idempotency all passed.
+- Draft PR: `#4 Drupal authoritative content migration`.
+- Acceptance record: `docs/DRUPAL_CONTENT_MIGRATION_ACCEPTANCE.md`.
