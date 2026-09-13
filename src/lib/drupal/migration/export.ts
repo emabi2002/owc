@@ -109,6 +109,20 @@ export type MigrationSupabaseSnapshot = {
   }>;
 };
 
+export type MigrationSourceCredentials = {
+  supabaseUrl: string;
+  serviceRoleKey: string;
+};
+
+export type LoadedMigrationRecords = {
+  source: CanonicalMigrationDocument["source"];
+  records: CanonicalContentRecord[];
+};
+
+export type SupabaseSnapshotLoader = (
+  credentials: MigrationSourceCredentials,
+) => Promise<MigrationSupabaseSnapshot>;
+
 export function buildMigrationDocument(
   records: CanonicalContentRecord[],
   source: CanonicalMigrationDocument["source"],
@@ -149,6 +163,24 @@ export function buildRepositoryReferenceRecords(): CanonicalContentRecord[] {
     ...SEED_LEGISLATION.map((item) => normalizeLegislation(item)),
     ...SEED_TENDERS.map((item) => normalizeTender(item)),
   ];
+}
+
+export async function loadMigrationRecords(
+  credentials: MigrationSourceCredentials,
+  loadSupabaseSnapshot: SupabaseSnapshotLoader,
+): Promise<LoadedMigrationRecords> {
+  if (!credentials.supabaseUrl || !credentials.serviceRoleKey) {
+    return {
+      source: "repository-reference",
+      records: buildRepositoryReferenceRecords(),
+    };
+  }
+
+  const snapshot = await loadSupabaseSnapshot(credentials);
+  return {
+    source: "supabase",
+    records: recordsFromSupabaseSnapshot(snapshot),
+  };
 }
 
 export function recordsFromSupabaseSnapshot(
