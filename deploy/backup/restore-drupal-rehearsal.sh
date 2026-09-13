@@ -40,4 +40,7 @@ cat "$DB_DUMP" | docker compose -f "$COMPOSE_FILE" -p "$OWC_DR_DRUPAL_COMPOSE_PR
 cat "$MEDIA_ARCHIVE" | docker compose -f "$COMPOSE_FILE" -p "$OWC_DR_DRUPAL_COMPOSE_PROJECT" exec -T drupal \
   sh -c 'mkdir -p /opt/drupal/web/sites/default/files && find /opt/drupal/web/sites/default/files -mindepth 1 -maxdepth 1 -exec rm -rf {} + && tar -xzf - -C /opt/drupal/web/sites/default/files'
 
-echo "Drupal restore rehearsal completed in isolated compose project: $OWC_DR_DRUPAL_COMPOSE_PROJECT"
+docker compose -f "$COMPOSE_FILE" -p "$OWC_DR_DRUPAL_COMPOSE_PROJECT" exec -T drupal \
+  sh -c 'curl -fsS http://localhost/ >/dev/null'
+
+echo "Drupal restore rehearsal completed and health verified in isolated compose project: $OWC_DR_DRUPAL_COMPOSE_PROJECT"
