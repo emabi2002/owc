@@ -2,7 +2,7 @@ name: CI / Deploy
 
 on:
   push:
-    branches: [main, feature/drupal-enterprise-cms, feature/drupal-content-migration, feature/drupal-editor-identity, feature/claims-evidence-production-readiness, feature/production-integration-hub, feature/production-infrastructure-readiness, feature/reference-cpps-ecosystem, feature/backup-disaster-recovery-readiness, feature/operational-administration-sla]
+    branches: [main, feature/drupal-enterprise-cms, feature/drupal-content-migration, feature/drupal-editor-identity, feature/claims-evidence-production-readiness, feature/production-integration-hub, feature/production-infrastructure-readiness, feature/reference-cpps-ecosystem, feature/backup-disaster-recovery-readiness, feature/operational-administration-sla, feature/security-assessment-readiness]
   pull_request:
     branches: [main]
   workflow_dispatch:
@@ -23,13 +23,16 @@ jobs:
           bun-version: latest
       - name: Install dependencies
         run: bun install --frozen-lockfile
-      - name: Validate deployment shell
+      - name: Validate deployment and assurance shell
         run: |
           bash -n deploy/release.sh
           bash -n deploy/monitor-check.sh
           for script in deploy/backup/*.sh; do
             bash -n "$script"
           done
+          bash -n scripts/security/repository-assurance.sh
+      - name: Run repository security assurance
+        run: bash scripts/security/repository-assurance.sh
       - name: Run tests
         run: bun test
       - name: Lint & type-check
