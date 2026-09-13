@@ -7,12 +7,13 @@ systemd), with a versioned health-checked application release workflow.
 - Ubuntu Server 24.04 LTS, a sudo user, DNS A/AAAA records for `owc.gov.pg`.
 - A dedicated OWC Supabase project (URL + anon + service-role keys).
 - Git, Bun, PM2 and `curl` installed on the application host.
+- PostgreSQL client tools (`pg_dump`, `pg_restore`) available to designated backup/recovery operators where repository-managed dumps are used.
 - The production checkout must remain on `main` and must not contain local tracked/untracked changes when an automated release begins.
 
 ## 1. System packages
 ```bash
 sudo apt update && sudo apt -y upgrade
-sudo apt -y install nginx git ufw curl
+sudo apt -y install nginx git ufw curl postgresql-client
 # Bun (runtime + package manager)
 curl -fsSL https://bun.sh/install | bash
 echo 'export BUN_INSTALL="$HOME/.bun"' >> ~/.bashrc
@@ -48,6 +49,8 @@ nano .env.local
 `.env.local` is git-ignored and read by Next.js at build/runtime. Do not commit service-role keys, evidence-signing secrets, scanner/notification credentials, OIDC client secrets, CPPS credentials or external-agency credentials.
 
 Production configuration must be reconciled against the operational-readiness controls before go-live. An environment variable being present is not proof that the associated external service has passed connectivity, UAT or security acceptance.
+
+Recovery archives must not be used as a secret-distribution mechanism. Runtime credentials are restored from the approved secret manager or break-glass process, not from database/media/evidence backup archives.
 
 ## 5. Provision the database (controlled action)
 
@@ -128,7 +131,7 @@ If the rollback revision itself does not pass `/api/health`, the script exits wi
 
 ## 10. GitHub Actions deployment
 
-`.github/workflows/deploy.yml` runs tests, lint/type-check, build and Drupal clean-room reconstruction on the tracked development branches. The SSH production deployment job is restricted to a direct push to `main`.
+`.github/workflows/deploy.yml` runs tests, lint/type-check, build and Drupal clean-room reconstruction on the tracked development branches. It also performs **shell syntax validation only** for `deploy/backup/*.sh`; CI does not run a live backup or restore. The SSH production deployment job is restricted to a direct push to `main`.
 
 Required repository/environment secrets for SSH deployment include the deployment host, user, key, port and path. Application/service credentials belong in the protected production runtime environment on the host or approved secret store; they should not be echoed by the workflow.
 
@@ -139,6 +142,29 @@ docker compose up -d --build
 
 A Docker/container deployment still requires the same external controls: TLS/reverse proxy, secret management, private service networking, health monitoring, backups and formal acceptance. Do not describe the existence of a Dockerfile/Compose file as a provisioned production environment.
 
+## 12. Backup and disaster recovery
+
+Repository recovery tooling lives under `deploy/backup/` and is governed by `docs/operations/backup-disaster-recovery.md`.
+
+A backup set may contain:
+
+- `application-db.dump` — PostgreSQL custom-format application database dump;
+- `drupal-db.dump` — Drupal PostgreSQL custom-format dump;
+- `drupal-media.tar.gz` — Drupal public uploaded files only;
+- `evidence-export.tar.gz` — archive of an **operator-provided** read-only evidence export;
+- `backup-manifest.json` — environment label, creation time and Git release SHA without secrets;
+- `SHA256SUMS` — mandatory integrity checksums.
+
+Production scheduling, provider PITR, retention and off-host copy are infrastructure/operations decisions and must be configured only after OWC approves recovery objectives. The repository deliberately does not invent RPO/RTO values.
+
+### Recovery rehearsal safety
+
+Repository restore scripts are intentionally non-production rehearsal tools. They require `OWC_DR_REHEARSAL_CONFIRM=NONPRODUCTION`, reject `prod`/`production`/`live` environment labels, require a database name ending `_dr_rehearsal`, and require an isolated Drupal Compose project containing `dr-rehearsal`.
+
+Do not weaken these guards to perform a production incident recovery. Production recovery must follow the formally approved incident/cutover procedure using verified backup evidence and named authority.
+
+CPPS and external-authority transactions are not backed up or replayed. After recovery, OWC local state must be reconciled against CPPS as the authoritative claim/payment source before service is accepted.
+
 ## Operations
 - Local health: `curl --fail http://127.0.0.1:3000/api/health`.
 - Public health/smoke: use an approved externally monitored URL after TLS/DNS are active; do not expose sensitive readiness details publicly.
@@ -146,12 +172,14 @@ A Docker/container deployment still requires the same external controls: TLS/rev
 - Restart: `pm2 reload ecosystem.config.js --update-env`.
 - Nginx validation: `sudo nginx -t` before every proxy configuration reload.
 - TLS: monitor certificate expiry/renewal.
-- Backups/restores: handled under the separate OWC backup/DR work package; backup success alone is not restore evidence.
+- Backups/restores: follow `docs/operations/backup-disaster-recovery.md`; backup success alone is not restore evidence.
+- RPO/RTO: record formal approval in `docs/operations/rpo-rto-decision-record.md`.
+- Restore rehearsal: record every exercise using `docs/operations/restore-rehearsal-evidence-template.md`.
 - External integrations: readiness/configuration does not equal live agency acceptance.
 
 ## Production acceptance still required
 
-Repository assets do not provision the actual OWC host. Before task 11 can be called production-complete, verify on the nominated environment:
+Repository assets do not provision the actual OWC host. Before production infrastructure/recovery can be called live-complete, verify on the nominated environment:
 
 - approved host/container platform and OS baseline;
 - DNS and TLS;
@@ -161,7 +189,12 @@ Repository assets do not provision the actual OWC host. Before task 11 can be ca
 - Drupal production deployment and editor identity connectivity;
 - log retention, metrics, uptime monitoring and alert routing;
 - scanner, notification, CPPS and approved agency connectivity as applicable;
-- backup/restore integration;
+- approved RPO/RTO, backup frequency and retention;
+- provider PITR/database backup where applicable;
+- Drupal DB/media and evidence-repository backup schedule;
+- logically separate/off-host backup copy;
+- successful isolated restore rehearsal with documented evidence;
+- CPPS reconciliation validation;
 - external vulnerability/security testing and operational sign-off.
 
 ## Troubleshooting
@@ -170,6 +203,8 @@ Repository assets do not provision the actual OWC host. Before task 11 can be ca
 | Release refuses dirty checkout | Review `git status`; preserve/investigate local changes instead of overwriting them. |
 | New release health fails | `deploy/release.sh` attempts application rollback automatically; inspect PM2/app logs and the deployment exit code. |
 | Rollback health also fails | Escalate as a production incident; do not continue automated release attempts. |
+| Backup checksum verification fails | Quarantine the backup set; do not restore it. Recreate or recover from an independently verified copy. |
+| Restore script refuses the target | Confirm the exercise is non-production and use the required rehearsal-only target naming; do not bypass the guard. |
 | 502 from Nginx | Check local `/api/health`, PM2 status/logs and Nginx upstream configuration. |
 | Login fails | Verify the correct production identity/Supabase configuration without exposing credentials. |
 | Drupal content unavailable | Check Drupal service health, content-source policy and approved CMS connectivity. |
