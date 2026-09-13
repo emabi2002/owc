@@ -2,7 +2,7 @@ name: CI / Deploy
 
 on:
   push:
-    branches: [main, feature/drupal-enterprise-cms, feature/drupal-content-migration, feature/drupal-editor-identity]
+    branches: [main, feature/drupal-enterprise-cms, feature/drupal-content-migration, feature/drupal-editor-identity, feature/claims-evidence-production-readiness]
   pull_request:
     branches: [main]
   workflow_dispatch:
