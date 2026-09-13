@@ -11,7 +11,8 @@
     "format": "bunx biome format --write",
     "setup": "bun scripts/setup-supabase.ts",
     "db:seed": "bun scripts/setup-supabase.ts",
-    "drupal:export-content": "bun scripts/export-drupal-content.ts"
+    "drupal:export-content": "bun scripts/export-drupal-content.ts",
+    "uat:reference": "bun scripts/uat/run-reference-suite.ts"
   },
   "dependencies": {
     "@radix-ui/react-accordion": "^1.2.14",
@@ -36,7 +37,7 @@
     "next-themes": "^0.4.6",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
-    "react-grab": "latest",
+    "react-grab": "^0.1.47",
     "same-runtime": "^0.0.1",
     "sonner": "^2.0.7",
     "tailwind-merge": "^3.3.0",
@@ -50,7 +51,7 @@
     "@types/react": "^18.3.22",
     "@types/react-dom": "^18.3.7",
     "eslint": "^9.27.0",
-    "eslint-config-next": "15.1.7",
+    "eslint-config-next": "15.3.7",
     "postcss": "^8.5.3",
     "tailwindcss": "^3.4.17",
     "typescript": "^5.8.3"
