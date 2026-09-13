@@ -23,8 +23,8 @@ php <<'PHP'
 $file = '/opt/drupal/web/sites/default/settings.php';
 $sync = '/opt/drupal/config/sync';
 $text = file_get_contents($file);
-$line = "$settings['config_sync_directory'] = '{$sync}';";
-$pattern = "/^[[:space:]]*\\$settings\\['config_sync_directory'\\].*$/m";
+$line = '$settings[\'config_sync_directory\'] = \'' . $sync . '\';';
+$pattern = '/^[[:space:]]*\\$settings\\[\'config_sync_directory\'\\].*$/m';
 
 if (preg_match($pattern, $text)) {
     $text = preg_replace($pattern, $line, $text, 1);
