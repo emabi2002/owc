@@ -93,4 +93,12 @@ describe("Drupal editor identity foundation", () => {
     expect(verify).toContain("not_configured");
     expect(verify).toContain("identity readiness failed");
   });
+
+  test("runs identity shell validation and readiness in clean-room CI", async () => {
+    const workflow = await read(".github/workflows/deploy.yml");
+    expect(workflow).toContain("bash -n drupal/scripts/configure-identity.sh");
+    expect(workflow).toContain("bash -n drupal/scripts/verify-identity.sh");
+    expect(workflow).toContain("Verify Drupal editor identity readiness");
+    expect(workflow).toContain("/opt/owc-drupal/scripts/verify-identity.sh");
+  });
 });
