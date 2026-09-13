@@ -1,0 +1,24 @@
+{
+  "schemaVersion": "1.0",
+  "releaseSha": "",
+  "targetEnvironment": "production",
+  "generatedAt": "",
+  "decisionAt": "",
+  "gates": [
+    { "id": "release-candidate", "status": "NOT_READY", "owner": "", "evidenceReferences": [], "scopeDecisionReference": "", "blocker": "", "notes": "" },
+    { "id": "production-platform", "status": "NOT_READY", "owner": "", "evidenceReferences": [], "scopeDecisionReference": "", "blocker": "", "notes": "" },
+    { "id": "production-data", "status": "NOT_READY", "owner": "", "evidenceReferences": [], "scopeDecisionReference": "", "blocker": "", "notes": "" },
+    { "id": "drupal-content", "status": "NOT_READY", "owner": "", "evidenceReferences": [], "scopeDecisionReference": "", "blocker": "", "notes": "" },
+    { "id": "identity-access", "status": "NOT_READY", "owner": "", "evidenceReferences": [], "scopeDecisionReference": "", "blocker": "", "notes": "" },
+    { "id": "evidence-security", "status": "NOT_READY", "owner": "", "evidenceReferences": [], "scopeDecisionReference": "", "blocker": "", "notes": "" },
+    { "id": "notifications", "status": "NOT_READY", "owner": "", "evidenceReferences": [], "scopeDecisionReference": "", "blocker": "", "notes": "" },
+    { "id": "cpps", "status": "NOT_READY", "owner": "", "evidenceReferences": [], "scopeDecisionReference": "", "blocker": "", "notes": "" },
+    { "id": "external-integrations", "status": "NOT_READY", "owner": "", "evidenceReferences": [], "scopeDecisionReference": "", "blocker": "", "notes": "" },
+    { "id": "backup-recovery", "status": "NOT_READY", "owner": "", "evidenceReferences": [], "scopeDecisionReference": "", "blocker": "", "notes": "" },
+    { "id": "security-assessment", "status": "NOT_READY", "owner": "", "evidenceReferences": [], "scopeDecisionReference": "", "blocker": "", "notes": "" },
+    { "id": "business-uat", "status": "NOT_READY", "owner": "", "evidenceReferences": [], "scopeDecisionReference": "", "blocker": "", "notes": "" },
+    { "id": "operations-support", "status": "NOT_READY", "owner": "", "evidenceReferences": [], "scopeDecisionReference": "", "blocker": "", "notes": "" },
+    { "id": "cutover-change", "status": "NOT_READY", "owner": "", "evidenceReferences": [], "scopeDecisionReference": "", "blocker": "", "notes": "" },
+    { "id": "production-authorization", "status": "NOT_READY", "owner": "", "evidenceReferences": [], "scopeDecisionReference": "", "productionAuthorizationReference": "", "blocker": "", "notes": "" }
+  ]
+}
