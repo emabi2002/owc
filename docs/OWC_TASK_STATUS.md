@@ -25,7 +25,7 @@ This file reconciles the agreed OWC task list against repository evidence. It di
 | 9 | Email/SMS notifications | **PARTIAL / EXTERNAL ACTIVATION** | Server-side notification gateway abstraction, outbox/audit model, retry bookkeeping and lifecycle delivery pathway are implemented. Actual provider endpoint/credentials, scheduler/operations worker where required, message-template acceptance and delivery UAT remain. |
 | 10 | External government integrations | **PARTIAL / EXTERNAL ACTIVATION** | Production-safe Integration Hub foundation is implemented for NID/identity, employer registry, insurance, payments and medical providers, while a coherent synthetic integration sandbox supports development/demo flows. Real agency endpoints, authoritative schemas, authentication, networking and agency UAT are still required. |
 | 11 | Production infrastructure | **COMPLETED (repository)** | Ubuntu/PM2/Nginx deployment baseline, health-checked release script, application-code rollback, deployment preflight, monitoring script/runbook and CI validation are implemented. Exact infrastructure head `adf407ef655e3939d29c2633e6e7425da3c7bcd1` completed full CI including Drupal clean-room. Draft PR #9 preserves this work. Actual host/DNS/TLS/secrets and live environment acceptance remain external provisioning/cutover actions. |
-| 12 | Backup and disaster recovery | **NOT YET COMPLETE** | Architecture requires automated database/Drupal/document/configuration backups, off-host/logically separate copy, restore evidence and approved RPO/RTO. This is the next major repository package; real provider retention, PITR/offsite storage and restore rehearsal will still require an approved OWC environment. |
+| 12 | Backup and disaster recovery | **COMPLETED (repository)** | Repository recovery controls now include fail-closed PostgreSQL application backup, Drupal DB/public-media backup, operator-provided evidence-export archival, release manifest and SHA-256 verification, and guarded non-production application/Drupal restore rehearsals. The runbook defines restore order, secret boundaries and CPPS reconciliation; RPO/RTO are intentionally left unapproved pending OWC decision. Real provider PITR/retention, off-host copy, backup monitoring and an approved restore rehearsal remain external production-acceptance gates. |
 | 13 | Security assessment | **PARTIAL / EXTERNAL ACTIVATION** | Secure coding controls, CI tests, security headers, RBAC/RLS boundaries, fail-closed integration behavior and security checklists exist. Independent OWASP/vulnerability/penetration testing and formal production security sign-off remain. |
 | 14 | Full end-to-end UAT | **NOT YET COMPLETE** | The reference ecosystem now allows synthetic end-to-end development/UAT without waiting for every real agency system. Formal production-like UAT still requires approved Drupal/Supabase, CPPS/agency UAT contracts, scanner/notification services and business/security sign-off. |
 | 15 | Operational administration and SLA | **PARTIAL** | Health/readiness models, monitoring baseline and operations runbooks exist. Formal incident ownership, escalation matrix, SLA targets, patch cadence, Tier-3 procedures, service reporting and 12-month support operating model still need completion/acceptance. |
@@ -34,14 +34,12 @@ This file reconciles the agreed OWC task list against repository evidence. It di
 
 ## Current execution order
 
-1. Close the reference CPPS package with exact-head CI and preserve it as a stacked draft PR; real CPPS discovery remains a later live-acceptance mapping exercise.
-2. Complete backup/DR repository controls and restore-runbook framework (task 12), while leaving real offsite retention/PITR and restore rehearsal for the approved OWC environment.
-3. Complete operational administration/SLA artifacts and monitoring/incident controls that do not require live infrastructure (task 15).
-4. Strengthen security automation/evidence and prepare the external security-assessment evidence pack (task 13).
-5. Extend synthetic end-to-end UAT across the reference ecosystem, then execute formal production-like UAT when live UAT services become available (task 14).
-6. Map and contract-test the reference CPPS/external-service contracts against authoritative live APIs as agencies/OWC provide them (tasks 4–10).
-7. Execute final production cutover only after backup/recovery, security, UAT and operational acceptance gates are satisfied (task 16).
-8. Reconcile the outstanding RFI/articles source gap when those materials are located (task 17).
+1. Complete operational administration/SLA artifacts, incident controls, support procedures and service-reporting framework that do not require live infrastructure (task 15).
+2. Strengthen security automation/evidence and prepare the external security-assessment evidence pack (task 13).
+3. Extend synthetic end-to-end UAT across the reference ecosystem, then execute formal production-like UAT when live UAT services become available (task 14).
+4. Map and contract-test the reference CPPS/external-service contracts against authoritative live APIs as agencies/OWC provide them (tasks 4–10).
+5. Prepare final cutover runbook, acceptance matrix, rollback/reconciliation gates and go-live evidence package; execute production cutover only after formal approval (task 16).
+6. Reconcile the outstanding RFI/articles source gap when those materials are located (task 17).
 
 ## Governing rule
 
