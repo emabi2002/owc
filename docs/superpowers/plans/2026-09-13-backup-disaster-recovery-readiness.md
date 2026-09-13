@@ -20,8 +20,8 @@
 **Files:**
 - Create: `src/lib/operations/backup-dr.test.ts`
 
-- [ ] Write failing tests describing required backup scripts, checksum verification, secret exclusions and rehearsal guardrails.
-- [ ] Confirm RED because recovery tooling does not yet exist.
+- [x] Write failing tests describing required backup scripts, checksum verification, secret exclusions and rehearsal guardrails.
+- [x] Confirm RED because recovery tooling does not yet exist.
 
 ### Task 2: Backup-set tooling
 
@@ -32,10 +32,10 @@
 - Create: `deploy/backup/backup-evidence-export.sh`
 - Create: `deploy/backup/finalize-backup.sh`
 
-- [ ] Implement fail-closed PostgreSQL backup using environment credentials.
-- [ ] Implement Drupal DB + public-media backup without settings/secrets.
-- [ ] Implement evidence backup from an operator-provided read-only export path.
-- [ ] Finalize manifest + SHA-256 checksums with release metadata only.
+- [x] Implement fail-closed PostgreSQL backup using environment credentials.
+- [x] Implement Drupal DB + public-media backup without settings/secrets.
+- [x] Implement evidence backup from an operator-provided read-only export path.
+- [x] Finalize manifest + SHA-256 checksums with release metadata only.
 
 ### Task 3: Verification and restore rehearsal
 
@@ -44,10 +44,10 @@
 - Create: `deploy/backup/restore-application-db-rehearsal.sh`
 - Create: `deploy/backup/restore-drupal-rehearsal.sh`
 
-- [ ] Verify all checksums before restore.
-- [ ] Require explicit non-production confirmation.
-- [ ] Guard application database target naming against production restoration.
-- [ ] Restore Drupal to an isolated Compose project and verify service health.
+- [x] Verify all checksums before restore.
+- [x] Require explicit non-production confirmation.
+- [x] Guard application database target naming against production restoration.
+- [x] Restore Drupal to an isolated Compose project and verify service health.
 
 ### Task 4: Operational governance
 
@@ -58,9 +58,9 @@
 - Modify: `docs/DEPLOYMENT_UBUNTU_24_04.md`
 - Modify: `docs/OWC_TASK_STATUS.md`
 
-- [ ] Document component inventory, restore order, CPPS reconciliation and secret boundary.
-- [ ] Add explicit unapproved RPO/RTO decision record rather than guessed targets.
-- [ ] Add restore rehearsal evidence template and production acceptance gates.
+- [x] Document component inventory, restore order, CPPS reconciliation and secret boundary.
+- [x] Add explicit unapproved RPO/RTO decision record rather than guessed targets.
+- [x] Add restore rehearsal evidence template and production acceptance gates.
 
 ### Task 5: CI and acceptance evidence
 
@@ -68,6 +68,6 @@
 - Modify: `.github/workflows/deploy.yml`
 - Create: `docs/verification/backup-dr-tdd.md`
 
-- [ ] Add shell syntax validation only; do not run live backup/restore in CI.
+- [x] Add shell syntax validation only; do not run live backup/restore in CI.
 - [ ] Run exact-head tests/lint/build and Drupal clean-room reconstruction.
 - [ ] Preserve as a stacked draft PR on the reference-CPPS branch.
