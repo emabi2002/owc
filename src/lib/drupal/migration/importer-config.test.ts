@@ -18,6 +18,16 @@ describe("Drupal migration importer", () => {
     expect(importer.includes("$record['status'] === 'published'")).toBe(true);
   });
 
+  test("treats source_* values as transport metadata while still rejecting unknown entity fields", async () => {
+    const importer = await readFile("drupal/scripts/import-content.php", "utf8");
+    const verifier = await readFile("drupal/scripts/verify-content-parity.php", "utf8");
+
+    expect(importer.includes("str_starts_with($fieldName, 'source_')")).toBe(true);
+    expect(verifier.includes("str_starts_with($fieldName, 'source_')")).toBe(true);
+    expect(importer.includes("Unknown Drupal field")).toBe(true);
+    expect(verifier.includes("__missing_field__")).toBe(true);
+  });
+
   test("fails malformed migration documents and reports per-bundle outcomes", async () => {
     const importer = await readFile("drupal/scripts/import-content.php", "utf8");
     expect(importer.includes("schemaVersion")).toBe(true);
