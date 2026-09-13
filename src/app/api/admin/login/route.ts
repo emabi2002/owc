@@ -8,6 +8,14 @@ import {
   rateLimit,
   rateLimitHeaders,
 } from "@/lib/security/rate-limit";
+import { isDemonstrationIdentityMode } from "@/lib/auth/identity-mode";
+import {
+  authenticateDemoPrincipal,
+  DEMO_MFA_COOKIE,
+  demoMfaCookieOptions,
+  issueDemoMfaToken,
+  recordDemoIdentityEvent,
+} from "@/lib/auth/demo-identity";
 
 export async function POST(request: Request) {
   const ip = getClientIp(request.headers);
@@ -30,12 +38,55 @@ export async function POST(request: Request) {
     );
   }
 
+  const { email, password } = parsed.data;
+
+  if (isDemonstrationIdentityMode()) {
+    const principal = authenticateDemoPrincipal(email, password);
+    if (!principal || principal.principalType !== "staff" || !principal.role) {
+      recordDemoIdentityEvent("login_failed");
+      await recordAudit({
+        action: "failed_login",
+        entity: "auth",
+        summary: `Demonstration sign-in failed: ${email}`,
+        actorEmail: email,
+        ip,
+      });
+      return NextResponse.json(
+        { error: "Invalid email or password." },
+        { status: 401 },
+      );
+    }
+
+    recordDemoIdentityEvent("login_succeeded", principal);
+    recordDemoIdentityEvent("mfa_challenged", principal);
+    await recordAudit({
+      action: "login",
+      entity: "auth",
+      summary: `Demonstration primary authentication succeeded: ${principal.email}`,
+      actorId: principal.id,
+      actorEmail: principal.email,
+      ip,
+    });
+
+    const response = NextResponse.json({
+      ok: true,
+      mfaRequired: principal.mfaRequired,
+      factorId: "owc-demo-totp",
+      demonstration: true,
+    });
+    response.cookies.set(
+      DEMO_MFA_COOKIE,
+      issueDemoMfaToken(principal),
+      demoMfaCookieOptions,
+    );
+    return response;
+  }
+
   if (!isSupabaseConfigured) {
     return NextResponse.json(
       {
         error:
-          "Authentication is not configured. Set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY to enable staff sign-in.",
-        demo: true,
+          "Authentication is unavailable. Configure the approved live identity provider before staff sign-in.",
       },
       { status: 503 },
     );
@@ -46,7 +97,6 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Auth unavailable." }, { status: 503 });
   }
 
-  const { email, password } = parsed.data;
   const { data, error } = await supabase.auth.signInWithPassword({
     email,
     password,
