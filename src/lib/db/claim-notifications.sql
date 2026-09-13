@@ -49,6 +49,8 @@ create table if not exists public.claim_notifications (
                       check (status in ('queued','sent','failed','suppressed')),
   provider_message_id text,
   error_message       text,
+  attempt_count       integer not null default 0 check (attempt_count >= 0),
+  next_attempt_at     timestamptz,
   attempted_at        timestamptz,
   sent_at             timestamptz,
   created_by_id       uuid references public.profiles(id) on delete set null,
@@ -56,10 +58,23 @@ create table if not exists public.claim_notifications (
   updated_at          timestamptz not null default now()
 );
 
+-- Keep upgrades idempotent for environments that already applied the earlier baseline.
+alter table public.claim_notifications
+  add column if not exists attempt_count integer not null default 0;
+alter table public.claim_notifications
+  drop constraint if exists claim_notifications_attempt_count_check;
+alter table public.claim_notifications
+  add constraint claim_notifications_attempt_count_check check (attempt_count >= 0);
+alter table public.claim_notifications
+  add column if not exists next_attempt_at timestamptz;
+
 create index if not exists claim_notifications_claim_idx
   on public.claim_notifications (claim_reference, created_at desc);
 create index if not exists claim_notifications_status_idx
   on public.claim_notifications (status, created_at);
+create index if not exists claim_notifications_retry_idx
+  on public.claim_notifications (next_attempt_at, attempt_count)
+  where status in ('queued','failed');
 
 drop trigger if exists claim_notifications_set_updated_at on public.claim_notifications;
 create trigger claim_notifications_set_updated_at
@@ -85,3 +100,5 @@ with check (public.current_app_role() in ('administrator','claims_officer'));
 
 -- Delivery is performed server-side only. Do not expose notification-provider
 -- credentials to the browser or allow anonymous inserts into either table.
+-- A server-side operations worker may increment attempt_count and schedule
+-- next_attempt_at, but this schema intentionally does not provision a scheduler.

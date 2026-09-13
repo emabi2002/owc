@@ -15,6 +15,9 @@ create table if not exists public.claim_evidence (
   sha256          text,
   status          text not null default 'Pending Review'
                   check (status in ('Verified','Pending Review','Rejected')),
+  security_scan_status text check (security_scan_status in ('clean','infected','unavailable','not_configured')),
+  retention_until timestamptz,
+  legal_hold      boolean not null default false,
   uploaded_by     text,
   uploaded_by_id  uuid references public.profiles(id) on delete set null,
   uploaded_at     timestamptz not null default now(),
@@ -25,11 +28,30 @@ create table if not exists public.claim_evidence (
   updated_at      timestamptz not null default now()
 );
 
+-- Keep upgrades idempotent for environments that already applied the earlier baseline.
+alter table public.claim_evidence
+  add column if not exists security_scan_status text;
+alter table public.claim_evidence
+  drop constraint if exists claim_evidence_security_scan_status_check;
+alter table public.claim_evidence
+  add constraint claim_evidence_security_scan_status_check
+  check (security_scan_status is null or security_scan_status in ('clean','infected','unavailable','not_configured'));
+alter table public.claim_evidence
+  add column if not exists retention_until timestamptz;
+alter table public.claim_evidence
+  add column if not exists legal_hold boolean not null default false;
+
 create index if not exists claim_evidence_claim_reference_idx
   on public.claim_evidence (claim_reference, uploaded_at);
 
 create index if not exists claim_evidence_category_idx
   on public.claim_evidence (category);
+
+-- Operations may use this index to identify records due for retention review.
+-- Legal-hold rows remain in the result contract and must never be deleted automatically.
+create index if not exists claim_evidence_retention_idx
+  on public.claim_evidence (retention_until, legal_hold)
+  where retention_until is not null;
 
 drop trigger if exists claim_evidence_set_updated_at on public.claim_evidence;
 create trigger claim_evidence_set_updated_at
@@ -65,3 +87,5 @@ with check (public.current_app_role() in ('administrator','claims_officer'));
 -- anonymous read access. Claimant upload routes must write through a validated
 -- server endpoint that performs MIME/size checks, malware scanning integration,
 -- hashing, and metadata creation rather than granting broad browser bucket access.
+-- Retention decisions are policy-driven and must respect legal_hold; this schema
+-- intentionally does not add automatic deletion logic.
