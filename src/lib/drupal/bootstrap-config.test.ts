@@ -50,6 +50,26 @@ describe("OWC Drupal bootstrap configuration", () => {
     expect(dockerfile.includes("COPY manifest.json /opt/owc-drupal/manifest.json")).toBe(true);
   });
 
+  test("preserves long-form body fields for migrated news and page content", async () => {
+    const storage = await readFile(
+      "drupal/config/sync/field.storage.node.body.yml",
+      "utf8",
+    );
+    const news = await readFile(
+      "drupal/config/sync/field.field.node.news.body.yml",
+      "utf8",
+    );
+    const page = await readFile(
+      "drupal/config/sync/field.field.node.page.body.yml",
+      "utf8",
+    );
+
+    expect(storage.includes("field_name: body")).toBe(true);
+    expect(storage.includes("type: text_with_summary")).toBe(true);
+    expect(news.includes("bundle: news")).toBe(true);
+    expect(page.includes("bundle: page")).toBe(true);
+  });
+
   test("preserves the recovery provisioner with editable widgets and revision workflow", async () => {
     const provision = await readFile("drupal/scripts/provision.php", "utf8");
     expect(provision.includes("EntityFormDisplay")).toBe(true);
