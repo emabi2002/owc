@@ -13,6 +13,7 @@ import {
   DEMO_MFA_COOKIE,
   DEMO_SESSION_COOKIE,
   demoSessionCookieOptions,
+  isDemoIdentityConfigured,
   issueDemoSessionToken,
   recordDemoIdentityEvent,
   verifyDemoMfaCode,
@@ -46,6 +47,16 @@ export async function POST(request: NextRequest) {
   const { factorId, code } = parsed.data;
 
   if (isDemonstrationIdentityMode()) {
+    if (!isDemoIdentityConfigured()) {
+      return NextResponse.json(
+        {
+          error:
+            "The OWC demonstration identity service is not configured. Contact the presentation administrator.",
+        },
+        { status: 503 },
+      );
+    }
+
     const pendingToken = request.cookies.get(DEMO_MFA_COOKIE)?.value;
     const principal = pendingToken ? verifyDemoMfaToken(pendingToken) : null;
     if (
