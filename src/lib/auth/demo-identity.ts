@@ -39,6 +39,12 @@ export type DemoIdentityEvent = {
   actorEmail?: string;
 };
 
+export type DemoIdentityConfiguration = {
+  sessionSecret: string;
+  password: string;
+  mfaCode: string;
+};
+
 const DEMO_PRINCIPALS: readonly DemoPrincipal[] = [
   {
     id: "demo-staff-admin-001",
@@ -140,6 +146,20 @@ export const demoMfaCookieOptions = {
   path: "/",
   maxAge: 5 * 60,
 };
+
+export function isDemoIdentityConfigured(
+  configuration: DemoIdentityConfiguration = {
+    sessionSecret: process.env.OWC_DEMO_SESSION_SECRET ?? "",
+    password: process.env.OWC_DEMO_PASSWORD ?? "",
+    mfaCode: process.env.OWC_DEMO_MFA_CODE ?? "",
+  },
+): boolean {
+  return (
+    configuration.sessionSecret.length >= 32 &&
+    configuration.password.length >= 12 &&
+    /^\d{6}$/.test(configuration.mfaCode)
+  );
+}
 
 export function listDemoPrincipals(): readonly DemoPrincipal[] {
   return DEMO_PRINCIPALS;
