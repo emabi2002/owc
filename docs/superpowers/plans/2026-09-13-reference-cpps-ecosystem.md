@@ -31,10 +31,10 @@
 **Interfaces:**
 - Produces `ReferenceCppsClaim`, `ReferenceCppsState`, `ReferenceCppsEvent`, `ReferenceCppsService`.
 
-- [ ] Write failing tests for claim registration, retrieval and lifecycle transition validation.
-- [ ] Run CI and confirm RED because reference modules do not yet exist.
-- [ ] Implement minimal domain types/service to pass.
-- [ ] Verify tests green.
+- [x] Write failing tests for claim registration, retrieval and lifecycle transition validation.
+- [x] Run CI and confirm RED because reference modules do not yet exist.
+- [x] Implement minimal domain types/service to pass.
+- [x] Verify tests green.
 
 ### Task 2: Assessment and synthetic payment
 
@@ -45,9 +45,9 @@
 **Interfaces:**
 - Produces `assessClaim(reference, weeks)` and `recordSyntheticPayment(reference)`.
 
-- [ ] Add failing tests proving assessment is labelled as assumed and payment is idempotent.
-- [ ] Implement minimal assessment/payment behavior.
-- [ ] Verify tests green.
+- [x] Add failing tests proving assessment is labelled as assumed and payment is idempotent.
+- [x] Implement minimal assessment/payment behavior.
+- [x] Verify tests green.
 
 ### Task 3: OWC adapter compatibility
 
@@ -61,14 +61,16 @@
 - Consumes reference service claim state.
 - Produces existing `CppsClaimStatus`, `CppsLodgeResult`, employer/injury/enquiry contracts with `source: "reference"`.
 
-- [ ] Write failing tests for mapping the reference claim to the existing tracking contract.
-- [ ] Expand result source to `cpps | reference`.
-- [ ] Delegate non-live CPPS behavior to the reference service.
-- [ ] Verify existing portal contract remains compatible.
+- [x] Write failing tests for mapping the reference claim to the existing tracking contract.
+- [x] Expand result source to distinguish `cpps`, `reference` and unavailable errors.
+- [x] Delegate non-live CPPS behavior to the reference service.
+- [x] Verify existing portal contract remains compatible through tests/type-check.
 
 ### Task 4: Controlled HTTP façade
 
 **Files:**
+- Create: `src/lib/cpps/reference/http.ts`
+- Create: `src/lib/cpps/reference/http.test.ts`
 - Create: `src/app/api/reference/cpps/health/route.ts`
 - Create: `src/app/api/reference/cpps/claims/route.ts`
 - Create: `src/app/api/reference/cpps/claims/[reference]/route.ts`
@@ -79,10 +81,10 @@
 - Consumes `OWC_ENABLE_REFERENCE_ECOSYSTEM`.
 - Produces non-production JSON endpoints for demo/UAT only.
 
-- [ ] Add route/config tests showing the façade is disabled by default.
-- [ ] Implement explicit opt-in reference routes.
-- [ ] Ensure every response is visibly labelled `reference`.
-- [ ] Verify live production configuration does not rely on these routes.
+- [x] Add route/config tests showing the façade is disabled by default.
+- [x] Implement explicit opt-in reference routes.
+- [x] Ensure reference responses are visibly labelled and never report production connectivity.
+- [x] Preserve live-CPPS precedence and keep reference routes disabled unless explicitly enabled.
 
 ### Task 5: Documentation and acceptance evidence
 
@@ -90,8 +92,9 @@
 - Create: `docs/operations/reference-cpps.md`
 - Modify: `docs/API_INTEGRATION.md`
 - Modify: `docs/OWC_TASK_STATUS.md`
+- Modify: `docs/verification/reference-cpps-tdd.md`
 
-- [ ] Document assumptions, lifecycle, endpoints, safety boundary and live-migration procedure.
-- [ ] Mark live CPPS discovery as no longer blocking development but still required for production acceptance.
+- [x] Document assumptions, lifecycle, endpoints, safety boundary and live-migration procedure.
+- [x] Mark live CPPS discovery as no longer blocking development but still required for production acceptance.
 - [ ] Run exact-head tests, type-check, lint/build and Drupal clean-room CI.
 - [ ] Open a draft PR stacked on the production-infrastructure branch.
