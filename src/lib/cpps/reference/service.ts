@@ -1,4 +1,8 @@
-import type { CppsLodgeInput } from "../types";
+import type {
+  CppsEnquiryInput,
+  CppsInjuryReportInput,
+  CppsLodgeInput,
+} from "../types";
 import { createReferenceCppsStore } from "./store";
 import type {
   ReferenceCppsClaim,
@@ -19,12 +23,22 @@ const ALLOWED_TRANSITIONS: Record<ReferenceCppsState, readonly ReferenceCppsStat
   closed: [],
 };
 
+const REFERENCE_EMPLOYER = {
+  registered: true as const,
+  name: "Pacific Engineering Demo Ltd",
+  registrationNo: "CPPS-EMP-REF-0001",
+  policyExpiry: "2026-12-31",
+  status: "Compliant" as const,
+};
+
 export function createReferenceCppsService(
   options: ReferenceCppsServiceOptions = {},
 ): ReferenceCppsService {
   const now = options.now ?? (() => new Date());
   const store = createReferenceCppsStore();
-  let sequence = 0;
+  let claimSequence = 0;
+  let injurySequence = 0;
+  let enquirySequence = 0;
 
   const requireClaim = (reference: string) => {
     const claim = store.get(reference);
@@ -33,9 +47,19 @@ export function createReferenceCppsService(
   };
 
   const nextReference = () => {
-    sequence += 1;
+    claimSequence += 1;
     const year = now().getUTCFullYear();
-    return `CPPS-REF-${year}-${String(sequence).padStart(6, "0")}`;
+    return `CPPS-REF-${year}-${String(claimSequence).padStart(6, "0")}`;
+  };
+
+  const nextReceiptReference = (prefix: "INJ" | "ENQ") => {
+    const year = now().getUTCFullYear();
+    if (prefix === "INJ") {
+      injurySequence += 1;
+      return `INJ-REF-${year}-${String(injurySequence).padStart(6, "0")}`;
+    }
+    enquirySequence += 1;
+    return `ENQ-REF-${year}-${String(enquirySequence).padStart(6, "0")}`;
   };
 
   const transitionClaim = (reference: string, toState: ReferenceCppsState) => {
@@ -158,6 +182,31 @@ export function createReferenceCppsService(
       };
       store.save(paid);
       return requireClaim(reference);
+    },
+
+    verifyEmployer(query) {
+      const normalized = query.trim().toLowerCase();
+      if (
+        normalized === REFERENCE_EMPLOYER.name.toLowerCase() ||
+        normalized === REFERENCE_EMPLOYER.registrationNo.toLowerCase()
+      ) {
+        return { ...REFERENCE_EMPLOYER };
+      }
+      return { registered: false, status: "Unknown" };
+    },
+
+    receiveInjuryReport(_input: CppsInjuryReportInput) {
+      return {
+        reference: nextReceiptReference("INJ"),
+        receivedAt: now().toISOString(),
+      };
+    },
+
+    receiveEnquiry(_input: CppsEnquiryInput) {
+      return {
+        reference: nextReceiptReference("ENQ"),
+        receivedAt: now().toISOString(),
+      };
     },
   };
 }
