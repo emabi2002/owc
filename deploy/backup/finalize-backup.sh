@@ -13,7 +13,7 @@ require_backup_set_dir
 
 ENVIRONMENT="$(safe_environment_label)"
 CREATED_AT="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
-RELEASE_SHA="$(git -C "$OWC_REPO_ROOT" rev-parse HEAD)"
+RELEASE_SHA="$(cd "$OWC_REPO_ROOT" && git rev-parse HEAD)"
 MANIFEST="$OWC_BACKUP_SET_DIR/backup-manifest.json"
 CHECKSUMS="$OWC_BACKUP_SET_DIR/SHA256SUMS"
 
