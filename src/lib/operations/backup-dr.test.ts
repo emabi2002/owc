@@ -76,4 +76,10 @@ describe("OWC backup and disaster recovery contract", () => {
     expect(combined).not.toContain("CPPS_API_KEY");
     expect(combined).not.toContain("/payments");
   });
+
+  test("Drupal restore rehearsal verifies the isolated CMS is serving after recovery", () => {
+    const drupal = read("deploy/backup/restore-drupal-rehearsal.sh");
+    expect(drupal).toContain("curl -fsS http://localhost/");
+    expect(drupal).toContain("OWC_DR_DRUPAL_COMPOSE_PROJECT");
+  });
 });
