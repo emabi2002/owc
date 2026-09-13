@@ -1,4 +1,11 @@
-import type { CppsLodgeInput } from "../types";
+import type {
+  CppsEmployerCheck,
+  CppsEnquiryInput,
+  CppsEnquiryResult,
+  CppsInjuryReportInput,
+  CppsInjuryReportResult,
+  CppsLodgeInput,
+} from "../types";
 
 export type ReferenceCppsState =
   | "received"
@@ -63,4 +70,7 @@ export type ReferenceCppsService = {
   transitionClaim(reference: string, toState: ReferenceCppsState): ReferenceCppsClaim;
   assessClaim(reference: string, assumedWeeks: number): ReferenceCppsClaim;
   recordSyntheticPayment(reference: string): ReferenceCppsClaim;
+  verifyEmployer(query: string): CppsEmployerCheck;
+  receiveInjuryReport(input: CppsInjuryReportInput): CppsInjuryReportResult;
+  receiveEnquiry(input: CppsEnquiryInput): CppsEnquiryResult;
 };
