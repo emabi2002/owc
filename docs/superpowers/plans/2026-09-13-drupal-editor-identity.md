@@ -35,10 +35,10 @@
 - Produces Drupal modules `openid_connect`, `externalauth`, and `owc_identity` in the container image.
 - Produces the service `owc_identity.policy` for later login-policy checks.
 
-- [ ] Write a failing Bun test that expects the Dockerfile to install `drupal/openid_connect:^3.0@alpha`, copy `drupal/modules/custom` into `/opt/drupal/web/modules/custom`, and define the `owc_identity` module.
-- [ ] Run `bun test src/lib/drupal/identity/identity-config.test.ts` and confirm RED.
-- [ ] Modify the Dockerfile and create module metadata/services.
-- [ ] Re-run the focused test and confirm GREEN.
+- [x] Write a failing Bun test that expects the Dockerfile to install `drupal/openid_connect:^3.0@alpha`, copy `drupal/modules/custom` into `/opt/drupal/web/modules/custom`, and define the `owc_identity` module.
+- [x] Run `bun test src/lib/drupal/identity/identity-config.test.ts` and confirm RED.
+- [x] Modify the Dockerfile and create module metadata/services.
+- [x] Re-run the focused test and confirm GREEN.
 
 ### Task 2: Runtime policy service and local-login enforcement
 
@@ -53,11 +53,11 @@
 - `IdentityPolicy::localLoginAllowed(?UserInterface $account): bool`
 - Drupal form alter attaches `owc_identity_validate_local_login` to `user_login_form`.
 
-- [ ] Write failing tests asserting the policy reads `OWC_IDENTITY_ENFORCE_SSO` and `OWC_BREAK_GLASS_LOCAL_LOGIN`, that local validation exists, and that only UID 1 may pass when both enforcement and break-glass are enabled.
-- [ ] Run focused tests and confirm RED.
-- [ ] Implement `IdentityPolicy` with strict truth parsing (`1`, `true`, `yes`, `on`) and local-login policy.
-- [ ] Implement login form validation that loads the submitted account, denies normal local login under SSO enforcement, and logs denial/break-glass use without logging passwords.
-- [ ] Re-run focused tests and confirm GREEN.
+- [x] Write failing tests asserting the policy reads `OWC_IDENTITY_ENFORCE_SSO` and `OWC_BREAK_GLASS_LOCAL_LOGIN`, that local validation exists, and that only UID 1 may pass when both enforcement and break-glass are enabled.
+- [x] Run focused tests and confirm RED.
+- [x] Implement `IdentityPolicy` with strict truth parsing (`1`, `true`, `yes`, `on`) and local-login policy.
+- [x] Implement login form validation that loads the submitted account, denies normal local login under SSO enforcement, and logs denial/break-glass use without logging passwords.
+- [x] Re-run focused tests and confirm GREEN.
 
 ### Task 3: OIDC role synchronization and audit hooks
 
@@ -71,10 +71,10 @@
 - `hook_openid_connect_post_authorize(UserInterface $account, array $context)` logs successful OIDC authorization and resulting managed roles.
 - `hook_entity_update(EntityInterface $entity)` logs managed-role deltas for user entities.
 
-- [ ] Write failing tests for the exact managed-role set and presence of the post-authorize/entity-update audit hooks.
-- [ ] Run focused tests and confirm RED.
-- [ ] Implement the managed-role helper and structured logging hooks.
-- [ ] Re-run focused tests and confirm GREEN.
+- [x] Write failing tests for the exact managed-role set and presence of the post-authorize/entity-update audit hooks.
+- [x] Run focused tests and confirm RED.
+- [x] Implement the managed-role helper and structured logging hooks.
+- [x] Re-run focused tests and confirm GREEN.
 
 ### Task 4: Committed Drupal OIDC settings and role mappings
 
@@ -93,11 +93,11 @@
   - `owc-auditors` -> `auditor`
 - `force_reset_role_mappings: true` when supported by the installed module schema.
 
-- [ ] Write failing tests asserting `core.extension.yml` enables `externalauth`, `openid_connect`, and `owc_identity`, and committed settings contain all five mappings but no `client_secret` value.
-- [ ] Run focused tests and confirm RED.
-- [ ] Add modules/settings using the exact schema accepted by the installed OpenID Connect 3.x release.
-- [ ] Run clean-room Drupal install. If schema validation fails, inspect the installed module defaults/schema and make the smallest correction.
-- [ ] Re-run focused and clean-room tests until GREEN.
+- [x] Write failing tests asserting `core.extension.yml` enables `externalauth`, `openid_connect`, and `owc_identity`, and committed settings contain all five mappings but no `client_secret` value.
+- [x] Run focused tests and confirm RED.
+- [x] Add modules/settings using the exact schema accepted by the installed OpenID Connect 3.x release.
+- [x] Run clean-room Drupal install. If schema validation fails, inspect the installed module defaults/schema and make the smallest correction.
+- [x] Re-run focused and clean-room tests until GREEN.
 
 ### Task 5: Runtime OIDC client provisioning and readiness verification
 
@@ -115,12 +115,12 @@
 - In CI/non-enforcing mode, missing live IdP values are reported as `not_configured` rather than causing Drupal reconstruction failure.
 - When `OWC_IDENTITY_ENFORCE_SSO=1`, readiness fails unless all required client settings are present.
 
-- [ ] Write failing tests for required env names, no secret echoing, and readiness fail-closed behavior when enforcement is enabled.
-- [ ] Run focused tests and confirm RED.
-- [ ] Implement idempotent client configuration using the installed module's generic client configuration entity API/config schema; never print the client secret.
-- [ ] Implement readiness checks for module enablement, five role mappings, enforcement/break-glass posture, and required client settings.
-- [ ] Document DEV/UAT callback registration, MFA prerequisite, enforcement sequence and recovery procedure.
-- [ ] Re-run focused tests and confirm GREEN.
+- [x] Write failing tests for required env names, no secret echoing, and readiness fail-closed behavior when enforcement is enabled.
+- [x] Run focused tests and confirm RED.
+- [x] Implement idempotent client configuration using the installed module's generic client configuration entity API/config schema; never print the client secret.
+- [x] Implement readiness checks for module enablement, five role mappings, enforcement/break-glass posture, and required client settings.
+- [x] Document DEV/UAT callback registration, MFA prerequisite, enforcement sequence and recovery procedure.
+- [x] Re-run focused tests and confirm GREEN.
 
 ### Task 6: Clean-room CI and acceptance
 
@@ -132,10 +132,10 @@
 **Interfaces:**
 - CI reconstructs Drupal with OIDC code installed, runs identity readiness in non-enforcing mode, verifies config alignment, and preserves existing content-migration checks.
 
-- [ ] Extend CI shell validation to cover identity scripts.
-- [ ] Run identity readiness after Drupal bootstrap and content migration verification.
-- [ ] Verify `openid_connect`, `externalauth`, and `owc_identity` are enabled.
-- [ ] Run `bun test`, lint/type-check, Next.js build, clean-room Drupal reconstruction, content import/idempotency/parity, identity readiness, CMS verification and bootstrap idempotency.
-- [ ] Record exact branch head/run evidence in `docs/DRUPAL_IDENTITY_ACCEPTANCE.md`.
-- [ ] Close all plan checkboxes only after fresh branch-head verification.
-- [ ] Open a draft PR against `feature/drupal-content-migration` only after the final branch-head CI is green.
+- [x] Extend CI shell validation to cover identity scripts.
+- [x] Run identity readiness after Drupal bootstrap and content migration verification.
+- [x] Verify `openid_connect`, `externalauth`, and `owc_identity` are enabled.
+- [x] Run `bun test`, lint/type-check, Next.js build, clean-room Drupal reconstruction, content import/idempotency/parity, identity readiness, CMS verification and bootstrap idempotency.
+- [x] Record exact branch head/run evidence in `docs/DRUPAL_IDENTITY_ACCEPTANCE.md`.
+- [x] Close all plan checkboxes only after fresh branch-head verification.
+- [x] Open a draft PR against `feature/drupal-content-migration` only after the final branch-head CI is green.
