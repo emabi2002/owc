@@ -1,21 +1,21 @@
 /**
  * CPPS API client (server-only).
  *
- * Supports both REST and GraphQL transports and exposes high-level service
- * functions for the public portal:
- *   - getClaimStatus
- *   - checkEmployerRegistration
- *   - submitClaimLodgement
- *   - reportWorkplaceInjury
- *   - submitEnquiry
- *
- * When CPPS is not configured (no CPPS_API_BASE_URL / CPPS_GRAPHQL_ENDPOINT)
- * the functions return realistic mock data so the portal is fully demonstrable.
+ * Live CPPS remains authoritative whenever configured. In controlled demo/UAT
+ * environments, an explicitly enabled reference CPPS can exercise the same OWC
+ * workflow without claiming live access. If neither backend is available, CPPS
+ * operations fail closed instead of inventing ad-hoc mock data.
  *
  * SECURITY: reads server-only secrets — never import this into client code.
  */
-import { isCppsConfigured, serverEnv } from "@/lib/env";
-import { SEED_CLAIM } from "@/lib/db/seed";
+import {
+  isCppsConfigured,
+  isReferenceEcosystemEnabled,
+  serverEnv,
+} from "@/lib/env";
+import { selectCppsBackend } from "@/lib/cpps/backend-mode";
+import { toCppsClaimStatus } from "@/lib/cpps/reference/contract";
+import { referenceCppsService } from "@/lib/cpps/reference/runtime";
 import type {
   CppsClaimStatus,
   CppsEmployerCheck,
@@ -79,8 +79,21 @@ export async function cppsGraphQL<T>(
   return json.data as T;
 }
 
-const newReference = (prefix = "OWC") =>
-  `${prefix}-${new Date().getFullYear()}-${Math.floor(100000 + Math.random() * 899999)}`;
+function backendMode() {
+  return selectCppsBackend({
+    liveConfigured: isCppsConfigured,
+    referenceEnabled: isReferenceEcosystemEnabled,
+  });
+}
+
+function unavailable<T>(): CppsResult<T> {
+  return {
+    ok: false,
+    source: "unavailable",
+    error:
+      "CPPS is not configured for this environment. Configure the live CPPS or explicitly enable the reference ecosystem for controlled demo/UAT use.",
+  };
+}
 
 /* ----------------------------------------------------------------------- */
 /*  Service functions                                                       */
@@ -90,7 +103,8 @@ export async function getClaimStatus(
   reference: string,
   surname?: string,
 ): Promise<CppsResult<CppsClaimStatus>> {
-  if (isCppsConfigured) {
+  const mode = backendMode();
+  if (mode === "live") {
     try {
       const data = await cppsRest<CppsClaimStatus>(
         `/claims/${encodeURIComponent(reference)}/status`,
@@ -105,17 +119,20 @@ export async function getClaimStatus(
     }
   }
 
-  // Mock: match the seed claim reference.
-  if (reference.trim().toUpperCase() === SEED_CLAIM.reference.toUpperCase()) {
-    return { ok: true, data: { ...SEED_CLAIM }, source: "mock" };
+  if (mode === "reference") {
+    const claim = referenceCppsService.getClaim(reference);
+    if (!claim) return { ok: false, error: "Claim not found", source: "reference" };
+    return { ok: true, data: toCppsClaimStatus(claim), source: "reference" };
   }
-  return { ok: false, error: "Claim not found", source: "mock" };
+
+  return unavailable();
 }
 
 export async function checkEmployerRegistration(
   query: string,
 ): Promise<CppsResult<CppsEmployerCheck>> {
-  if (isCppsConfigured) {
+  const mode = backendMode();
+  if (mode === "live") {
     try {
       const data = await cppsRest<CppsEmployerCheck>(
         `/employers/verify?q=${encodeURIComponent(query)}`,
@@ -126,26 +143,22 @@ export async function checkEmployerRegistration(
     }
   }
 
-  const registered = query.trim().length > 2;
-  return {
-    ok: true,
-    source: "mock",
-    data: registered
-      ? {
-          registered: true,
-          name: query.trim(),
-          registrationNo: `EMP-${Math.floor(10000 + Math.random() * 89999)}`,
-          policyExpiry: "2026-07-31",
-          status: "Compliant",
-        }
-      : { registered: false, status: "Unknown" },
-  };
+  if (mode === "reference") {
+    return {
+      ok: true,
+      source: "reference",
+      data: referenceCppsService.verifyEmployer(query),
+    };
+  }
+
+  return unavailable();
 }
 
 export async function submitClaimLodgement(
   input: CppsLodgeInput,
 ): Promise<CppsResult<CppsLodgeResult>> {
-  if (isCppsConfigured) {
+  const mode = backendMode();
+  if (mode === "live") {
     try {
       const data = await cppsRest<CppsLodgeResult>("/claims", {
         method: "POST",
@@ -156,17 +169,24 @@ export async function submitClaimLodgement(
       return { ok: false, error: (err as Error).message, source: "cpps" };
     }
   }
-  return {
-    ok: true,
-    source: "mock",
-    data: { reference: newReference(), receivedAt: new Date().toISOString() },
-  };
+
+  if (mode === "reference") {
+    const claim = referenceCppsService.registerClaim(input);
+    return {
+      ok: true,
+      source: "reference",
+      data: { reference: claim.reference, receivedAt: claim.receivedAt },
+    };
+  }
+
+  return unavailable();
 }
 
 export async function reportWorkplaceInjury(
   input: CppsInjuryReportInput,
 ): Promise<CppsResult<CppsInjuryReportResult>> {
-  if (isCppsConfigured) {
+  const mode = backendMode();
+  if (mode === "live") {
     try {
       const data = await cppsRest<CppsInjuryReportResult>("/injuries", {
         method: "POST",
@@ -177,20 +197,23 @@ export async function reportWorkplaceInjury(
       return { ok: false, error: (err as Error).message, source: "cpps" };
     }
   }
-  return {
-    ok: true,
-    source: "mock",
-    data: {
-      reference: newReference("INJ"),
-      receivedAt: new Date().toISOString(),
-    },
-  };
+
+  if (mode === "reference") {
+    return {
+      ok: true,
+      source: "reference",
+      data: referenceCppsService.receiveInjuryReport(input),
+    };
+  }
+
+  return unavailable();
 }
 
 export async function submitEnquiry(
   input: CppsEnquiryInput,
 ): Promise<CppsResult<CppsEnquiryResult>> {
-  if (isCppsConfigured) {
+  const mode = backendMode();
+  if (mode === "live") {
     try {
       const data = await cppsRest<CppsEnquiryResult>("/enquiries", {
         method: "POST",
@@ -201,12 +224,14 @@ export async function submitEnquiry(
       return { ok: false, error: (err as Error).message, source: "cpps" };
     }
   }
-  return {
-    ok: true,
-    source: "mock",
-    data: {
-      reference: newReference("ENQ"),
-      receivedAt: new Date().toISOString(),
-    },
-  };
+
+  if (mode === "reference") {
+    return {
+      ok: true,
+      source: "reference",
+      data: referenceCppsService.receiveEnquiry(input),
+    };
+  }
+
+  return unavailable();
 }

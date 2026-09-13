@@ -1,0 +1,14 @@
+uuid: 027b2887-0af2-4f30-9db8-be111cae02cc
+langcode: en
+status: true
+dependencies:
+  config:
+    - user.role.publisher
+  module:
+    - user
+id: user_add_role_action.publisher
+label: 'Add the Publisher / Approver role to the selected user(s)'
+type: user
+plugin: user_add_role_action
+configuration:
+  rid: publisher

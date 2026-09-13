@@ -1,0 +1,16 @@
+{
+  "contentTypes": ["news", "form", "report", "faq", "publication", "legislation", "tender", "page"],
+  "moderationStates": ["draft", "review", "approved", "published", "archived"],
+  "roles": ["cms_administrator", "content_editor", "reviewer", "publisher", "auditor"],
+  "modules": ["jsonapi", "serialization", "workflows", "content_moderation", "media", "media_library", "file", "image", "options"],
+  "fields": {
+    "news": ["field_category", "field_excerpt", "field_image", "field_featured"],
+    "form": ["field_code", "field_category", "field_file_format", "field_file_size", "field_file_url", "field_updated_date"],
+    "report": ["field_year", "field_description", "field_file_size", "field_file_url"],
+    "faq": ["field_question", "field_answer", "field_category", "field_sort_order"],
+    "publication": ["field_category", "field_description", "field_year", "field_file_format", "field_file_size", "field_file_url"],
+    "legislation": ["field_reference", "field_category", "field_description", "field_enacted_year", "field_file_url"],
+    "tender": ["field_reference", "field_category", "field_description", "field_tender_status", "field_published_date", "field_closing_date", "field_file_url"],
+    "page": ["field_category", "field_navigation_weight"]
+  }
+}

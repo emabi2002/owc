@@ -39,8 +39,8 @@ COPY --from=build /app/package.json ./package.json
 COPY --from=build /app/next.config.js ./next.config.js
 
 EXPOSE 3000
-# Healthcheck hits the homepage.
+# Dedicated non-cached health endpoint for Docker/orchestrator probes.
 HEALTHCHECK --interval=30s --timeout=5s --start-period=40s --retries=3 \
-  CMD bun -e "fetch('http://127.0.0.1:3000/').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
+  CMD bun -e "fetch('http://127.0.0.1:3000/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
 
 CMD ["bun", "run", "start"]

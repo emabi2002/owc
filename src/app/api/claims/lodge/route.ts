@@ -1,13 +1,15 @@
 import { NextResponse } from "next/server";
-import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { buildEvidenceUploadGrant } from "@/lib/claims/evidence-upload";
 import { submitClaimLodgement } from "@/lib/cpps/api";
-import { claimLodgeSchema, parseOrErrors } from "@/lib/security/validation";
+import { serverEnv } from "@/lib/env";
 import { verifyCaptcha } from "@/lib/security/captcha";
 import {
   getClientIp,
   rateLimit,
   rateLimitHeaders,
 } from "@/lib/security/rate-limit";
+import { claimLodgeSchema, parseOrErrors } from "@/lib/security/validation";
+import { createServerSupabaseClient } from "@/lib/supabase/server";
 
 export async function POST(request: Request) {
   const ip = getClientIp(request.headers);
@@ -75,9 +77,23 @@ export async function POST(request: Request) {
     });
   }
 
+  const evidenceGrant =
+    serverEnv.evidenceUploadSigningSecret.trim().length >= 32
+      ? await buildEvidenceUploadGrant(
+          result.data.reference,
+          serverEnv.evidenceUploadSigningSecret,
+        )
+      : null;
+
   return NextResponse.json({
     ok: true,
     reference: result.data.reference,
     source: result.source,
+    ...(evidenceGrant
+      ? {
+          evidenceUploadToken: evidenceGrant.token,
+          evidenceUploadExpiresInSeconds: evidenceGrant.expiresInSeconds,
+        }
+      : {}),
   });
 }

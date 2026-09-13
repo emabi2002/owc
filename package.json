@@ -6,10 +6,14 @@
     "dev": "next dev -H 0.0.0.0 --turbopack",
     "build": "next build",
     "start": "next start -H 0.0.0.0",
+    "test": "bun test",
     "lint": "bunx tsc --noEmit && next lint",
     "format": "bunx biome format --write",
     "setup": "bun scripts/setup-supabase.ts",
-    "db:seed": "bun scripts/setup-supabase.ts"
+    "db:seed": "bun scripts/setup-supabase.ts",
+    "drupal:export-content": "bun scripts/export-drupal-content.ts",
+    "uat:reference": "bun scripts/uat/run-reference-suite.ts",
+    "cutover:readiness": "bun scripts/cutover/evaluate-readiness.ts"
   },
   "dependencies": {
     "@radix-ui/react-accordion": "^1.2.14",

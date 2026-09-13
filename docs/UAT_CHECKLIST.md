@@ -1,74 +1,125 @@
-# User Acceptance Testing (UAT) Checklist
+# OWC User Acceptance Testing (UAT) Checklist
 
-Sign-off checklist for the OWC PNG portal. Test on desktop and mobile, in a
-current Chrome/Edge/Firefox/Safari.
+Use this checklist for controlled OWC UAT. Record the environment and service mode for every test so reference/synthetic evidence is never mistaken for live interoperability.
 
-Environment: ☐ Local ☐ Staging ☐ Production — Tester: ____________ Date: ________
+**Environment:** ☐ Local ☐ Reference/UAT ☐ Staging ☐ Approved production smoke only  
+**Service mode:** ☐ `REFERENCE/SANDBOX` ☐ `LIVE UAT` ☐ `UNAVAILABLE`  
+**Tester:** ____________________ **Role:** ____________________ **Date:** __________  
+**Release SHA:** ____________________
 
-## 1. Public site — navigation & pages
-- [ ] Header, mega-menu and mobile menu work; all links resolve.
-- [ ] Pages load (200): Home, About, Claims, Employers, Reports, Publications,
-      Legislation, Tenders, News, FAQs, Contact, Search.
-- [ ] News listing + individual article pages render.
-- [ ] Footer links resolve; tricolour + emblem display correctly.
+Allowed result values: **PASS · FAIL · BLOCKED/DEPENDENCY · NOT APPLICABLE**.
 
-## 2. Claims
-- [ ] **Track a claim**: `OWC-2026-004821` returns a status timeline.
-- [ ] Unknown reference shows a friendly "not found" message.
-- [ ] **Lodge a claim**: validation blocks empty required fields.
-- [ ] CAPTCHA must be completed; declaration required; success shows a reference.
+## 1. Public site and navigation
 
-## 3. Forms / Publications / Legislation / Tenders / FAQs
-- [ ] Category/status filters and on-page search work on each.
-- [ ] Tender statuses (Open/Closing soon/Closed/Awarded) display correctly.
-- [ ] Download/View actions behave (open file or show "available shortly").
+- [ ] Header, menus and mobile navigation work and links resolve.
+- [ ] Home, About, Claims, Employers, Reports, Publications, Legislation, Tenders, News, FAQs, Contact and Search render correctly.
+- [ ] News/article and downloadable-resource routes behave correctly.
+- [ ] Footer, PNG/OWC branding and responsive layouts are correct.
 
-## 4. Site-wide search
-- [ ] `/search` returns results across content types.
-- [ ] Filter by content type and by year works; mobile layout is usable.
-- [ ] Empty query and no-results states display.
+## 2. Claimant and claim journey
 
-## 5. Contact & enquiries
-- [ ] Enquiry form validates, requires category + CAPTCHA, returns a reference.
-- [ ] (Live Supabase) Enquiry row appears in the `enquiries` table.
+- [ ] Claim tracking validates the reference and returns the correct backend-labelled status.
+- [ ] Unknown claim references return a safe not-found response.
+- [ ] Claim lodgement validates required fields, CAPTCHA/declaration where configured, and returns a reference only after accepted processing.
+- [ ] Evidence upload uses approved type/size/path controls and a claim-scoped authorization grant.
+- [ ] Claim lifecycle/status changes appear consistently to the claimant.
+- [ ] Notifications are generated only for supported lifecycle events and contain no medical/banking detail.
 
-## 6. Admin authentication
-- [ ] `/admin` redirects to `/admin/login` when signed out.
-- [ ] Valid Supabase credentials sign in; invalid show an error (no app crash).
-- [ ] Failed login is recorded in the audit log.
-- [ ] MFA step appears for MFA-enrolled accounts and verifies a TOTP code.
-- [ ] Sign-out returns to the login page and clears the session.
+## 3. CPPS backend behavior
 
-## 7. Admin console & RBAC
-- [ ] Dashboard shows stats, approval queue, recent claims, activity.
-- [ ] Content workflow: Draft → Submit → Approve → Publish updates status.
-- [ ] "Return" sends an item back to Draft; "Archive" works; delete (admin only).
-- [ ] Viewer/Claims Officer cannot reach Content/Users (redirected).
-- [ ] Claims, Audit and Users pages load and filter/search.
+The approved backend contract is **live / reference / unavailable**; there is no silent fallback that invents success.
 
-## 8. Integrations
-- [ ] With Supabase configured, public pages show DB content (after seeding).
-- [ ] Without CPPS, claim tracking returns mock data (`source: mock`).
-- [ ] With CPPS configured, live claim status is returned.
+- [ ] With an approved CPPS endpoint configured, `LIVE UAT` uses the authoritative UAT contract and evidence identifies that environment.
+- [ ] With live CPPS absent and reference CPPS explicitly enabled, the result is labelled `REFERENCE/SANDBOX`.
+- [ ] With neither backend authorized, CPPS-dependent operations are `UNAVAILABLE`/fail closed.
+- [ ] Reference CPPS assessment is labelled as a reference assumption, not a statutory entitlement rule.
+- [ ] Reference/synthetic payment evidence confirms **no real funds moved**.
 
-## 9. Security
-- [ ] HTTPS enforced; HSTS present; security headers verified.
-- [ ] Rapid repeated submissions are rate-limited (HTTP 429).
-- [ ] No secrets exposed in client bundle/network (check devtools).
+## 4. Reference end-to-end suite
 
-## 10. Accessibility (WCAG 2.1 AA)
-- [ ] Keyboard-only navigation reaches all controls; visible focus.
-- [ ] "Skip to main content" link works.
-- [ ] Form fields have labels; errors are announced.
-- [ ] Colour contrast passes; headings are in logical order.
+Automated evidence must show all required scenarios:
 
-## 11. Performance
-- [ ] Lighthouse (desktop) ≥ 85; (mobile) ≥ 75.
-- [ ] Images lazy-load; no layout shift on hero/news cards.
+- [ ] `REF-UAT-001` coherent 12-step worker compensation journey passes.
+- [ ] `REF-UAT-002` unverified identity stops downstream processing and payment.
+- [ ] `REF-UAT-003` cross-agency record mismatch stops before determination/payment.
+- [ ] `REF-UAT-004` repeated synthetic payment is idempotent.
+- [ ] `REF-UAT-005` reference CPPS progresses through allowed lifecycle, assessment, synthetic payment and closure.
+- [ ] `REF-UAT-006` invalid CPPS state transition is rejected.
+- [ ] `REF-UAT-007` CPPS backend selection proves live/reference/unavailable behavior.
 
-## 12. Build & deployment
-- [ ] `bun install`, `bun run lint`, `bun run build` all pass.
-- [ ] Git pull → build → reload update works on the server.
+Reference-suite success is repository functional evidence only; it is **not production acceptance**.
 
----
-**Result:** ☐ Pass ☐ Pass with notes ☐ Fail  Signature: ______________________
+## 5. Forms, content and CMS
+
+- [ ] Forms/publications/legislation/tenders/FAQs filters and search work.
+- [ ] Tender states display correctly.
+- [ ] Drupal published content appears through the Next.js content boundary.
+- [ ] Draft/review/publish moderation works for authorized roles.
+- [ ] Unauthorized roles cannot bypass editorial workflow or access restricted administration.
+
+## 6. Contact and enquiries
+
+- [ ] Enquiry form validates required fields and abuse controls.
+- [ ] Accepted enquiry returns a safe reference.
+- [ ] In `LIVE UAT`, the approved OWC database records the enquiry as expected.
+- [ ] Failure messages do not expose stack traces, credentials or upstream payloads.
+
+## 7. Authentication, MFA and RBAC
+
+- [ ] Signed-out users cannot access administrator routes.
+- [ ] Valid/invalid login flows behave safely and failed authentication is auditable.
+- [ ] MFA challenge works for enrolled administrators in the approved environment.
+- [ ] Viewer, Claims Officer, Reviewer, Editor and Administrator permissions match the approved role matrix.
+- [ ] Suspended/invited accounts do not retain staff privileges.
+- [ ] A user cannot self-change privileged profile fields/role through direct APIs.
+- [ ] Drupal OIDC/SSO role mapping is verified when the real identity provider is available; otherwise record `BLOCKED/DEPENDENCY`.
+
+## 8. Evidence, malware scanning and storage
+
+- [ ] Approved file types and size limits are enforced.
+- [ ] Executable/unsupported evidence is rejected.
+- [ ] Malware scanning behaves fail-closed where policy requires it.
+- [ ] Private evidence is not publicly addressable.
+- [ ] Legal-hold/retention metadata is preserved.
+- [ ] Use synthetic claimant documents during testing unless OWC has explicitly authorized another dataset.
+
+## 9. External integrations
+
+For NID/identity, employer registry, tax/employment, medical, insurance, payment/bank and notification services:
+
+- [ ] record service mode (`REFERENCE/SANDBOX`, `LIVE UAT`, `UNAVAILABLE`);
+- [ ] verify correlation/evidence identifiers without storing claimant payloads or secrets;
+- [ ] confirm timeout/error behavior and no false success;
+- [ ] if live UAT endpoint/credentials/contract are unavailable, record `BLOCKED/DEPENDENCY` rather than substituting reference success as agency acceptance.
+
+## 10. Security
+
+- [ ] HTTPS/HSTS/security headers are verified on deployed UAT.
+- [ ] Production-style CSP/security configuration is reviewed.
+- [ ] Rate limiting/CAPTCHA behavior is exercised safely.
+- [ ] No server credential appears in browser bundle/network traces.
+- [ ] RLS/direct API role-abuse cases are tested in live UAT.
+- [ ] Independent security findings/retests are linked before production sign-off.
+
+## 11. Accessibility, browser and mobile
+
+- [ ] Current Chrome/Edge/Firefox/Safari behavior is accepted as applicable.
+- [ ] Keyboard navigation and visible focus work.
+- [ ] Skip link, labels, error announcements and heading structure are correct.
+- [ ] Colour contrast and responsive/mobile layouts are acceptable.
+
+## 12. Performance and operational readiness
+
+- [ ] Agreed performance checks are executed on the nominated UAT topology; do not reuse local/reference timing as production evidence.
+- [ ] Health/monitoring and alert routing are operational in the environment.
+- [ ] Backup/recovery readiness and rollback ownership are linked to the tested release.
+- [ ] Release SHA, environment and external dependencies are recorded with the UAT evidence.
+
+## Formal UAT result
+
+**Overall:** ☐ PASS ☐ PASS WITH CONDITIONS ☐ FAIL ☐ BLOCKED/DEPENDENCY  
+**Open defects/dependencies:** ________________________________________________  
+**Business-owner:** ____________________ **Signature/date:** ____________________  
+**Security/technical owner:** ____________________ **Signature/date:** ____________________
+
+Automated `REFERENCE/SANDBOX` results cannot populate or replace these human sign-off fields.

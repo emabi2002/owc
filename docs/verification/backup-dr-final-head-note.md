@@ -1,0 +1,1 @@
+Final documentation-only head `acdd2a600d84c2b427d22ef02660b9b984af5e22` completed CI / Deploy run `34759589271` successfully, including application pipeline and Drupal clean-room; production deploy was skipped because this is not `main`.

@@ -1,0 +1,96 @@
+<?php
+
+declare(strict_types=1);
+
+use Drupal\Core\Entity\EntityInterface;
+use Drupal\Core\Form\FormStateInterface;
+use Drupal\user\UserInterface;
+use Drupal\owc_identity\ManagedRoles;
+
+/**
+ * Implements hook_form_FORM_ID_alter().
+ */
+function owc_identity_form_user_login_form_alter(array &$form, FormStateInterface $form_state): void
+{
+    $form['#validate'][] = 'owc_identity_validate_local_login';
+}
+
+/**
+ * Blocks local password login when SSO enforcement is active.
+ */
+function owc_identity_validate_local_login(array &$form, FormStateInterface $form_state): void
+{
+    /** @var \Drupal\owc_identity\IdentityPolicy $policy */
+    $policy = \Drupal::service('owc_identity.policy');
+    if (!$policy->ssoEnforced()) {
+        return;
+    }
+
+    $name = trim((string) $form_state->getValue('name'));
+    $matches = $name === ''
+        ? []
+        : \Drupal::entityTypeManager()->getStorage('user')->loadByProperties(['name' => $name]);
+    $account = $matches ? reset($matches) : null;
+
+    if (!$policy->localLoginAllowed($account instanceof UserInterface ? $account : null)) {
+        \Drupal::logger('owc_identity')->warning('local_login_denied uid={uid}', [
+            'uid' => $account instanceof UserInterface ? $account->id() : 'unknown',
+        ]);
+        $form_state->setErrorByName('name', t('Use the organization sign-in option to access the OWC CMS.'));
+        return;
+    }
+
+    if ($account instanceof UserInterface && (string) $account->get('uid')->value === '1') {
+        \Drupal::request()->getSession()->set('owc_identity.break_glass_attempt', true);
+    }
+}
+
+/**
+ * Implements hook_user_login().
+ */
+function owc_identity_user_login(UserInterface $account): void
+{
+    $session = \Drupal::request()->getSession();
+    if ($session->get('owc_identity.break_glass_attempt') && (string) $account->get('uid')->value === '1') {
+        \Drupal::logger('owc_identity')->critical('break_glass_login uid={uid}', ['uid' => $account->id()]);
+        $session->remove('owc_identity.break_glass_attempt');
+    }
+}
+
+/**
+ * Implements hook_openid_connect_post_authorize().
+ */
+function owc_identity_openid_connect_post_authorize(UserInterface $account, array $context): void
+{
+    \Drupal::logger('owc_identity')->notice('oidc_authorized provider={provider} uid={uid} managed_roles={roles}', [
+        'provider' => (string) ($context['plugin_id'] ?? 'unknown'),
+        'uid' => $account->id(),
+        'roles' => implode(',', ManagedRoles::fromAccount($account)),
+    ]);
+}
+
+/**
+ * Implements hook_entity_update().
+ */
+function owc_identity_entity_update(EntityInterface $entity): void
+{
+    if (!$entity instanceof UserInterface) {
+        return;
+    }
+
+    $before = [];
+    if (isset($entity->original) && $entity->original instanceof UserInterface) {
+        $before = ManagedRoles::fromAccount($entity->original);
+    }
+    $after = ManagedRoles::fromAccount($entity);
+    sort($before);
+    sort($after);
+
+    if ($before !== $after) {
+        \Drupal::logger('owc_identity')->notice('managed_roles_changed uid={uid} before={before} after={after}', [
+            'uid' => $entity->id(),
+            'before' => implode(',', $before),
+            'after' => implode(',', $after),
+        ]);
+    }
+}

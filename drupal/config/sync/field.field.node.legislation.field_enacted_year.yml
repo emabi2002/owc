@@ -1,0 +1,19 @@
+uuid: 236de49e-8407-417c-ac31-961360cfefb4
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_enacted_year
+    - node.type.legislation
+id: node.legislation.field_enacted_year
+field_name: field_enacted_year
+entity_type: node
+bundle: legislation
+label: 'Enacted Year'
+description: ''
+required: false
+translatable: true
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: string

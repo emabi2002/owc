@@ -1,0 +1,21 @@
+uuid: 55816553-af42-45aa-9ea4-71fd4b7fb3b5
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_closing_date
+    - node.type.tender
+  module:
+    - datetime
+id: node.tender.field_closing_date
+field_name: field_closing_date
+entity_type: node
+bundle: tender
+label: 'Closing Date'
+description: ''
+required: false
+translatable: true
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: datetime

@@ -1,0 +1,19 @@
+uuid: 94d57b44-9c5e-4687-8ee3-7e90df1d422d
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_file_size
+    - node.type.form
+id: node.form.field_file_size
+field_name: field_file_size
+entity_type: node
+bundle: form
+label: 'File Size'
+description: ''
+required: false
+translatable: true
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: string

@@ -1,0 +1,57 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${DRUPAL_DB_NAME:-owc_drupal}
+      POSTGRES_USER: ${DRUPAL_DB_USER:-owc_drupal}
+      POSTGRES_PASSWORD: ${DRUPAL_DB_PASSWORD:-change-me}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DRUPAL_DB_USER:-owc_drupal} -d ${DRUPAL_DB_NAME:-owc_drupal}"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+
+  drupal:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DRUPAL_DB_HOST: postgres
+      DRUPAL_DB_PORT: 5432
+      DRUPAL_DB_NAME: ${DRUPAL_DB_NAME:-owc_drupal}
+      DRUPAL_DB_USER: ${DRUPAL_DB_USER:-owc_drupal}
+      DRUPAL_DB_PASSWORD: ${DRUPAL_DB_PASSWORD:-change-me}
+      DRUPAL_SITE_NAME: ${DRUPAL_SITE_NAME:-OWC Enterprise CMS}
+      DRUPAL_ADMIN_USER: ${DRUPAL_ADMIN_USER:-owcadmin}
+      DRUPAL_ADMIN_PASSWORD: ${DRUPAL_ADMIN_PASSWORD:-change-me-now}
+      DRUPAL_ADMIN_EMAIL: ${DRUPAL_ADMIN_EMAIL:-admin@owc.gov.pg}
+      DRUPAL_TRUSTED_HOST_PATTERN: ${DRUPAL_TRUSTED_HOST_PATTERN:-^cms\\.owc\\.gov\\.pg$}
+      OWC_OIDC_CLIENT_ID: ${OWC_OIDC_CLIENT_ID:-}
+      OWC_OIDC_CLIENT_SECRET: ${OWC_OIDC_CLIENT_SECRET:-}
+      OWC_OIDC_AUTHORIZATION_ENDPOINT: ${OWC_OIDC_AUTHORIZATION_ENDPOINT:-}
+      OWC_OIDC_TOKEN_ENDPOINT: ${OWC_OIDC_TOKEN_ENDPOINT:-}
+      OWC_OIDC_USERINFO_ENDPOINT: ${OWC_OIDC_USERINFO_ENDPOINT:-}
+      OWC_OIDC_END_SESSION_ENDPOINT: ${OWC_OIDC_END_SESSION_ENDPOINT:-}
+      OWC_IDENTITY_ENFORCE_SSO: ${OWC_IDENTITY_ENFORCE_SSO:-0}
+      OWC_BREAK_GLASS_LOCAL_LOGIN: ${OWC_BREAK_GLASS_LOCAL_LOGIN:-0}
+    ports:
+      - "${DRUPAL_HTTP_PORT:-8088}:80"
+    volumes:
+      - drupal_sites:/opt/drupal/web/sites/default
+      - ./config/sync:/opt/drupal/config/sync:ro
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost/ >/dev/null || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 20
+
+volumes:
+  postgres_data:
+  drupal_sites:

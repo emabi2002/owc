@@ -5,13 +5,13 @@
  *  - `NEXT_PUBLIC_*` variables are safe in the browser and are inlined at build
  *    time by Next.js. They are referenced *literally* below so the compiler can
  *    replace them.
- *  - Server-only secrets (service-role key, CPPS API key) are read from
- *    `process.env` and are automatically stripped from the client bundle by
- *    Next.js. They MUST only be consumed inside server modules.
+ *  - Server-only secrets (service-role key, CPPS API key, Drupal token and
+ *    external-agency credentials) are read from `process.env` and MUST only be
+ *    consumed inside server modules.
  *
  * The platform is designed to degrade gracefully: when an integration is not
- * configured the data/service layer falls back to local seed data so the site
- * remains buildable and demonstrable without live credentials.
+ * configured the data/service layer falls back to the existing source or local
+ * seed data so the site remains buildable while integrations are introduced.
  */
 
 export type CaptchaProvider =
@@ -19,6 +19,8 @@ export type CaptchaProvider =
   | "turnstile"
   | "recaptcha"
   | "hcaptcha";
+
+export type ContentSource = "auto" | "drupal" | "supabase";
 
 /** Browser-safe configuration (inlined at build time). */
 export const publicEnv = {
@@ -30,18 +32,34 @@ export const publicEnv = {
   captchaSiteKey: process.env.NEXT_PUBLIC_CAPTCHA_SITE_KEY ?? "",
 } as const;
 
-/**
- * Server-only configuration. These values are `""` in the browser bundle
- * because Next.js does not expose non-public env vars to the client.
- */
+/** Server-only configuration. */
 export const serverEnv = {
   supabaseServiceRoleKey: process.env.SUPABASE_SERVICE_ROLE_KEY ?? "",
   cppsApiBaseUrl: process.env.CPPS_API_BASE_URL ?? "",
   cppsApiKey: process.env.CPPS_API_KEY ?? "",
   cppsGraphqlEndpoint: process.env.CPPS_GRAPHQL_ENDPOINT ?? "",
+  enableReferenceEcosystem: process.env.OWC_ENABLE_REFERENCE_ECOSYSTEM === "true",
   captchaSecretKey: process.env.CAPTCHA_SECRET_KEY ?? "",
-  /** Comma-separated list of admin emails granted Administrator on first login. */
   bootstrapAdminEmails: process.env.OWC_BOOTSTRAP_ADMIN_EMAILS ?? "",
+  drupalBaseUrl: process.env.DRUPAL_BASE_URL ?? "",
+  drupalApiToken: process.env.DRUPAL_API_TOKEN ?? "",
+  contentSource: (process.env.OWC_CONTENT_SOURCE ?? "auto") as ContentSource,
+  malwareScanUrl: process.env.OWC_MALWARE_SCAN_URL ?? "",
+  malwareScanApiKey: process.env.OWC_MALWARE_SCAN_API_KEY ?? "",
+  requireMalwareScan: process.env.OWC_REQUIRE_MALWARE_SCAN === "true",
+  evidenceUploadSigningSecret: process.env.OWC_EVIDENCE_UPLOAD_SIGNING_SECRET ?? "",
+  notificationApiUrl: process.env.OWC_NOTIFICATION_API_URL ?? "",
+  notificationApiKey: process.env.OWC_NOTIFICATION_API_KEY ?? "",
+  nidApiBaseUrl: process.env.OWC_NID_API_BASE_URL ?? "",
+  nidApiKey: process.env.OWC_NID_API_KEY ?? "",
+  employerRegistryApiBaseUrl: process.env.OWC_EMPLOYER_REGISTRY_API_BASE_URL ?? "",
+  employerRegistryApiKey: process.env.OWC_EMPLOYER_REGISTRY_API_KEY ?? "",
+  insuranceApiBaseUrl: process.env.OWC_INSURANCE_API_BASE_URL ?? "",
+  insuranceApiKey: process.env.OWC_INSURANCE_API_KEY ?? "",
+  paymentApiBaseUrl: process.env.OWC_PAYMENT_API_BASE_URL ?? "",
+  paymentApiKey: process.env.OWC_PAYMENT_API_KEY ?? "",
+  medicalApiBaseUrl: process.env.OWC_MEDICAL_API_BASE_URL ?? "",
+  medicalApiKey: process.env.OWC_MEDICAL_API_KEY ?? "",
 } as const;
 
 /** True when Supabase (Auth + Postgres) credentials are present. */
@@ -56,6 +74,12 @@ export const isSupabaseAdminConfigured = Boolean(
 
 /** True when the CPPS claims back-end is reachable. */
 export const isCppsConfigured = Boolean(serverEnv.cppsApiBaseUrl);
+
+/** True when the explicitly synthetic OWC reference ecosystem is enabled. */
+export const isReferenceEcosystemEnabled = serverEnv.enableReferenceEcosystem;
+
+/** True when Drupal has an API base URL configured. */
+export const isDrupalConfigured = Boolean(serverEnv.drupalBaseUrl);
 
 /** True when a real CAPTCHA provider is configured (vs. the math fallback). */
 export const isCaptchaConfigured = Boolean(

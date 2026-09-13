@@ -1,0 +1,19 @@
+uuid: 89f64168-ad4a-48dd-8d64-8af9bd99ca6e
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_year
+    - node.type.report
+id: node.report.field_year
+field_name: field_year
+entity_type: node
+bundle: report
+label: Year
+description: ''
+required: false
+translatable: true
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: string

@@ -1,0 +1,11 @@
+uuid: 1354953c-a095-4251-b296-7e9cc3b0f390
+langcode: en
+status: true
+dependencies: {  }
+name: Legislation
+type: legislation
+description: null
+help: null
+new_revision: true
+preview_mode: 1
+display_submitted: true

@@ -1,0 +1,23 @@
+uuid: 70194ac1-2849-4c8d-9b35-d69a5a366b0d
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_navigation_weight
+    - node.type.page
+id: node.page.field_navigation_weight
+field_name: field_navigation_weight
+entity_type: node
+bundle: page
+label: 'Navigation Weight'
+description: ''
+required: false
+translatable: true
+default_value: {  }
+default_value_callback: ''
+settings:
+  min: null
+  max: null
+  prefix: ''
+  suffix: ''
+field_type: integer

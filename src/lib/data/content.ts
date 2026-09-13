@@ -1,13 +1,13 @@
 /**
  * Public content data access layer.
  *
- * Every reader queries Supabase when configured (returning only `published`
- * content via RLS) and transparently falls back to the local seed dataset in
- * demo mode. UI code should depend on these functions — never on raw rows or
- * the seed module directly.
+ * `OWC_CONTENT_SOURCE=drupal` is authoritative and fails closed if Drupal is
+ * unavailable. `auto` is the transitional migration/rollback mode that may
+ * fall back to Supabase or repository reference content. `supabase` explicitly
+ * bypasses Drupal.
  */
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
-import { isSupabaseConfigured, publicEnv } from "@/lib/env";
+import { isSupabaseConfigured, publicEnv, serverEnv } from "@/lib/env";
 import { IMG } from "@/lib/site-data";
 import type { Database } from "@/lib/supabase/types";
 import type {
@@ -29,13 +29,21 @@ import {
   SEED_REPORTS,
   SEED_TENDERS,
 } from "@/lib/db/seed";
+import {
+  getDrupalFaqs,
+  getDrupalForms,
+  getDrupalLegislation,
+  getDrupalNews,
+  getDrupalPublications,
+  getDrupalReports,
+  getDrupalTenders,
+} from "@/lib/drupal/content";
+import { selectAuthoritativeContent } from "@/lib/drupal/content-policy";
 
-/** Cache-friendly revalidation window (seconds) for ISR. */
 export const CONTENT_REVALIDATE = 60;
 
 let cached: SupabaseClient<Database> | null = null;
 
-/** Anon, cookie-less client for public reads (safe at build time + ISR). */
 function publicClient(): SupabaseClient<Database> | null {
   if (!isSupabaseConfigured) return null;
   if (!cached) {
@@ -48,10 +56,21 @@ function publicClient(): SupabaseClient<Database> | null {
   return cached;
 }
 
+function chooseDrupal<T>(drupal: T[] | null): T[] | null {
+  if (serverEnv.contentSource === "drupal") {
+    return selectAuthoritativeContent("drupal", drupal, []);
+  }
+  if (serverEnv.contentSource === "auto" && drupal?.length) return drupal;
+  return null;
+}
+
 const iso = (d: string | null, fallback: string) => (d ?? fallback).slice(0, 10);
 
 /* -------------------------------- News --------------------------------- */
 export async function getNews(): Promise<NewsItem[]> {
+  const selected = chooseDrupal(await getDrupalNews());
+  if (selected !== null) return selected;
+
   const db = publicClient();
   if (!db) return SEED_NEWS;
   const { data, error } = await db
@@ -85,6 +104,9 @@ export async function getNewsSlugs(): Promise<string[]> {
 
 /* -------------------------------- Forms -------------------------------- */
 export async function getForms(): Promise<FormItem[]> {
+  const selected = chooseDrupal(await getDrupalForms());
+  if (selected !== null) return selected;
+
   const db = publicClient();
   if (!db) return SEED_FORMS;
   const { data, error } = await db
@@ -107,6 +129,9 @@ export async function getForms(): Promise<FormItem[]> {
 
 /* ------------------------------- Reports ------------------------------- */
 export async function getReports(): Promise<ReportItem[]> {
+  const selected = chooseDrupal(await getDrupalReports());
+  if (selected !== null) return selected;
+
   const db = publicClient();
   if (!db) return SEED_REPORTS;
   const { data, error } = await db
@@ -127,6 +152,9 @@ export async function getReports(): Promise<ReportItem[]> {
 
 /* -------------------------------- FAQs --------------------------------- */
 export async function getFaqs(): Promise<FaqItem[]> {
+  const selected = chooseDrupal(await getDrupalFaqs());
+  if (selected !== null) return selected;
+
   const db = publicClient();
   if (!db) return SEED_FAQS;
   const { data, error } = await db
@@ -154,6 +182,9 @@ export async function getFaqsByCategory(
 
 /* ----------------------------- Publications ---------------------------- */
 export async function getPublications(): Promise<PublicationItem[]> {
+  const selected = chooseDrupal(await getDrupalPublications());
+  if (selected !== null) return selected;
+
   const db = publicClient();
   if (!db) return SEED_PUBLICATIONS;
   const { data, error } = await db
@@ -176,6 +207,9 @@ export async function getPublications(): Promise<PublicationItem[]> {
 
 /* ----------------------------- Legislation ----------------------------- */
 export async function getLegislation(): Promise<LegislationItem[]> {
+  const selected = chooseDrupal(await getDrupalLegislation());
+  if (selected !== null) return selected;
+
   const db = publicClient();
   if (!db) return SEED_LEGISLATION;
   const { data, error } = await db
@@ -197,6 +231,9 @@ export async function getLegislation(): Promise<LegislationItem[]> {
 
 /* ------------------------------- Tenders ------------------------------- */
 export async function getTenders(): Promise<TenderItem[]> {
+  const selected = chooseDrupal(await getDrupalTenders());
+  if (selected !== null) return selected;
+
   const db = publicClient();
   if (!db) return SEED_TENDERS;
   const { data, error } = await db
