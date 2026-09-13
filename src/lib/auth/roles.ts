@@ -56,6 +56,8 @@ export const PERMISSIONS = {
   "claims.manage": ["administrator", "claims_officer"],
   "claims.assess": ["administrator", "assessment_officer"],
   "payments.manage": ["administrator", "finance_officer"],
+  "evidence.view": ["administrator", "claims_officer", "assessment_officer"],
+  "evidence.manage": ["administrator", "claims_officer"],
   "users.manage": ["administrator"],
   "audit.view": [
     "administrator",
