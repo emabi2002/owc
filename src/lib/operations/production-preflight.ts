@@ -1,4 +1,9 @@
-import type { CaptchaProvider, ContentSource } from "@/lib/env";
+import {
+  publicEnv,
+  serverEnv,
+  type CaptchaProvider,
+  type ContentSource,
+} from "@/lib/env";
 
 export type ProductionPreflightStatus =
   | "ready"
@@ -147,4 +152,28 @@ export function buildProductionPreflight(
         : "Authoritative CPPS discovery, endpoint configuration and UAT are required before full production claims integration.",
     },
   ];
+}
+
+/**
+ * Derive the secret-safe preflight report from the running server environment.
+ * The returned objects intentionally contain status and guidance only, never
+ * credential values.
+ */
+export function getProductionPreflight(): ProductionPreflightCheck[] {
+  return buildProductionPreflight({
+    siteUrl: publicEnv.siteUrl,
+    supabaseUrl: publicEnv.supabaseUrl,
+    supabaseAnonKey: publicEnv.supabaseAnonKey,
+    supabaseServiceRoleKey: serverEnv.supabaseServiceRoleKey,
+    contentSource: serverEnv.contentSource,
+    drupalBaseUrl: serverEnv.drupalBaseUrl,
+    evidenceUploadSigningSecret: serverEnv.evidenceUploadSigningSecret,
+    requireMalwareScan: serverEnv.requireMalwareScan,
+    malwareScanUrl: serverEnv.malwareScanUrl,
+    notificationApiUrl: serverEnv.notificationApiUrl,
+    captchaProvider: publicEnv.captchaProvider,
+    captchaSiteKey: publicEnv.captchaSiteKey,
+    captchaSecretKey: serverEnv.captchaSecretKey,
+    cppsApiBaseUrl: serverEnv.cppsApiBaseUrl,
+  });
 }
