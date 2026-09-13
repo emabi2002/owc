@@ -6,23 +6,27 @@
 
 ## Task 1 — Transactional application release script
 
-- [ ] Add a failing contract test covering clean-tree preflight, previous-SHA capture, `/api/health` smoke check and rollback.
-- [ ] Add `deploy/release.sh` implementing fast-forward release, deterministic install/build, PM2 reload/start, bounded health retries and application rollback.
-- [ ] Update GitHub Actions SSH deployment to execute the repository-owned release script.
-- [ ] Update Ubuntu deployment documentation with smoke/rollback behavior and limitations.
-- [ ] Verify focused test, full Bun tests, lint/type-check and build.
+- [x] Add a contract test covering clean-tree preflight, previous-SHA capture, `/api/health` smoke check and rollback.
+- [x] Add `deploy/release.sh` implementing fast-forward release, deterministic install/build, PM2 reload/start, bounded health retries and application rollback.
+- [x] Update GitHub Actions SSH deployment to execute the repository-owned release script.
+- [x] Update Ubuntu deployment documentation with smoke/rollback behavior and limitations.
+- [ ] Verify the final exact-head focused/full tests, lint/type-check, build and Drupal clean-room run.
 
 ## Task 2 — Production environment/preflight acceptance
 
-- [ ] Add a server-side production-readiness/preflight report that distinguishes mandatory app configuration from externally blocked integrations without printing secrets.
-- [ ] Document exact production secret/configuration ownership and validation procedure.
-- [ ] Add tests proving missing critical configuration cannot be reported ready.
+- [x] Add a server-side production-readiness/preflight report that distinguishes mandatory app configuration from externally blocked integrations without printing secrets.
+- [x] Integrate the preflight into the authenticated System Readiness administration view and remove the misleading implication that base configuration alone equals production acceptance.
+- [x] Document production secret/configuration ownership and validation boundaries in the Ubuntu deployment runbook.
+- [x] Add tests proving missing critical configuration cannot be reported ready and that secret values are never projected into the report.
 
 ## Task 3 — Monitoring and operational hooks
 
-- [ ] Reconcile `/api/health` and operational-readiness checks for external monitoring.
-- [ ] Document minimum uptime, log, alert and escalation hooks without binding OWC to an unapproved commercial monitoring provider.
-- [ ] Ensure health output never discloses credentials or sensitive claimant data.
+- [x] Reconcile `/api/health` and operational-readiness boundaries for external monitoring; keep the public health response shallow and non-sensitive.
+- [x] Add `deploy/monitor-check.sh` for PM2 process, local health, optional public HTTPS smoke and disk-threshold checks.
+- [x] Add automated contract tests for the host monitoring script.
+- [x] Document minimum availability, logging, alert and escalation hooks without binding OWC to an unapproved commercial monitoring provider.
+- [x] Ensure health/monitoring output never enumerates environment variables or discloses credentials/claimant data.
+- [x] Add CI shell-syntax validation for deployment/monitoring scripts.
 
 ## Task 4 — Verification and handoff
 
