@@ -17,21 +17,16 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
         with:
           bun-version: latest
-
       - name: Install dependencies
         run: bun install --frozen-lockfile
-
       - name: Run tests
         run: bun test
-
       - name: Lint & type-check
         run: bun run lint
-
       - name: Build
         run: bun run build
         env:
@@ -48,18 +43,14 @@ jobs:
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
-
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
         with:
           bun-version: latest
-
       - name: Install exporter dependencies
         run: bun install --frozen-lockfile
-
       - name: Export canonical reference content
         run: bun run drupal:export-content
-
       - name: Validate Drupal migration shell scripts
         run: |
           bash -n drupal/scripts/bootstrap.sh
@@ -67,19 +58,15 @@ jobs:
           bash -n drupal/scripts/verify-content-parity.sh
           bash -n drupal/scripts/configure-identity.sh
           bash -n drupal/scripts/verify-identity.sh
-
       - name: Build isolated Drupal stack
         working-directory: drupal
         run: docker compose -p owc-drupal-ci up -d --build
-
       - name: Reconstruct CMS from committed configuration
         working-directory: drupal
         run: docker compose -p owc-drupal-ci exec -T drupal /opt/owc-drupal/scripts/bootstrap.sh
-
       - name: Import canonical OWC content
         working-directory: drupal
         run: docker compose -p owc-drupal-ci exec -T drupal /opt/owc-drupal/scripts/import-content.sh
-
       - name: Verify migration is idempotent
         working-directory: drupal
         run: |
@@ -89,11 +76,9 @@ jobs:
             echo "Second import created duplicate content" >&2
             exit 1
           fi
-
       - name: Verify source-to-Drupal content parity
         working-directory: drupal
         run: docker compose -p owc-drupal-ci exec -T drupal /opt/owc-drupal/scripts/verify-content-parity.sh
-
       - name: Configure CI OIDC client
         working-directory: drupal
         run: |
@@ -112,15 +97,17 @@ jobs:
             -e OWC_OIDC_USERINFO_ENDPOINT=https://identity.invalid/userinfo \
             drupal /opt/owc-drupal/scripts/verify-identity.sh
           docker compose -p owc-drupal-ci exec -T drupal vendor/bin/drush config:delete openid_connect.client.owc_corporate -y
-
       - name: Verify Drupal editor identity readiness
         working-directory: drupal
         run: |
           docker compose -p owc-drupal-ci exec -T drupal /opt/owc-drupal/scripts/verify-identity.sh
+          if docker compose -p owc-drupal-ci exec -T -e OWC_IDENTITY_ENFORCE_SSO=1 drupal /opt/owc-drupal/scripts/verify-identity.sh; then
+            echo "Identity readiness unexpectedly accepted SSO enforcement without a configured client" >&2
+            exit 1
+          fi
           docker compose -p owc-drupal-ci exec -T drupal vendor/bin/drush pm:list --status=enabled --type=module --format=list | grep -Fx externalauth
           docker compose -p owc-drupal-ci exec -T drupal vendor/bin/drush pm:list --status=enabled --type=module --format=list | grep -Fx openid_connect
           docker compose -p owc-drupal-ci exec -T drupal vendor/bin/drush pm:list --status=enabled --type=module --format=list | grep -Fx owc_identity
-
       - name: Verify reconstructed CMS
         working-directory: drupal
         run: |
@@ -128,16 +115,13 @@ jobs:
           docker compose -p owc-drupal-ci exec -T drupal vendor/bin/drush config:status
           docker compose -p owc-drupal-ci exec -T drupal vendor/bin/drush config:get system.site uuid
           docker compose -p owc-drupal-ci exec -T drupal vendor/bin/drush config:get workflows.workflow.owc_editorial label
-
       - name: Verify bootstrap is idempotent
         working-directory: drupal
         run: docker compose -p owc-drupal-ci exec -T drupal /opt/owc-drupal/scripts/bootstrap.sh
-
       - name: Show Drupal logs on failure
         if: failure()
         working-directory: drupal
         run: docker compose -p owc-drupal-ci logs --no-color drupal postgres
-
       - name: Remove isolated Drupal stack
         if: always()
         working-directory: drupal
