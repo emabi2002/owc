@@ -1,83 +1,132 @@
 # API & Integration Guide
 
-How the OWC portal integrates with **Supabase** (Auth + PostgreSQL) and the
-**CPPS** claims back-end, plus the internal HTTP API.
+How the OWC portal integrates with **Supabase** (Auth + PostgreSQL), **Drupal**, the **CPPS** claims back-end, and external/reference service APIs.
 
 ## Architecture
 
-```
-Browser ──▶ Next.js (App Router)
-                │
-                ├─ Data access layer  src/lib/data/*  ──▶ Supabase (PostgREST)
-                │      (falls back to src/lib/db/seed.ts when unconfigured)
-                │
-                ├─ CPPS client        src/lib/cpps/api.ts ──▶ CPPS REST / GraphQL
-                │      (falls back to mock responses when unconfigured)
-                │
-                └─ Route handlers     src/app/api/*  (rate-limited, validated)
+```text
+Browser / Mobile
+      │
+      ▼
+Next.js OWC application
+      │
+      ├─ Public/content data boundary ──▶ Drupal / Supabase / reference content
+      │
+      ├─ CPPS adapter  src/lib/cpps/api.ts
+      │       ├─▶ live CPPS REST / GraphQL       source: cpps
+      │       ├─▶ reference CPPS (explicit UAT)  source: reference
+      │       └─▶ unavailable (fail closed)
+      │
+      ├─ Production Integration Hub ──▶ approved agency/provider APIs
+      │
+      └─ Controlled sandbox/reference APIs ──▶ synthetic UAT/demo services
 ```
 
-Everything degrades gracefully: missing credentials → bundled seed/mock data, so
-the site is always buildable and demonstrable.
+The important distinction is between **content/reference fallbacks used for presentation** and **transactional CPPS/integration behavior**. CPPS no longer silently fabricates successful mock results. Live CPPS wins when configured; reference CPPS must be explicitly enabled; otherwise CPPS-dependent operations fail closed.
 
 ## Supabase
 
-- Clients: `src/lib/supabase/client.ts` (browser), `server.ts` (cookie-bound
-  server), `admin.ts` (service-role), `middleware.ts` (session refresh).
-- Types: `src/lib/supabase/types.ts` (regenerate with
-  `supabase gen types typescript --project-id <id>`).
+- Clients: `src/lib/supabase/client.ts` (browser), `server.ts` (cookie-bound server), `admin.ts` (service-role), `middleware.ts` (session refresh).
+- Types: `src/lib/supabase/types.ts`.
 - Schema + RLS: `src/lib/db/schema.sql`.
-- Tables: `pages, news, publications, legislation, tenders, faqs, forms,
-  reports, enquiries, profiles, audit_logs, claim_tracking`.
-- RLS: anonymous users read only `published` rows; staff manage per role;
-  `enquiries` accept anonymous inserts; `audit_logs` are staff-readable and
-  written via the service role.
+- Tables include public/editorial, enquiries, profiles, audit and claim-tracking data.
+- RLS keeps anonymous access limited to permitted public operations while privileged operations remain server-side.
 
-## CPPS (Compensation Processing & Payment System)
+The authoritative OWC production Supabase/storage environment must still be separately supplied and accepted before production cutover.
 
-Client: `src/lib/cpps/api.ts`. Configure with `CPPS_API_BASE_URL`,
-`CPPS_API_KEY`, and optionally `CPPS_GRAPHQL_ENDPOINT`.
+## Drupal
 
-| Function | Transport | Used by |
-| --- | --- | --- |
-| `getClaimStatus(ref, surname?)` | `GET /claims/:ref/status` | `/api/claims/track` |
-| `checkEmployerRegistration(q)` | `GET /employers/verify?q=` | `/api/employers/verify` |
-| `submitClaimLodgement(input)` | `POST /claims` | `/api/claims/lodge` |
-| `reportWorkplaceInjury(input)` | `POST /injuries` | `/api/injuries` |
-| `submitEnquiry(input)` | `POST /enquiries` | `/api/enquiries` |
+Drupal is the enterprise editorial CMS. In authoritative Drupal mode, public content reads fail closed rather than silently falling back if Drupal is unavailable. Transitional/fallback modes remain explicit environment choices.
 
-- Auth headers: `Authorization: Bearer <CPPS_API_KEY>` and `X-API-Key`.
-- A GraphQL helper `cppsGraphQL(query, variables)` is provided for endpoints that
-  prefer GraphQL.
-- All calls have a 10s timeout and return a discriminated
-  `CppsResult<T>` (`source: "cpps" | "mock"`).
+## CPPS — Compensation Processing & Payment System
 
-## Internal HTTP API (route handlers)
+Stable OWC server adapter: `src/lib/cpps/api.ts`.
 
-All POST. JSON in/out. Rate-limited per IP; inputs validated with Zod
-(`src/lib/security/validation.ts`); CAPTCHA verified server-side where relevant.
+### Live CPPS configuration
 
-| Endpoint | Limit | Body | Notes |
-| --- | --- | --- | --- |
-| `/api/enquiries` | 5/min | name,email,phone?,category,subject?,message,captchaToken | Persists to Supabase + CPPS |
-| `/api/claims/track` | 20/min | reference, surname? | Returns `{found, claim}` |
-| `/api/claims/lodge` | 5/min | worker/employer/injury fields, declaration, captchaToken | Returns `{reference}` |
-| `/api/employers/verify` | 15/min | query | Registration status |
-| `/api/injuries` | 5/min | employer/worker/injury fields, captchaToken | Employer injury report |
-| `/api/admin/login` | 5/min | email, password | Supabase sign-in; audits login/failed_login |
-| `/api/admin/mfa` | 6/min | factorId, code | TOTP challenge-and-verify |
-| `/api/admin/logout` | — | — | Sign-out + audit |
-
-### Example
-
-```bash
-curl -X POST https://owc.gov.pg/api/claims/track \
-  -H 'Content-Type: application/json' \
-  -d '{"reference":"OWC-2026-004821"}'
+```env
+CPPS_API_BASE_URL="https://approved-cpps.example/api"
+CPPS_API_KEY="..."
+CPPS_GRAPHQL_ENDPOINT=""
 ```
 
-## Switching from mock to live
-1. Set the Supabase env vars and run `schema.sql` + `bun run setup`.
-2. Set `CPPS_API_BASE_URL` (+ key / GraphQL endpoint).
-3. Rebuild (`NEXT_PUBLIC_*` are build-time) and restart.
-No application code changes are required.
+A configured live CPPS always takes precedence over reference mode.
+
+### Reference CPPS configuration
+
+For controlled development/UAT/demo only:
+
+```env
+OWC_ENABLE_REFERENCE_ECOSYSTEM="true"
+```
+
+Keep this `false` in production unless OWC has deliberately approved a reference-only non-production environment.
+
+### Backend-selection rule
+
+| Live CPPS configured | Reference enabled | Result |
+| --- | --- | --- |
+| Yes | Either | Use live CPPS (`source: "cpps"`) |
+| No | Yes | Use synthetic reference CPPS (`source: "reference"`) |
+| No | No | Fail closed (`source: "unavailable"` on the error) |
+
+### Existing OWC CPPS operations
+
+| Function | Live transport | OWC use |
+| --- | --- | --- |
+| `getClaimStatus(ref, surname?)` | `GET /claims/:ref/status` | Claim tracking |
+| `checkEmployerRegistration(q)` | `GET /employers/verify?q=` | Employer verification |
+| `submitClaimLodgement(input)` | `POST /claims` | Claim lodgement |
+| `reportWorkplaceInjury(input)` | `POST /injuries` | Employer injury report |
+| `submitEnquiry(input)` | `POST /enquiries` | Enquiry submission |
+
+Live REST calls use server-only authentication headers and a 10-second timeout. A GraphQL helper remains available when the authoritative CPPS supports GraphQL.
+
+### Reference CPPS
+
+The repository includes a stateful process-local reference CPPS for synthetic UAT. It models claim registration, lifecycle transitions, assessment, decision, payment scheduling, synthetic/idempotent payment, employer verification, injury receipts and enquiry receipts.
+
+The reference assessment formula is an explicit assumption only and is not a statutory or production compensation rule. Reference payment never moves real money. See `docs/operations/reference-cpps.md`.
+
+Controlled reference endpoints, available only when reference mode is enabled:
+
+| Endpoint | Method | Purpose |
+| --- | --- | --- |
+| `/api/reference/cpps/health` | GET | Safe reference-service health |
+| `/api/reference/cpps/claims` | POST | Register a validated synthetic claim |
+| `/api/reference/cpps/claims/{reference}` | GET | Retrieve reference claim status |
+
+Reference responses explicitly identify themselves as synthetic and not production connected.
+
+## Public OWC HTTP API
+
+Public POST endpoints are rate-limited, validate input with Zod and keep integration credentials server-side.
+
+| Endpoint | Typical limit | Purpose |
+| --- | ---: | --- |
+| `/api/enquiries` | 5/min | Submit public enquiry |
+| `/api/claims/track` | 20/min | Track a claim |
+| `/api/claims/lodge` | 5/min | Lodge a worker claim |
+| `/api/employers/verify` | 15/min | Verify employer registration |
+| `/api/injuries` | 5/min | Submit employer injury report |
+| `/api/admin/login` | 5/min | Staff sign-in |
+| `/api/admin/mfa` | 6/min | TOTP challenge/verification |
+| `/api/admin/logout` | — | Staff sign-out |
+
+## External Integration Hub
+
+The production-safe integration boundary supports the approved service classes for identity/NID, employer registry, insurance, payments and medical providers. Endpoint configuration alone is not evidence of live integration: each service still requires an authoritative API contract, credentials/networking, UAT and agency/provider acceptance.
+
+A separate synthetic integration sandbox remains available for controlled demonstrations and end-to-end reference scenarios.
+
+## Moving from reference to live CPPS
+
+1. Obtain authoritative CPPS DEV/UAT/PROD endpoints, API/schema documentation and ownership contacts.
+2. Confirm authentication, networking, data classification and credential rotation.
+3. Map the real CPPS contract against the reference contract and remove any assumptions that differ.
+4. Execute contract tests and end-to-end UAT against approved CPPS test data.
+5. Verify error, retry, timeout, idempotency and reconciliation behavior.
+6. Complete business/security acceptance.
+7. Configure the live CPPS endpoint; the adapter will then select live CPPS ahead of reference mode.
+
+No claimant-facing OWC workflow should require redesign merely because the backing CPPS implementation changes, unless authoritative CPPS discovery identifies a materially different business requirement.
