@@ -1,0 +1,19 @@
+uuid: 600ae327-f76d-4905-ba10-dd051577fc77
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_year
+    - node.type.publication
+id: node.publication.field_year
+field_name: field_year
+entity_type: node
+bundle: publication
+label: Year
+description: ''
+required: false
+translatable: true
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: string

@@ -1,0 +1,19 @@
+uuid: 173c2bc6-2b67-4928-9986-a8f8404f7026
+langcode: en
+status: true
+dependencies:
+  config:
+    - workflows.workflow.owc_editorial
+  module:
+    - content_moderation
+    - node
+id: reviewer
+label: Reviewer
+weight: 5
+is_admin: false
+permissions:
+  - 'access content overview'
+  - 'use owc_editorial transition approve'
+  - 'use owc_editorial transition return_to_draft'
+  - 'view any unpublished content'
+  - 'view latest version'

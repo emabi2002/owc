@@ -1,0 +1,19 @@
+uuid: 269a38da-a2df-47cd-a9ba-612dc7fdb5cb
+langcode: en
+status: true
+dependencies:
+  config:
+    - workflows.workflow.owc_editorial
+  module:
+    - content_moderation
+    - node
+id: publisher
+label: 'Publisher / Approver'
+weight: 6
+is_admin: false
+permissions:
+  - 'access content overview'
+  - 'use owc_editorial transition archive'
+  - 'use owc_editorial transition publish'
+  - 'view any unpublished content'
+  - 'view latest version'

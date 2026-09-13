@@ -63,6 +63,33 @@ The Next.js application calls Drupal JSON:API through the server-side adapter in
 
 This lets the public website move to Drupal without redesigning the user interface.
 
+## Step 1 implementation assets
+
+The repository now contains a repeatable DEV/UAT Drupal provisioning package under `drupal/`:
+
+- `drupal/docker-compose.yml` — Drupal 11 plus PostgreSQL 16 with persistent site/database volumes and health checks.
+- `drupal/Dockerfile` — Drupal image with Composer and Drush.
+- `drupal/manifest.json` — canonical content types, field groups, moderation states and roles used by CI and bootstrap tooling.
+- `drupal/scripts/bootstrap.sh` — installs Drupal when required, enables JSON:API/workflow/media modules and runs deterministic provisioning.
+- `drupal/scripts/provision.php` — creates the eight editorial content types, fields, workflow and editorial roles idempotently.
+- `drupal/scripts/sample-content.php` — creates safe representative public records for DEV/UAT only when absent.
+- `drupal/scripts/verify.sh` — verifies Drupal bootstrap, core modules, content types, roles and workflow.
+- `docs/DRUPAL_STEP1_ACCEPTANCE.md` — separates repository-complete work from real infrastructure prerequisites.
+
+Provision DEV/UAT with:
+
+```bash
+cd drupal
+cp .env.example .env
+# Replace example credentials first.
+docker compose up -d --build
+docker compose exec drupal /opt/owc-drupal/scripts/bootstrap.sh
+docker compose exec drupal /opt/owc-drupal/scripts/sample-content.sh
+docker compose exec drupal /opt/owc-drupal/scripts/verify.sh
+```
+
+These assets do not by themselves constitute a production deployment. A real approved DEV/UAT host, DNS/TLS, secure secrets, backups/monitoring and editorial identity/MFA are still required before operational acceptance.
+
 ## Migration sequence
 
 1. Provision Drupal in DEV/UAT.

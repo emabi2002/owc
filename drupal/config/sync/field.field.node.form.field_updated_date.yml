@@ -1,0 +1,21 @@
+uuid: 96ff7c1a-cc1b-4980-b8b9-09c5258b620d
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_updated_date
+    - node.type.form
+  module:
+    - datetime
+id: node.form.field_updated_date
+field_name: field_updated_date
+entity_type: node
+bundle: form
+label: 'Updated Date'
+description: ''
+required: false
+translatable: true
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: datetime

@@ -1,0 +1,73 @@
+uuid: 893e60df-e925-447f-b3b2-20ad18151ea5
+langcode: en
+status: true
+dependencies:
+  config:
+    - node.type.faq
+    - node.type.form
+    - node.type.legislation
+    - node.type.news
+    - node.type.page
+    - node.type.publication
+    - node.type.report
+    - node.type.tender
+    - taxonomy.vocabulary.tags
+    - workflows.workflow.owc_editorial
+  module:
+    - content_moderation
+    - contextual
+    - file
+    - navigation
+    - node
+    - path
+    - system
+    - taxonomy
+_core:
+  default_config_hash: og55Zu0F-q-X8zG0Ohrls49zws6IrmmosZS-30Es8vw
+id: content_editor
+label: 'Content editor'
+weight: 2
+is_admin: false
+permissions:
+  - 'access administration pages'
+  - 'access content overview'
+  - 'access contextual links'
+  - 'access files overview'
+  - 'access navigation'
+  - 'administer url aliases'
+  - 'create faq content'
+  - 'create form content'
+  - 'create legislation content'
+  - 'create news content'
+  - 'create page content'
+  - 'create publication content'
+  - 'create report content'
+  - 'create tender content'
+  - 'create terms in tags'
+  - 'create url aliases'
+  - 'delete own files'
+  - 'edit any faq content'
+  - 'edit any form content'
+  - 'edit any legislation content'
+  - 'edit any news content'
+  - 'edit any page content'
+  - 'edit any publication content'
+  - 'edit any report content'
+  - 'edit any tender content'
+  - 'edit own faq content'
+  - 'edit own form content'
+  - 'edit own legislation content'
+  - 'edit own news content'
+  - 'edit own page content'
+  - 'edit own publication content'
+  - 'edit own report content'
+  - 'edit own tender content'
+  - 'edit terms in tags'
+  - 'revert all revisions'
+  - 'use owc_editorial transition create_new_draft'
+  - 'use owc_editorial transition return_to_draft'
+  - 'use owc_editorial transition submit_for_review'
+  - 'view all revisions'
+  - 'view latest version'
+  - 'view own unpublished content'
+  - 'view the administration theme'

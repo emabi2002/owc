@@ -1,0 +1,19 @@
+uuid: c7ad43f4-bf56-46be-9ec2-70d4b80f8ea0
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_code
+    - node.type.form
+id: node.form.field_code
+field_name: field_code
+entity_type: node
+bundle: form
+label: Code
+description: ''
+required: false
+translatable: true
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: string

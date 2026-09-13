@@ -1,0 +1,14 @@
+uuid: 148dde8c-ca56-4c05-b8cd-59df7ca2ab56
+langcode: en
+status: true
+dependencies:
+  config:
+    - user.role.auditor
+  module:
+    - user
+id: user_remove_role_action.auditor
+label: 'Remove the Auditor / Read-only role from the selected user(s)'
+type: user
+plugin: user_remove_role_action
+configuration:
+  rid: auditor
