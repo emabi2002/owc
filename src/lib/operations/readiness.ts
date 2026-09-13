@@ -4,6 +4,11 @@ import {
   isSupabaseAdminConfigured,
   serverEnv,
 } from "@/lib/env";
+import {
+  PRODUCTION_SERVICES,
+  buildProductionConnectorReadiness,
+  getProductionConnectorConfig,
+} from "@/lib/integrations/production/registry";
 
 export type ReadinessKey =
   | "supabase"
@@ -11,7 +16,8 @@ export type ReadinessKey =
   | "cpps"
   | "evidenceRepository"
   | "malwareScanner"
-  | "notificationGateway";
+  | "notificationGateway"
+  | "externalIntegrations";
 
 export type ReadinessCheck = {
   key: ReadinessKey;
@@ -27,7 +33,12 @@ export function buildReadinessChecks(input: {
   evidenceRepository: boolean;
   malwareScanner: boolean;
   notificationGateway: boolean;
+  externalIntegrations: { configured: number; total: number };
 }): ReadinessCheck[] {
+  const externalIntegrationsReady =
+    input.externalIntegrations.total > 0 &&
+    input.externalIntegrations.configured === input.externalIntegrations.total;
+
   const definitions: Array<{
     key: ReadinessKey;
     label: string;
@@ -77,6 +88,13 @@ export function buildReadinessChecks(input: {
       readyDetail: "Claim lifecycle notifications can be delivered through the configured gateway.",
       pendingDetail: "Authorized email/SMS gateway endpoint and credentials are required for external delivery.",
     },
+    {
+      key: "externalIntegrations",
+      label: "External agency Integration Hub",
+      configured: externalIntegrationsReady,
+      readyDetail: `${input.externalIntegrations.configured} of ${input.externalIntegrations.total} registered agency connector endpoints are configured; live connectivity and agency contracts still require verification.`,
+      pendingDetail: `${input.externalIntegrations.configured} of ${input.externalIntegrations.total} registered agency connector endpoints are configured. Remaining endpoints must be configured and independently verified before production use.`,
+    },
   ];
 
   return definitions.map((item) => ({
@@ -95,6 +113,12 @@ export function getOperationalReadiness(): ReadinessCheck[] {
       signingSecretConfigured &&
       (!serverEnv.requireMalwareScan || scannerConfigured),
   );
+  const connectorReadiness = buildProductionConnectorReadiness(
+    PRODUCTION_SERVICES.map(getProductionConnectorConfig),
+  );
+  const configuredConnectors = connectorReadiness.filter(
+    (item) => item.status === "configured",
+  ).length;
 
   return buildReadinessChecks({
     supabase: isSupabaseAdminConfigured,
@@ -103,5 +127,9 @@ export function getOperationalReadiness(): ReadinessCheck[] {
     evidenceRepository: evidenceRepositoryReady,
     malwareScanner: scannerConfigured,
     notificationGateway: Boolean(serverEnv.notificationApiUrl),
+    externalIntegrations: {
+      configured: configuredConnectors,
+      total: connectorReadiness.length,
+    },
   });
 }
