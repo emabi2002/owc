@@ -46,12 +46,26 @@ jobs:
     name: Drupal clean-room reconstruction
     needs: build
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
 
-      - name: Validate Drupal bootstrap shell
-        run: bash -n drupal/scripts/bootstrap.sh
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install exporter dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Export canonical reference content
+        run: bun run drupal:export-content
+
+      - name: Validate Drupal migration shell scripts
+        run: |
+          bash -n drupal/scripts/bootstrap.sh
+          bash -n drupal/scripts/import-content.sh
+          bash -n drupal/scripts/verify-content-parity.sh
 
       - name: Build isolated Drupal stack
         working-directory: drupal
@@ -60,6 +74,24 @@ jobs:
       - name: Reconstruct CMS from committed configuration
         working-directory: drupal
         run: docker compose -p owc-drupal-ci exec -T drupal /opt/owc-drupal/scripts/bootstrap.sh
+
+      - name: Import canonical OWC content
+        working-directory: drupal
+        run: docker compose -p owc-drupal-ci exec -T drupal /opt/owc-drupal/scripts/import-content.sh
+
+      - name: Verify migration is idempotent
+        working-directory: drupal
+        run: |
+          SECOND_IMPORT="$(docker compose -p owc-drupal-ci exec -T drupal /opt/owc-drupal/scripts/import-content.sh)"
+          echo "$SECOND_IMPORT"
+          if echo "$SECOND_IMPORT" | grep -Eq '"created": [1-9]'; then
+            echo "Second import created duplicate content" >&2
+            exit 1
+          fi
+
+      - name: Verify source-to-Drupal content parity
+        working-directory: drupal
+        run: docker compose -p owc-drupal-ci exec -T drupal /opt/owc-drupal/scripts/verify-content-parity.sh
 
       - name: Verify reconstructed CMS
         working-directory: drupal
