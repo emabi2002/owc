@@ -69,4 +69,47 @@ describe("reference CPPS service", () => {
     expect(first.payment?.realFundsMoved).toBe(false);
     expect(first.state).toBe("paid");
   });
+
+  test("verifies only the synthetic reference employer registry", () => {
+    const service = createReferenceCppsService({ now: () => new Date("2026-09-13T10:00:00.000Z") });
+
+    expect(service.verifyEmployer("Pacific Engineering Demo Ltd")).toEqual({
+      registered: true,
+      name: "Pacific Engineering Demo Ltd",
+      registrationNo: "CPPS-EMP-REF-0001",
+      policyExpiry: "2026-12-31",
+      status: "Compliant",
+    });
+    expect(service.verifyEmployer("Unknown Employer Ltd")).toEqual({
+      registered: false,
+      status: "Unknown",
+    });
+  });
+
+  test("records deterministic synthetic injury and enquiry receipts", () => {
+    const service = createReferenceCppsService({ now: () => new Date("2026-09-13T10:00:00.000Z") });
+
+    const injury = service.receiveInjuryReport({
+      employerName: "Pacific Engineering Demo Ltd",
+      workerName: "Mara Kila",
+      injuryDate: "2026-08-20",
+      injuryType: "Fracture",
+      description: "Synthetic injury report.",
+    });
+    const enquiry = service.receiveEnquiry({
+      name: "Mara Kila",
+      email: "mara.kila@example.test",
+      category: "Claim",
+      message: "Synthetic enquiry.",
+    });
+
+    expect(injury).toEqual({
+      reference: "INJ-REF-2026-000001",
+      receivedAt: "2026-09-13T10:00:00.000Z",
+    });
+    expect(enquiry).toEqual({
+      reference: "ENQ-REF-2026-000001",
+      receivedAt: "2026-09-13T10:00:00.000Z",
+    });
+  });
 });
