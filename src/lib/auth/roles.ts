@@ -1,7 +1,7 @@
 /**
  * Role-Based Access Control (OWASP A01 — broken access control).
  *
- * Five roles map to a fixed permission matrix. Server actions, route handlers
+ * Staff roles map to a fixed permission matrix. Server actions, route handlers
  * and admin pages gate behaviour through `hasPermission`.
  */
 import type { AppRole } from "@/lib/supabase/types";
@@ -12,6 +12,8 @@ export const ALL_ROLES: AppRole[] = [
   "editor",
   "reviewer",
   "claims_officer",
+  "assessment_officer",
+  "finance_officer",
   "viewer",
 ];
 
@@ -21,6 +23,8 @@ export const ROLE_LABELS: Record<AppRole, Role> = {
   editor: "Editor",
   reviewer: "Reviewer",
   claims_officer: "Claims Officer",
+  assessment_officer: "Assessment Officer",
+  finance_officer: "Finance / Payment Officer",
   viewer: "Viewer",
 };
 
@@ -30,6 +34,8 @@ export const ROLE_VALUES: Record<Role, AppRole> = {
   Editor: "editor",
   Reviewer: "reviewer",
   "Claims Officer": "claims_officer",
+  "Assessment Officer": "assessment_officer",
+  "Finance / Payment Officer": "finance_officer",
   Viewer: "viewer",
 };
 
@@ -40,10 +46,26 @@ export const PERMISSIONS = {
   "content.approve": ["administrator", "reviewer"],
   "content.publish": ["administrator", "reviewer"],
   "content.delete": ["administrator"],
-  "claims.view": ["administrator", "claims_officer", "reviewer"],
+  "claims.view": [
+    "administrator",
+    "claims_officer",
+    "reviewer",
+    "assessment_officer",
+    "finance_officer",
+  ],
   "claims.manage": ["administrator", "claims_officer"],
+  "claims.assess": ["administrator", "assessment_officer"],
+  "payments.manage": ["administrator", "finance_officer"],
   "users.manage": ["administrator"],
-  "audit.view": ["administrator", "editor", "reviewer", "claims_officer", "viewer"],
+  "audit.view": [
+    "administrator",
+    "editor",
+    "reviewer",
+    "claims_officer",
+    "assessment_officer",
+    "finance_officer",
+    "viewer",
+  ],
   "settings.manage": ["administrator"],
 } as const satisfies Record<string, AppRole[]>;
 

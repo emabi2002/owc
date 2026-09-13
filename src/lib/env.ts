@@ -35,6 +35,10 @@ export const publicEnv = {
 /** Server-only configuration. */
 export const serverEnv = {
   supabaseServiceRoleKey: process.env.SUPABASE_SERVICE_ROLE_KEY ?? "",
+  identityMode: process.env.OWC_IDENTITY_MODE ?? "live",
+  demoSessionSecret: process.env.OWC_DEMO_SESSION_SECRET ?? "",
+  demoPassword: process.env.OWC_DEMO_PASSWORD ?? "",
+  demoMfaCode: process.env.OWC_DEMO_MFA_CODE ?? "",
   cppsApiBaseUrl: process.env.CPPS_API_BASE_URL ?? "",
   cppsApiKey: process.env.CPPS_API_KEY ?? "",
   cppsGraphqlEndpoint: process.env.CPPS_GRAPHQL_ENDPOINT ?? "",

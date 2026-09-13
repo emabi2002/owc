@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
@@ -14,6 +14,7 @@ import {
   KeyRound,
   Fingerprint,
   AlertCircle,
+  Presentation,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -23,6 +24,13 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { OWCSeal, BirdOfParadise, NationalEmblem } from "@/components/owc-emblem";
 import { ORG } from "@/lib/site-data";
 
+type DemoPersona = {
+  personaId: string;
+  fullName: string;
+  email: string;
+  role: string | null;
+};
+
 export default function AdminLoginPage() {
   const router = useRouter();
   const [show, setShow] = useState(false);
@@ -30,6 +38,28 @@ export default function AdminLoginPage() {
   const [error, setError] = useState<string | null>(null);
   const [mfa, setMfa] = useState<{ factorId?: string } | null>(null);
   const [code, setCode] = useState("");
+  const [email, setEmail] = useState("admin@owc.gov.pg");
+  const [demoPersonas, setDemoPersonas] = useState<DemoPersona[]>([]);
+
+  const demonstration = demoPersonas.length > 0;
+
+  useEffect(() => {
+    let active = true;
+    fetch("/api/admin/demo-personas", { cache: "no-store" })
+      .then(async (response) => {
+        if (!response.ok) return null;
+        return response.json() as Promise<{ personas?: DemoPersona[] }>;
+      })
+      .then((payload) => {
+        if (!active || !payload?.personas?.length) return;
+        setDemoPersonas(payload.personas);
+        setEmail(payload.personas[0]?.email ?? "admin@owc.gov.pg");
+      })
+      .catch(() => undefined);
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const redirectTarget = () => {
     if (typeof window === "undefined") return "/admin";
@@ -99,7 +129,6 @@ export default function AdminLoginPage() {
 
   return (
     <div className="grid min-h-screen lg:grid-cols-2">
-      {/* Branding panel */}
       <div className="relative hidden overflow-hidden bg-flag-diag p-12 text-white lg:flex lg:flex-col lg:justify-between">
         <div className="absolute inset-0 bg-grid-faint opacity-30" aria-hidden />
         <BirdOfParadise
@@ -117,33 +146,30 @@ export default function AdminLoginPage() {
             OWC Content Management &amp; Administration Console
           </h1>
           <p className="mt-3 max-w-md text-white/70">
-            A secure environment for authorised OWC staff to manage news, pages,
-            reports, forms and claims content for the {ORG.country}.
+            A secure environment for authorised OWC staff to manage claims,
+            content and operational services for the {ORG.country}.
           </p>
           <ul className="mt-8 space-y-3 text-sm text-white/80">
             {[
-              "Role-based access control",
-              "Content approval workflow",
-              "Full audit trail of all changes",
-              "Encrypted, standards-aligned platform",
-            ].map((t) => (
-              <li key={t} className="flex items-center gap-2.5">
-                <ShieldCheck className="h-4 w-4 text-gold" /> {t}
+              "Role-based separation of duties",
+              "Two-factor authentication",
+              "Claims and content workflow controls",
+              "Full audit trail of staff activity",
+            ].map((item) => (
+              <li key={item} className="flex items-center gap-2.5">
+                <ShieldCheck className="h-4 w-4 text-gold" /> {item}
               </li>
             ))}
           </ul>
         </div>
 
         <p className="relative text-xs text-white/50">
-          Authorised access only. Activity on this system is monitored and logged
-          in accordance with PNG Government ICT policy.
+          Authorised access only. Activity on this system is monitored and logged.
         </p>
       </div>
 
-      {/* Form panel */}
       <div className="flex items-center justify-center bg-secondary/40 p-6 sm:p-12">
-        <div className="w-full max-w-md">
-          {/* Mobile brand */}
+        <div className="w-full max-w-lg">
           <div className="mb-8 flex items-center gap-3 lg:hidden">
             <NationalEmblem className="h-12 w-12" />
             <div>
@@ -151,6 +177,39 @@ export default function AdminLoginPage() {
               <div className="text-xs text-muted-foreground">Office of Workers Compensation</div>
             </div>
           </div>
+
+          {demonstration && (
+            <div className="mb-4 rounded-xl border border-gold/40 bg-gold/10 p-4">
+              <div className="flex items-center gap-2 font-semibold text-primary">
+                <Presentation className="h-4 w-4 text-gold" />
+                OWC Demonstration Environment
+              </div>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Select a staff persona to demonstrate role-based access. Credentials
+                and MFA values are managed securely by the presentation team.
+              </p>
+              {!mfa && (
+                <div className="mt-3 grid gap-2 sm:grid-cols-2">
+                  {demoPersonas.map((persona) => (
+                    <button
+                      key={persona.personaId}
+                      type="button"
+                      onClick={() => {
+                        setEmail(persona.email);
+                        setError(null);
+                      }}
+                      className={`rounded-lg border p-2 text-left text-xs transition hover:border-gold ${
+                        email === persona.email ? "border-gold bg-background" : "border-border bg-card"
+                      }`}
+                    >
+                      <span className="block font-semibold text-foreground">{persona.role}</span>
+                      <span className="block text-muted-foreground">{persona.fullName}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
 
           <div className="rounded-2xl border border-border bg-card p-8 shadow-xl">
             <div className="mb-6">
@@ -162,8 +221,10 @@ export default function AdminLoginPage() {
               </h2>
               <p className="mt-1 text-sm text-muted-foreground">
                 {mfa
-                  ? "Enter the 6-digit code from your authenticator app."
-                  : "Use your official OWC staff credentials."}
+                  ? "Enter the 6-digit verification code."
+                  : demonstration
+                    ? "Use the configured demonstration credential for the selected persona."
+                    : "Use your official OWC staff credentials."}
               </p>
             </div>
 
@@ -186,19 +247,15 @@ export default function AdminLoginPage() {
                       type="email"
                       required
                       autoComplete="username"
-                      defaultValue="admin@owc.gov.pg"
+                      value={email}
+                      onChange={(event) => setEmail(event.target.value)}
                       className="pl-9"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <div className="flex items-center justify-between">
-                    <Label htmlFor="pw">Password</Label>
-                    <button type="button" className="text-xs font-medium text-gold hover:underline">
-                      Forgot password?
-                    </button>
-                  </div>
+                  <Label htmlFor="pw">Password</Label>
                   <div className="relative mt-2">
                     <KeyRound className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                     <Input
@@ -212,7 +269,7 @@ export default function AdminLoginPage() {
                     />
                     <button
                       type="button"
-                      onClick={() => setShow((s) => !s)}
+                      onClick={() => setShow((current) => !current)}
                       className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                       aria-label={show ? "Hide password" : "Show password"}
                     >
@@ -235,8 +292,7 @@ export default function AdminLoginPage() {
 
                 <div className="flex items-center gap-2 rounded-lg bg-secondary/70 p-3 text-xs text-muted-foreground">
                   <Fingerprint className="h-4 w-4 shrink-0 text-gold" />
-                  Two-factor authentication is supported and enforced for accounts
-                  that have it enrolled.
+                  Two-factor authentication is required for demonstration staff personas.
                 </div>
               </form>
             ) : (
@@ -248,7 +304,7 @@ export default function AdminLoginPage() {
                     inputMode="numeric"
                     autoComplete="one-time-code"
                     value={code}
-                    onChange={(e) => setCode(e.target.value.replace(/[^0-9]/g, "").slice(0, 6))}
+                    onChange={(event) => setCode(event.target.value.replace(/[^0-9]/g, "").slice(0, 6))}
                     placeholder="123456"
                     className="mt-2 text-center font-mono text-lg tracking-[0.4em]"
                   />
@@ -262,7 +318,11 @@ export default function AdminLoginPage() {
                 </Button>
                 <button
                   type="button"
-                  onClick={() => { setMfa(null); setCode(""); setError(null); }}
+                  onClick={() => {
+                    setMfa(null);
+                    setCode("");
+                    setError(null);
+                  }}
                   className="w-full text-center text-sm text-muted-foreground hover:text-foreground"
                 >
                   Back to sign in
@@ -272,8 +332,9 @@ export default function AdminLoginPage() {
           </div>
 
           <p className="mt-6 text-center text-xs text-muted-foreground">
-            Authentication is provided by Supabase Auth. Access is restricted to
-            authorised OWC staff accounts.
+            {demonstration
+              ? "Synthetic demonstration identities use the same OWC authorization boundary that can later map to the Department's live identity provider."
+              : "Authentication is provided by the configured live identity service and restricted to authorised OWC staff."}
           </p>
         </div>
       </div>
