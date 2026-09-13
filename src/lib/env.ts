@@ -9,9 +9,8 @@
  *    external-agency credentials) are read from `process.env` and MUST only be
  *    consumed inside server modules.
  *
- * The platform is designed to degrade gracefully: when an integration is not
- * configured the data/service layer falls back to the existing source or local
- * seed data so the site remains buildable while integrations are introduced.
+ * Reference/demo adapters are always explicitly enabled. Missing live services
+ * must not silently turn into synthetic production-looking success.
  */
 
 export type CaptchaProvider =
@@ -43,6 +42,8 @@ export const serverEnv = {
   cppsApiKey: process.env.CPPS_API_KEY ?? "",
   cppsGraphqlEndpoint: process.env.CPPS_GRAPHQL_ENDPOINT ?? "",
   enableReferenceEcosystem: process.env.OWC_ENABLE_REFERENCE_ECOSYSTEM === "true",
+  enableReferenceEvidenceRepository:
+    process.env.OWC_ENABLE_REFERENCE_EVIDENCE_REPOSITORY === "true",
   captchaSecretKey: process.env.CAPTCHA_SECRET_KEY ?? "",
   bootstrapAdminEmails: process.env.OWC_BOOTSTRAP_ADMIN_EMAILS ?? "",
   drupalBaseUrl: process.env.DRUPAL_BASE_URL ?? "",
@@ -81,6 +82,10 @@ export const isCppsConfigured = Boolean(serverEnv.cppsApiBaseUrl);
 
 /** True when the explicitly synthetic OWC reference ecosystem is enabled. */
 export const isReferenceEcosystemEnabled = serverEnv.enableReferenceEcosystem;
+
+/** True only when the explicitly synthetic evidence repository is enabled. */
+export const isReferenceEvidenceRepositoryEnabled =
+  serverEnv.enableReferenceEvidenceRepository;
 
 /** True when Drupal has an API base URL configured. */
 export const isDrupalConfigured = Boolean(serverEnv.drupalBaseUrl);
