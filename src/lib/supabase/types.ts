@@ -29,6 +29,8 @@ export type AppRole =
   | "editor"
   | "reviewer"
   | "claims_officer"
+  | "assessment_officer"
+  | "finance_officer"
   | "viewer";
 
 export type AuditAction =
