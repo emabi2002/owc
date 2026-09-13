@@ -30,7 +30,8 @@ exception when duplicate_object then null; end $$;
 
 do $$ begin
   create type public.app_role as enum
-    ('administrator', 'editor', 'reviewer', 'claims_officer', 'viewer');
+    ('administrator', 'editor', 'reviewer', 'claims_officer',
+     'assessment_officer', 'finance_officer', 'viewer');
 exception when duplicate_object then null; end $$;
 
 do $$ begin
@@ -406,20 +407,16 @@ begin
     execute format('drop policy if exists "%s_staff_read"  on public.%I', t, t);
     execute format('drop policy if exists "%s_staff_write" on public.%I', t, t);
 
-    -- anyone may read published rows
     execute format(
       $f$create policy "%s_public_read" on public.%I
            for select to anon, authenticated
            using (status = 'published')$f$, t, t);
 
-    -- staff may read all rows (including drafts) in the console
     execute format(
       $f$create policy "%s_staff_read" on public.%I
            for select to authenticated
            using (public.is_staff())$f$, t, t);
 
-    -- content roles may insert/update/delete (defence in depth; the app also
-    -- enforces fine-grained RBAC in src/lib/auth/roles.ts)
     execute format(
       $f$create policy "%s_staff_write" on public.%I
            for all to authenticated
@@ -503,7 +500,7 @@ create policy "claims_public_insert" on public.claim_tracking
 create policy "claims_staff_read" on public.claim_tracking
   for select to authenticated
   using (public.current_app_role()
-           in ('administrator','claims_officer','reviewer'));
+           in ('administrator','claims_officer','reviewer','assessment_officer','finance_officer'));
 create policy "claims_staff_manage" on public.claim_tracking
   for all to authenticated
   using (public.current_app_role() in ('administrator','claims_officer'))
