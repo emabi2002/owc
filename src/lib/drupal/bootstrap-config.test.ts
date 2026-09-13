@@ -83,4 +83,13 @@ describe("OWC Drupal bootstrap configuration", () => {
     expect(bootstrap.includes("$settings")).toBe(true);
     expect(bootstrap.includes('grep -q "^\\\\$settings')).toBe(false);
   });
+
+  test("passes valid PHP namespace references to Drush verification", async () => {
+    const verify = await readFile("drupal/scripts/verify.sh", "utf8");
+
+    expect(verify.includes("\\Drupal\\node\\Entity\\NodeType::load")).toBe(true);
+    expect(verify.includes("\\Drupal\\user\\Entity\\Role::load")).toBe(true);
+    expect(verify.includes("\\Drupal\\workflows\\Entity\\Workflow::load")).toBe(true);
+    expect(verify.includes("\\\\Drupal\\\\")).toBe(false);
+  });
 });
