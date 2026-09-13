@@ -3,6 +3,7 @@ import type { CanonicalContentRecord } from "./contracts";
 import {
   buildMigrationDocument,
   buildRepositoryReferenceRecords,
+  loadMigrationRecords,
   recordsFromSupabaseSnapshot,
 } from "./export";
 
@@ -88,5 +89,41 @@ describe("buildMigrationDocument", () => {
     expect(page?.status).toBe("approved");
     expect(faq?.status).toBe("review");
     expect(faq?.attributes.field_sort_order).toBe(7);
+  });
+
+  test("uses repository reference content when privileged Supabase credentials are absent", async () => {
+    let loaderCalls = 0;
+    const result = await loadMigrationRecords(
+      { supabaseUrl: "", serviceRoleKey: "" },
+      async () => {
+        loaderCalls += 1;
+        return {};
+      },
+    );
+
+    expect(result.source).toBe("repository-reference");
+    expect(result.records.length).toBeGreaterThan(0);
+    expect(loaderCalls).toBe(0);
+  });
+
+  test("uses privileged Supabase editorial data when both server credentials are present", async () => {
+    const result = await loadMigrationRecords(
+      { supabaseUrl: "https://db.example", serviceRoleKey: "server-secret" },
+      async () => ({
+        pages: [
+          {
+            id: "about",
+            slug: "about-us",
+            title: "About OWC",
+            body: "Body",
+            status: "draft",
+          },
+        ],
+      }),
+    );
+
+    expect(result.source).toBe("supabase");
+    expect(result.records.map((item) => item.key)).toEqual(["page:about"]);
+    expect(result.records[0]?.status).toBe("draft");
   });
 });
