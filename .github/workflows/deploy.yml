@@ -133,7 +133,7 @@ jobs:
     runs-on: ubuntu-latest
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     steps:
-      - name: Deploy over SSH (git pull + build + PM2 reload)
+      - name: Deploy over SSH (health-checked release)
         uses: appleboy/ssh-action@v1.2.0
         with:
           host: ${{ secrets.DEPLOY_HOST }}
@@ -143,8 +143,4 @@ jobs:
           script: |
             set -e
             cd ${{ secrets.DEPLOY_PATH }}
-            git pull --ff-only
-            bun install --frozen-lockfile
-            bun run build
-            pm2 reload ecosystem.config.js --update-env || pm2 start ecosystem.config.js
-            pm2 save
+            bash deploy/release.sh
