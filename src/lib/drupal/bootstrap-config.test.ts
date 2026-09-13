@@ -76,8 +76,9 @@ describe("OWC Drupal bootstrap configuration", () => {
 
   test("writes config_sync_directory without shell-expanding Drupal's settings variable", async () => {
     const bootstrap = await readFile("drupal/scripts/bootstrap.sh", "utf8");
+    const usesProtectedPhp = bootstrap.includes("php -r") || bootstrap.includes("php <<'PHP'");
 
-    expect(bootstrap.includes("php -r")).toBe(true);
+    expect(usesProtectedPhp).toBe(true);
     expect(bootstrap.includes("$settings['config_sync_directory']")).toBe(true);
     expect(bootstrap.includes('grep -q "^\\\\$settings')).toBe(false);
   });
