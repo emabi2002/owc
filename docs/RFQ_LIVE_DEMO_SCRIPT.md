@@ -49,21 +49,24 @@ Key message: **interfaces are observable and traceable, not hidden point-to-poin
 
 ### 4. End-to-End Worker Claim Scenario — 12 minutes
 
-Open `/admin/integrations/demo` and run the worker-claim scenario.
+Open `/admin/integrations/process` and run the worker-claim scenario. The legacy `/admin/integrations/demo` route redirects to this current presentation screen.
 
-The synthetic scenario uses claimant **Mara Kila**, employed by **Pacific Engineering Demo Ltd**.
+The synthetic scenario uses claim **`OWC-2026-005112`**, claimant **Mara Kila**, employed by **Pacific Engineering Ltd**.
 
-Expected sequence:
+Use the current coherent synthetic references shown on the screen:
 
-1. **NID verification** — `NID-DEMO-0001` confirms claimant identity.
-2. **IPA/employer verification** — `IPA-DEMO-1001` confirms employer registration.
-3. **IRC compliance** — `TIN-DEMO-9001` confirms compliant status.
-4. **Employer HR verification** — `EMP-DEMO-001` confirms employment, position and demo wage.
-5. **Medical verification** — `MED-DEMO-001` confirms a valid medical certificate.
-6. **Insurance verification** — `POL-DEMO-001` confirms active workers compensation cover.
-7. **Bank verification** — `BANK-DEMO-001` confirms the synthetic claimant account.
-8. **Payment simulation** — OWC issues a K18,450 sandbox payment instruction and receives a `TXN-DEMO-...` reference.
-9. **Notification** — a synthetic SMS notification is accepted.
+1. **NID verification** — `NID-00010001` confirms claimant identity.
+2. **IPA/employer verification** — `IPA-2020-1001` confirms employer registration.
+3. **IRC compliance** — `TIN-90010001` confirms compliant status.
+4. **Employer HR verification** — `EMP-0001001` confirms employment, position and synthetic wage information.
+5. **Medical verification** — `MED-2026-00451` confirms a valid synthetic medical certificate.
+6. **Insurance verification** — `WC-POL-2026-01872` confirms active synthetic workers compensation cover.
+7. **Bank verification** — `BANK-ACC-7842` confirms the synthetic claimant account.
+8. **Cross-agency reconciliation** — OWC confirms that the identity, employer, employment, medical, insurance and banking records belong to one coherent synthetic claim chain.
+9. **Claim determination** — OWC records the demonstration determination for the claim.
+10. **Payment simulation** — OWC issues a K18,450 sandbox payment instruction and receives a `TXN-2026-...` synthetic transaction reference. No real funds move.
+11. **Notification** — a synthetic SMS notification is accepted by the sandbox notification service.
+12. **Trace evidence** — the completed flow exposes correlation identifiers for the integration control centre without exposing sensitive payloads.
 
 Key message: **one OWC workflow can orchestrate independently governed services while preserving source-of-truth boundaries.**
 
@@ -97,8 +100,11 @@ State explicitly:
 Before presentation:
 - confirm the build and automated tests are green;
 - enable `OWC_ENABLE_SANDBOX=true` only in the demo/UAT environment;
-- verify `/api/sandbox/health` reports all expected services;
-- run the scenario once and confirm the control centre receives traces;
+- verify `/api/integrations/health` reports all expected services;
+- confirm `/admin/integrations` loads the integration control centre;
+- confirm `/admin/integrations/process` loads the worker-claim process screen;
+- run the scenario once using the current references above and confirm the control centre receives traces;
+- confirm the result remains explicitly synthetic and no real payment or external agency transaction is claimed;
 - refresh/reset the presentation screen before the panel arrives;
 - retain screenshots/video as presentation fallback, but lead with the live system.
 
