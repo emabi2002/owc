@@ -1,4 +1,6 @@
 import { serverEnv } from "@/lib/env";
+import { createReferenceAiAdapter } from "./reference-provider";
+import { createOpenAiCompatibleAdapter } from "./openai-compatible-provider";
 import type {
   AiAdapter,
   AiGatewayConfiguration,
@@ -21,6 +23,19 @@ function currentConfiguration(): AiGatewayConfiguration {
     apiKey: serverEnv.aiApiKey,
     model: serverEnv.aiModel,
   };
+}
+
+function configuredAdapter(provider: AiProvider): AiAdapter | null {
+  if (provider === "reference") return createReferenceAiAdapter();
+  if (provider === "openai_compatible") {
+    if (!serverEnv.aiApiUrl || !serverEnv.aiApiKey || !serverEnv.aiModel) return null;
+    return createOpenAiCompatibleAdapter({
+      apiUrl: serverEnv.aiApiUrl,
+      apiKey: serverEnv.aiApiKey,
+      model: serverEnv.aiModel,
+    });
+  }
+  return null;
 }
 
 export function getAiGatewayHealth(
@@ -62,7 +77,8 @@ export async function generateAiResponse(
     };
   }
 
-  if (!options.adapter) {
+  const adapter = options.adapter ?? configuredAdapter(provider);
+  if (!adapter) {
     return {
       ok: false,
       provider,
@@ -73,7 +89,7 @@ export async function generateAiResponse(
   }
 
   try {
-    const result = await options.adapter.generate(request);
+    const result = await adapter.generate(request);
     return { ...result, provider };
   } catch {
     return {
