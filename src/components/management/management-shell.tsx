@@ -34,9 +34,9 @@ export function ManagementShell({
             <Link href="/management/reports" className="flex items-center gap-2 rounded-lg px-3 py-2 hover:bg-secondary">
               <BarChart3 className="h-4 w-4" /> Reports
             </Link>
-            <div className="flex items-center gap-2 rounded-lg px-3 py-2 text-muted-foreground">
-              <Bot className="h-4 w-4" /> AI Analyst · next phase
-            </div>
+            <Link href="/management/analyst" className="flex items-center gap-2 rounded-lg px-3 py-2 hover:bg-secondary">
+              <Bot className="h-4 w-4" /> AI Analyst
+            </Link>
           </nav>
         </aside>
         <main>{children}</main>
