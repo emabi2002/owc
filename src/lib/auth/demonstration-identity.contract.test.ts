@@ -5,7 +5,7 @@ async function read(path: string): Promise<string> {
 }
 
 describe("OWC demonstration identity contract", () => {
-  test("provides an explicit demonstration identity provider with seven personas", async () => {
+  test("provides an explicit demonstration identity provider with eight personas", async () => {
     const path = "src/lib/auth/demo-identity.ts";
     expect(await Bun.file(path).exists()).toBe(true);
     const source = await read(path);
@@ -15,6 +15,7 @@ describe("OWC demonstration identity contract", () => {
       "assessment-officer",
       "finance-officer",
       "content-editor",
+      "management-executive",
       "employer-representative",
       "claimant-worker",
     ]) {
@@ -22,15 +23,19 @@ describe("OWC demonstration identity contract", () => {
     }
   });
 
-  test("models assessment and finance as first-class staff roles with separated permissions", async () => {
+  test("models assessment, finance and management as first-class separated roles", async () => {
     const roles = await read("src/lib/auth/roles.ts");
     const types = await read("src/lib/supabase/types.ts");
     expect(roles).toContain('"assessment_officer"');
     expect(roles).toContain('"finance_officer"');
+    expect(roles).toContain('"management"');
     expect(roles).toContain('"claims.assess"');
     expect(roles).toContain('"payments.manage"');
+    expect(roles).toContain('"reports.view"');
+    expect(roles).toContain('"reports.ai.query"');
     expect(types).toContain('| "assessment_officer"');
     expect(types).toContain('| "finance_officer"');
+    expect(types).toContain('| "management"');
   });
 
   test("selects demonstration identity explicitly and never from missing Supabase configuration", async () => {
