@@ -235,20 +235,30 @@ create table if not exists public.audit_logs (
   ip_address   text
 );
 
--- Local mirror of CPPS claim status for the tracking UI
+-- Local mirror of CPPS claim status for tracking and management reporting.
 create table if not exists public.claim_tracking (
-  id              uuid primary key default gen_random_uuid(),
-  reference       text not null unique,
-  worker_name     text not null,
-  employer_name   text,
-  injury_type     text,
-  injury_date     date,
-  lodged_date     date default current_date,
-  status          text not null default 'New',
-  steps           jsonb,
-  cpps_synced_at  timestamptz,
-  created_at      timestamptz not null default now(),
-  updated_at      timestamptz not null default now()
+  id                       uuid primary key default gen_random_uuid(),
+  reference                text not null unique,
+  worker_name              text not null,
+  employer_name            text,
+  province                 text,
+  district                 text,
+  industry                 text,
+  occupation               text,
+  injury_type              text,
+  injury_date              date,
+  lodged_date              date default current_date,
+  status                   text not null default 'New',
+  decision                 text,
+  compensation_amount_pgk  numeric(14,2),
+  turnaround_days          integer,
+  notification_status      text,
+  payment_status           text,
+  assigned_officer         text,
+  steps                    jsonb,
+  cpps_synced_at           timestamptz,
+  created_at               timestamptz not null default now(),
+  updated_at               timestamptz not null default now()
 );
 
 -- ----------------------------------------------------------------------------
@@ -350,6 +360,12 @@ $$;
 
 drop trigger if exists on_auth_user_created on auth.users;
 create trigger on_auth_user_created
+  after insert on auth.users;
+
+-- Replace the trigger above with the standard row handler. Keeping the
+-- explicit drop/create sequence makes repeated schema application safe.
+drop trigger if exists on_auth_user_created on auth.users;
+create trigger on_auth_user_created
   after insert on auth.users
   for each row execute function public.handle_new_user();
 
@@ -375,7 +391,7 @@ end $$;
 -- ----------------------------------------------------------------------------
 -- Indexes
 -- ----------------------------------------------------------------------------
-create index if not exists idx_news_status        on public.news (status);
+create index if not exists idx_news_status         on public.news (status);
 create index if not exists idx_news_published_at   on public.news (published_at desc);
 create index if not exists idx_pages_status        on public.pages (status);
 create index if not exists idx_publications_status on public.publications (status);
@@ -387,6 +403,8 @@ create index if not exists idx_reports_status      on public.reports (status);
 create index if not exists idx_enquiries_status    on public.enquiries (status);
 create index if not exists idx_audit_created_at    on public.audit_logs (created_at desc);
 create index if not exists idx_claims_reference    on public.claim_tracking (reference);
+create index if not exists idx_claims_province     on public.claim_tracking (province);
+create index if not exists idx_claims_lodged_date  on public.claim_tracking (lodged_date);
 
 -- ----------------------------------------------------------------------------
 -- Row Level Security
