@@ -98,9 +98,12 @@ export async function getSessionUser(): Promise<SessionUser | null> {
 }
 
 /** Redirects to login when unauthenticated; returns the user otherwise. */
-export async function requireUser(redirectTo = "/admin"): Promise<SessionUser> {
+export async function requireUser(
+  redirectTo = "/admin",
+  loginPath = "/admin/login",
+): Promise<SessionUser> {
   const user = await getSessionUser();
-  if (!user) redirect(`/admin/login?redirect=${encodeURIComponent(redirectTo)}`);
+  if (!user) redirect(`${loginPath}?redirect=${encodeURIComponent(redirectTo)}`);
   return user;
 }
 
@@ -121,11 +124,19 @@ function demoPersonaForRole(role: AppRole): DemoPersonaId {
   }
 }
 
-/** Ensures the current user holds a permission; redirects to /admin if not. */
+/** Ensures the current user holds a permission; redirects when not authorised. */
 export async function requirePermission(
   permission: Permission,
+  options: {
+    redirectTo?: string;
+    loginPath?: string;
+    deniedPath?: string;
+  } = {},
 ): Promise<SessionUser> {
-  const user = await requireUser();
+  const user = await requireUser(
+    options.redirectTo ?? "/admin",
+    options.loginPath ?? "/admin/login",
+  );
   if (!hasPermission(user.role, permission)) {
     if (user.demo) {
       recordDemoIdentityEvent("authorization_denied", {
@@ -133,7 +144,7 @@ export async function requirePermission(
         email: user.email,
       });
     }
-    redirect("/admin");
+    redirect(options.deniedPath ?? "/admin");
   }
   return user;
 }
