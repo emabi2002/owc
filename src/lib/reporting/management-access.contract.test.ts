@@ -19,10 +19,10 @@ describe("OWC protected management portal contract", () => {
     expect(source).toContain("ManagementShell");
   });
 
-  test("ordinary admin login only accepts safe admin or management redirects", () => {
-    const source = read("src/app/admin/login/page.tsx");
-    expect(source).toContain('r.startsWith("/admin")');
-    expect(source).toContain('r.startsWith("/management")');
+  test("management login only accepts safe management redirects", () => {
+    const source = read("src/app/management/login/page.tsx");
+    expect(source).toContain('target.startsWith("/management")');
+    expect(source).toContain('return "/management"');
   });
 
   test("management report page uses the protected reporting source rather than direct database mutation", () => {
