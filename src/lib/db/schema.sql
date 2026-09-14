@@ -360,12 +360,6 @@ $$;
 
 drop trigger if exists on_auth_user_created on auth.users;
 create trigger on_auth_user_created
-  after insert on auth.users;
-
--- Replace the trigger above with the standard row handler. Keeping the
--- explicit drop/create sequence makes repeated schema application safe.
-drop trigger if exists on_auth_user_created on auth.users;
-create trigger on_auth_user_created
   after insert on auth.users
   for each row execute function public.handle_new_user();
 
