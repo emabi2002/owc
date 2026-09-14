@@ -40,6 +40,10 @@ const WRITE_OR_INJECTION_PATTERNS = [
   /\bchange\b.*\b(payment|claim|status|amount)\b/i,
   /\bapprove\b.*\bclaim/i,
   /\breassign\b/i,
+  /\bselect\b[\s\S]*\bfrom\b/i,
+  /\bunion\s+select\b/i,
+  /\b(database\.query|execute[_-]?sql|exec[_-]?sql)\b/i,
+  /\b(sql|database)\s+(query|command|tool)\b/i,
 ];
 
 function unsafeQuestion(question: string): boolean {
