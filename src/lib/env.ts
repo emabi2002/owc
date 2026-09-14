@@ -11,6 +11,8 @@
  *
  * Reference/demo adapters are always explicitly enabled. Missing live services
  * must not silently turn into synthetic production-looking success.
+ * Payment execution is intentionally simulation-only and has no live bank or
+ * payment-gateway endpoint/key configuration.
  */
 
 export type CaptchaProvider =
@@ -61,8 +63,6 @@ export const serverEnv = {
   employerRegistryApiKey: process.env.OWC_EMPLOYER_REGISTRY_API_KEY ?? "",
   insuranceApiBaseUrl: process.env.OWC_INSURANCE_API_BASE_URL ?? "",
   insuranceApiKey: process.env.OWC_INSURANCE_API_KEY ?? "",
-  paymentApiBaseUrl: process.env.OWC_PAYMENT_API_BASE_URL ?? "",
-  paymentApiKey: process.env.OWC_PAYMENT_API_KEY ?? "",
   medicalApiBaseUrl: process.env.OWC_MEDICAL_API_BASE_URL ?? "",
   medicalApiKey: process.env.OWC_MEDICAL_API_KEY ?? "",
 } as const;

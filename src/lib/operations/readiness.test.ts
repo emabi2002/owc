@@ -10,7 +10,7 @@ describe("OWC operational readiness model", () => {
       malwareScanner: true,
       notificationGateway: true,
       evidenceRepository: true,
-      externalIntegrations: { configured: 5, total: 5 },
+      externalIntegrations: { configured: 4, total: 4 },
     });
     expect(checks.every((item) => item.status === "ready")).toBe(true);
   });
@@ -23,7 +23,7 @@ describe("OWC operational readiness model", () => {
       malwareScanner: true,
       notificationGateway: false,
       evidenceRepository: true,
-      externalIntegrations: { configured: 5, total: 5 },
+      externalIntegrations: { configured: 4, total: 4 },
     });
     expect(checks.filter((item) => item.status !== "ready").map((item) => item.key)).toEqual([
       "drupal",
@@ -40,7 +40,7 @@ describe("OWC operational readiness model", () => {
       malwareScanner: true,
       notificationGateway: true,
       evidenceRepository: false,
-      externalIntegrations: { configured: 5, total: 5 },
+      externalIntegrations: { configured: 4, total: 4 },
     });
 
     expect(checks.find((item) => item.key === "evidenceRepository")).toMatchObject({
@@ -56,12 +56,12 @@ describe("OWC operational readiness model", () => {
       malwareScanner: true,
       notificationGateway: true,
       evidenceRepository: true,
-      externalIntegrations: { configured: 2, total: 5 },
+      externalIntegrations: { configured: 2, total: 4 },
     });
 
     expect(checks.find((item) => item.key === "externalIntegrations")).toMatchObject({
       status: "configuration-required",
     });
-    expect(checks.find((item) => item.key === "externalIntegrations")?.detail).toContain("2 of 5");
+    expect(checks.find((item) => item.key === "externalIntegrations")?.detail).toContain("2 of 4");
   });
 });

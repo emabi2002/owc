@@ -22,7 +22,8 @@ describe("OWC end-to-end integration workflow", () => {
       "notification",
     ]);
     expect(result.steps.every((step) => step.status === "passed")).toBe(true);
-    expect(result.paymentTransactionReference).toMatch(/^TXN-2026-/);
+    expect(result.paymentTransactionReference).toMatch(/^SIM-PAY-\d{4}-/);
+    expect(result.steps.find((step) => step.key === "payment")?.summary.toLowerCase()).toContain("simulated");
   });
 
   test("stops before downstream checks when identity cannot be verified", () => {

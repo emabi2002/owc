@@ -2,7 +2,6 @@ export type ProductionServiceName =
   | "nid"
   | "employerRegistry"
   | "insurance"
-  | "payments"
   | "medical";
 
 export type ProductionConnectorConfig = {

@@ -16,6 +16,8 @@ The real CPPS remains authoritative for production claims/payment state. The app
 
 The repository also contains controlled reference/demo adapters for evidence storage, malware-scan behavior, claimant notifications and external government/provider interfaces. These are disabled by default where applicable, synthetic/non-production, and exist so development and presentation can continue without claiming that unavailable live services are connected. **Production activation remains external.**
 
+Payment execution is a specific scope exception: the OWC application generates **simulated payment transactions only**. There is no production bank/payment connector, payment API endpoint/key configuration or real money movement in the OWC application. A future direct-payment integration, if ever required post-award, is a separate scope and approval decision.
+
 ## 2. Repository and technology
 
 - Repository: `https://github.com/emabi2002/owc.git`
@@ -43,6 +45,8 @@ docs/verification/             TDD/verification evidence
 ## 4. Environment and secrets
 
 Production secrets are runtime-only and must be stored in the approved host/secret manager. Do not commit service-role keys, CPPS credentials, OIDC secrets, evidence-signing secrets, scanner/notification credentials or external-agency credentials.
+
+There are deliberately no OWC payment API/base-URL or payment API-key settings because payment execution is simulation-only under the current scope.
 
 Configuration being present does not prove a dependency is production-accepted. The authenticated System Readiness/preflight model separates configured components from external verification requirements.
 
@@ -75,15 +79,19 @@ For reference/demo use, the repository now includes:
 
 Actual production private storage, approved retention, durable backup, scanning provider, credentials, scanning policy and DEV/UAT acceptance remain external. The reference adapters must not be used as evidence of production storage or security acceptance.
 
-## 8. External integrations and notifications
+## 8. External integrations, notifications and simulated payment
 
-The production Integration Hub defines safe connector boundaries for identity/NID, employer registry, insurance, payments and medical-provider services. Real endpoints, schemas, authentication, networking and agency acceptance remain required.
+The production Integration Hub defines safe connector boundaries for identity/NID, employer registry, insurance and medical-provider services. Real endpoints, schemas, authentication, networking and agency acceptance remain required.
 
-The repository also includes a **reference government integration facade** over the controlled synthetic sandbox for NID, IPA/employer registration, IRC, employment, medical, insurance, bank account/payment and notifications. It is disabled by default, schema-bounded and rate-limited, and it does not act as an arbitrary proxy to real government or provider systems. Synthetic payment outcomes do not move real funds.
+The repository also includes a **reference government integration facade** over the controlled synthetic sandbox for NID, IPA/employer registration, IRC, employment, medical, insurance, synthetic bank-account verification, simulated payment and notifications. It is disabled by default, schema-bounded and rate-limited, and it does not act as an arbitrary proxy to real government or provider systems.
+
+**Payment execution is simulation-only.** The guarded demonstration route generates a realistic `SIM-PAY-...` transaction and `SIM-RCPT-...` receipt with `status: "SIMULATED"`, `simulation: true`, `moneyMovement: false`, PGK amount, timestamp and masked synthetic account details. Repeating the same idempotency key returns the same dummy transaction. The transaction store is process-local/non-durable, no bank API is called and no real funds move. See `docs/operations/simulated-payment-transactions.md`.
 
 Notifications use a server-side gateway/outbox/retry model. A **reference notification gateway** is available only for explicit demonstration/reference use: it is disabled by default, deterministic, non-networked and supports synthetic email/SMS delivery evidence. If a live notification gateway is configured, the live path remains authoritative.
 
 Real agency/provider endpoints, authoritative contracts, credentials, networking, security approval, message templates, operating workers/schedulers where required, provider/agency UAT and formal acceptance remain external. Reference success cannot satisfy a live integration or notification acceptance gate.
+
+If OWC later changes scope post-award to require direct financial settlement, that must be separately designed and approved with the nominated financial authority/provider, security assessment, reconciliation and duplicate-payment controls, DEV/UAT credentials, formal UAT and production authorization. The simulator must not be repurposed silently as a live financial connector.
 
 ## 9. Deployment, monitoring and recovery
 
@@ -112,7 +120,7 @@ Before production go-live, obtain evidence for at least:
 - approved host/DNS/TLS/network and secret storage;
 - authoritative OWC database/storage and production schema verification;
 - real Drupal hosting/content/identity acceptance;
-- real CPPS and agency endpoint/contract/UAT acceptance;
+- real CPPS and in-scope non-payment agency endpoint/contract/UAT acceptance;
 - scanner and notification-provider UAT;
 - monitoring/alert routing and named operational ownership;
 - approved SLA/support arrangements;
@@ -120,5 +128,7 @@ Before production go-live, obtain evidence for at least:
 - formal security assessment and remediation;
 - end-to-end production-like UAT and business/security sign-off;
 - approved cutover, smoke, rollback/reconciliation and go-live authority.
+
+A live bank/payment connection is **not** a current go-live gate because payment execution is outside the live-integration scope and remains simulated only.
 
 The master reconciliation is maintained in `docs/OWC_TASK_STATUS.md`, and unresolved external cutover gates are tracked in GitHub issue #8.

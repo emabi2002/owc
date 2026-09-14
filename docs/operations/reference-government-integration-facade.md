@@ -16,10 +16,10 @@ The reference surface covers:
 - **employment** — synthetic employment and wage verification.
 - **medical** — synthetic medical-certificate verification.
 - **insurance** — synthetic workers-compensation insurance verification.
-- **bank** — synthetic account verification and idempotent compensation-payment simulation.
+- **bank** — synthetic account verification and idempotent compensation-payment simulation only.
 - **notifications** — synthetic email, SMS and in-app acceptance used by the integration demonstration workflow.
 
-These services use deterministic fixture records and the existing cross-agency coherence checks. Payment results do not move real funds, and notification results do not prove delivery by any carrier or provider.
+These services use deterministic fixture records and the existing cross-agency coherence checks. Payment results are always labelled simulated and do not move real funds. Notification results do not prove delivery by any carrier or provider.
 
 ## HTTP safety boundary
 
@@ -52,8 +52,12 @@ The claim orchestration, health and event endpoints remain the presentation-leve
 
 The facade is demonstration infrastructure only. It is not evidence that NID, IPA, IRC, an employer/payroll system, a medical provider, an insurer, a bank/payment rail or a notification provider has approved or connected to OWC.
 
-The production integration registry and provider-specific connectors remain the authoritative post-award path. A synthetic response must never be relabelled as a production response, and real claimant credentials or sensitive production datasets must not be copied into reference fixtures.
+The production integration registry remains authoritative for services that are actually in live-integration scope. **Payment execution is intentionally excluded from that production registry.** The OWC payment route is a simulator only: it generates synthetic references/receipts with `simulation: true` and `moneyMovement: false`, and it contains no bank/payment API connector.
+
+A synthetic response must never be relabelled as a production response, and real claimant credentials or sensitive production datasets must not be copied into reference fixtures.
 
 ## post-award replacement
 
-During post-award integration, replace each synthetic dependency with its approved production adapter and credentials while preserving the OWC application contract where practicable. Production acceptance requires agency/provider ownership, endpoint and schema agreement, security approval, DEV/UAT credentials, negative-path testing, reconciliation evidence, monitoring, retry/idempotency behavior where applicable, and formal sign-off.
+For NID, employer, insurance, medical and other formally approved integrations, post-award work may replace the relevant synthetic dependency with an accepted production adapter and credentials while preserving the OWC application contract where practicable.
+
+Payment is different: real payment connectivity is outside the current scope. If OWC later decides post-award to add a real bank/payment integration, that is a separate future scope requiring explicit design and authorization, provider ownership, endpoint/schema agreement, security approval, DEV/UAT credentials, reconciliation and duplicate-payment controls, monitoring, formal UAT and production sign-off. The demonstration payment simulator must not be repurposed silently as a live financial connector.
