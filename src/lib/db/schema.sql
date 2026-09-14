@@ -138,16 +138,16 @@ create table if not exists public.publications (
 -- Legislation (Acts, regulations, schedules)
 create table if not exists public.legislation (
   id            uuid primary key default gen_random_uuid(),
-  title         text not null,
-  reference     text,
-  category      text not null,
-  description  text,
-  file_url      text,
-  enacted_year text,
-  status        public.content_status not null default 'draft',
-  published_at  timestamptz,
-  created_at    timestamptz not null default now(),
-  updated_at    timestamptz not null default now()
+  title          text not null,
+  reference      text,
+  category       text not null,
+  description   text,
+  file_url       text,
+  enacted_year  text,
+  status         public.content_status not null default 'draft',
+  published_at   timestamptz,
+  created_at     timestamptz not null default now(),
+  updated_at     timestamptz not null default now()
 );
 
 -- Tenders & procurement
@@ -205,20 +205,30 @@ create table if not exists public.reports (
   updated_at   timestamptz not null default now()
 );
 
--- Public enquiries (contact form submissions)
+-- Public enquiries. AI-routed fields remain null for ordinary contact-form
+-- submissions and are populated only by the trusted confirmed-referral route.
 create table if not exists public.enquiries (
-  id          uuid primary key default gen_random_uuid(),
-  name        text not null,
-  email       text not null,
-  phone       text,
-  category    text not null,
-  subject     text,
-  message     text not null,
-  status      public.enquiry_status not null default 'new',
-  source_ip   text,
-  handled_by  uuid references public.profiles (id) on delete set null,
-  created_at  timestamptz not null default now(),
-  updated_at  timestamptz not null default now()
+  id                      uuid primary key default gen_random_uuid(),
+  reference               text,
+  name                    text not null,
+  email                   text,
+  phone                   text,
+  category                text not null,
+  subject                 text,
+  message                 text not null,
+  status                  public.enquiry_status not null default 'new',
+  source_ip               text,
+  handled_by              uuid references public.profiles (id) on delete set null,
+  source_channel          text,
+  language                text,
+  linked_claim_reference  text,
+  ai_summary              text,
+  route_destination       text,
+  priority                text,
+  confirmed_at            timestamptz,
+  notification_status     text,
+  created_at              timestamptz not null default now(),
+  updated_at              timestamptz not null default now()
 );
 
 -- Append-only audit log
@@ -395,6 +405,12 @@ create index if not exists idx_faqs_status         on public.faqs (status);
 create index if not exists idx_forms_status        on public.forms (status);
 create index if not exists idx_reports_status      on public.reports (status);
 create index if not exists idx_enquiries_status    on public.enquiries (status);
+create unique index if not exists idx_enquiries_reference
+  on public.enquiries (reference) where reference is not null;
+create index if not exists idx_enquiries_confirmed_at
+  on public.enquiries (confirmed_at desc) where confirmed_at is not null;
+create index if not exists idx_enquiries_route_destination
+  on public.enquiries (route_destination) where route_destination is not null;
 create index if not exists idx_audit_created_at    on public.audit_logs (created_at desc);
 create index if not exists idx_claims_reference    on public.claim_tracking (reference);
 create index if not exists idx_claims_province     on public.claim_tracking (province);
