@@ -30,3 +30,15 @@ export type PublicKnowledgeMatch = {
   uncertain: boolean;
   items: PublicKnowledgeItem[];
 };
+
+export type PublicAssistantResponse = {
+  answer: string;
+  locale: PublicAssistantLocale;
+  uncertain: boolean;
+  verificationRequired: boolean;
+  referralSuggested: boolean;
+  safetyRefusal: boolean;
+  knowledgeSourceIds: string[];
+  aiSource: "deterministic" | "reference" | "live" | "unavailable";
+  productionConnected: boolean;
+};
