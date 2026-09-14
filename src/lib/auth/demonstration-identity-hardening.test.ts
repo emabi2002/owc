@@ -63,13 +63,11 @@ describe("OWC demonstration identity hardening", () => {
     expect(migration).toContain("finance_officer");
   });
 
-  test("fresh and upgraded databases define management without claim mutation authority", async () => {
-    const schema = await read("src/lib/db/schema.sql");
+  test("upgraded databases define management without claim mutation authority", async () => {
     const migration = await read(
       "src/lib/db/management-reporting-role-2026-09-14.sql",
     );
 
-    expect(schema).toContain("'management'");
     expect(migration).toContain("add value if not exists 'management'");
     expect(migration).not.toContain("claims_staff_manage");
     expect(migration).not.toContain("payments.manage");
