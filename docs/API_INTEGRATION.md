@@ -17,12 +17,16 @@ Next.js OWC application
       │       ├─▶ reference CPPS (explicit UAT)  source: reference
       │       └─▶ unavailable (fail closed)
       │
-      ├─ Production Integration Hub ──▶ approved agency/provider APIs
+      ├─ Production Integration Hub ──▶ approved non-payment agency/provider APIs
+      │
+      ├─ Simulated payment generator ──▶ synthetic transaction + receipt only
       │
       └─ Controlled sandbox/reference APIs ──▶ synthetic UAT/demo services
 ```
 
 The important distinction is between **content/reference fallbacks used for presentation** and **transactional CPPS/integration behavior**. CPPS no longer silently fabricates successful mock results. Live CPPS wins when configured; reference CPPS must be explicitly enabled; otherwise CPPS-dependent operations fail closed.
+
+Payment execution is deliberately simulation-only. The application has no production bank/payment API connector or financial-institution credential and cannot move funds.
 
 ## Supabase
 
@@ -115,9 +119,13 @@ Public POST endpoints are rate-limited, validate input with Zod and keep integra
 
 ## External Integration Hub
 
-The production-safe integration boundary supports the approved service classes for identity/NID, employer registry, insurance, payments and medical providers. Endpoint configuration alone is not evidence of live integration: each service still requires an authoritative API contract, credentials/networking, UAT and agency/provider acceptance.
+The production-safe integration boundary supports the approved service classes for identity/NID, employer registry, insurance and medical providers. Endpoint configuration alone is not evidence of live integration: each service still requires an authoritative API contract, credentials/networking, UAT and agency/provider acceptance.
+
+**Payments are not part of the production connector registry.** Demonstration payment processing uses only the guarded synthetic endpoint `/api/integrations/bank/payments/process`, which generates a `SIM-PAY-...` transaction and `SIM-RCPT-...` receipt with `simulation: true` and `moneyMovement: false`. It makes no external bank/payment request.
 
 A separate synthetic integration sandbox remains available for controlled demonstrations and end-to-end reference scenarios.
+
+See `docs/operations/simulated-payment-transactions.md` for the payment boundary.
 
 ## Moving from reference to live CPPS
 
@@ -130,3 +138,5 @@ A separate synthetic integration sandbox remains available for controlled demons
 7. Configure the live CPPS endpoint; the adapter will then select live CPPS ahead of reference mode.
 
 No claimant-facing OWC workflow should require redesign merely because the backing CPPS implementation changes, unless authoritative CPPS discovery identifies a materially different business requirement.
+
+If OWC later decides post-award to add real payment connectivity, that is a separate future scope requiring its own approved financial-provider integration design, security controls, reconciliation, UAT and explicit authorization. The demonstration simulator must not be converted silently into a live payment connector.
