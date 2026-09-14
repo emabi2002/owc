@@ -47,6 +47,18 @@ jobs:
           path: artifacts/reference-uat-evidence.json
           if-no-files-found: warn
           retention-days: 30
+      - name: Run presentation-level demonstration UAT
+        run: bun run uat:demonstration
+        env:
+          OWC_DEMONSTRATION_UAT_EVIDENCE_PATH: artifacts/demonstration-uat-evidence.json
+      - name: Upload demonstration UAT evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: demonstration-uat-evidence
+          path: artifacts/demonstration-uat-evidence.json
+          if-no-files-found: error
+          retention-days: 30
       - name: Lint & type-check
         run: bun run lint
       - name: Build
