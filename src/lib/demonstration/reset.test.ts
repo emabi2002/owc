@@ -39,65 +39,76 @@ describe("OWC deterministic demonstration data and reset", () => {
   });
 
   test("restores every process-local presentation subsystem to a clean known state", async () => {
-    process.env.OWC_IDENTITY_MODE = "demonstration";
-    process.env.OWC_ENABLE_DEMO_RESET = "true";
+    const previousIdentityMode = process.env.OWC_IDENTITY_MODE;
+    const previousResetEnabled = process.env.OWC_ENABLE_DEMO_RESET;
 
-    recordDemoIdentityEvent("login_succeeded", {
-      personaId: "administrator",
-      email: "admin.demo@owc.gov.pg",
-    });
-    setSandboxServiceStatus("nid", "offline");
-    processSandboxPayment({
-      idempotencyKey: "RESET-TEST-PAYMENT",
-      claimReference: "OWC-2026-005112",
-      accountReference: "BANK-ACC-7842",
-      amountPgk: 100,
-    });
-    await deliverReferenceClaimNotification({
-      channel: "sms",
-      recipient: "+67570000001",
-      subject: "Reset test",
-      message: "Synthetic reset test",
-      claimReference: "OWC-2026-005112",
-      event: "payment_processed",
-    });
-    await storeReferenceEvidence({
-      claimReference: "OWC-2026-005112",
-      category: "Other",
-      title: "Reset test evidence",
-      fileName: "reset-test.pdf",
-      mimeType: "application/pdf",
-      bytes: new TextEncoder().encode("synthetic reset evidence").buffer,
-      uploadedBy: "reset-test",
-      securityScan: "clean",
-      legalHold: false,
-    });
-    referenceCppsService.registerClaim({
-      workerName: "Reset Test Worker",
-      workerPhone: "+67570000001",
-      workerEmail: "reset@example.test",
-      employerName: "Reset Test Employer",
-      province: "National Capital District",
-      occupation: "Tester",
-      weeklyWage: 1000,
-      injuryDate: "2026-09-01",
-      injuryType: "Synthetic",
-      description: "Synthetic reset test claim",
-      documentCount: 0,
-    });
+    try {
+      process.env.OWC_IDENTITY_MODE = "demonstration";
+      process.env.OWC_ENABLE_DEMO_RESET = "true";
 
-    const report = await resetDemonstrationEnvironment();
+      recordDemoIdentityEvent("login_succeeded", {
+        personaId: "administrator",
+        email: "admin.demo@owc.gov.pg",
+      });
+      setSandboxServiceStatus("nid", "offline");
+      processSandboxPayment({
+        idempotencyKey: "RESET-TEST-PAYMENT",
+        claimReference: "OWC-2026-005112",
+        accountReference: "BANK-ACC-7842",
+        amountPgk: 100,
+      });
+      await deliverReferenceClaimNotification({
+        channel: "sms",
+        recipient: "+67570000001",
+        subject: "Reset test",
+        message: "Synthetic reset test",
+        claimReference: "OWC-2026-005112",
+        event: "payment_processed",
+      });
+      await storeReferenceEvidence({
+        claimReference: "OWC-2026-005112",
+        category: "Other",
+        title: "Reset test evidence",
+        fileName: "reset-test.pdf",
+        mimeType: "application/pdf",
+        bytes: new TextEncoder().encode("synthetic reset evidence").buffer,
+        uploadedBy: "reset-test",
+        securityScan: "clean",
+        legalHold: false,
+      });
+      referenceCppsService.registerClaim({
+        workerName: "Reset Test Worker",
+        workerPhone: "+67570000001",
+        workerEmail: "reset@example.test",
+        employerName: "Reset Test Employer",
+        province: "National Capital District",
+        occupation: "Tester",
+        weeklyWage: 1000,
+        injuryDate: "2026-09-01",
+        injuryType: "Synthetic",
+        description: "Synthetic reset test claim",
+        documentCount: 0,
+      });
 
-    expect(report.source).toBe("demonstration");
-    expect(report.synthetic).toBe(true);
-    expect(report.productionConnected).toBe(false);
-    expect(report.claimPackCount).toBe(DEMONSTRATION_CLAIMS.length);
-    expect(listDemoIdentityEvents()).toHaveLength(0);
-    expect(listSandboxPayments()).toHaveLength(0);
-    expect(listReferenceNotificationDeliveries()).toHaveLength(0);
-    expect(listIntegrationEvents()).toHaveLength(0);
-    expect(listSandboxServiceStatuses().every((item) => item.status === "online")).toBe(true);
-    expect((await listReferenceEvidence("OWC-2026-005112")).some((item) => item.title === "Reset test evidence")).toBe(false);
-    expect(referenceCppsService.getClaim("CPPS-REF-2026-000001")).toBeNull();
+      const report = await resetDemonstrationEnvironment();
+
+      expect(report.source).toBe("demonstration");
+      expect(report.synthetic).toBe(true);
+      expect(report.productionConnected).toBe(false);
+      expect(report.claimPackCount).toBe(DEMONSTRATION_CLAIMS.length);
+      expect(listDemoIdentityEvents()).toHaveLength(0);
+      expect(listSandboxPayments()).toHaveLength(0);
+      expect(listReferenceNotificationDeliveries()).toHaveLength(0);
+      expect(listIntegrationEvents()).toHaveLength(0);
+      expect(listSandboxServiceStatuses().every((item) => item.status === "online")).toBe(true);
+      expect((await listReferenceEvidence("OWC-2026-005112")).some((item) => item.title === "Reset test evidence")).toBe(false);
+      expect(referenceCppsService.getClaim("CPPS-REF-2026-000001")).toBeUndefined();
+    } finally {
+      if (previousIdentityMode === undefined) delete process.env.OWC_IDENTITY_MODE;
+      else process.env.OWC_IDENTITY_MODE = previousIdentityMode;
+
+      if (previousResetEnabled === undefined) delete process.env.OWC_ENABLE_DEMO_RESET;
+      else process.env.OWC_ENABLE_DEMO_RESET = previousResetEnabled;
+    }
   });
 });
