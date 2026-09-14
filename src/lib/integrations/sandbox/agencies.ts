@@ -18,7 +18,24 @@ import {
 } from "./data";
 import { makeSandboxEnvelope } from "./service";
 
-const payments = new Map<string, { transactionReference: string; status: "PROCESSED" }>();
+export interface SimulatedPaymentTransaction {
+  transactionReference: string;
+  receiptReference: string;
+  status: "SIMULATED";
+  simulation: true;
+  moneyMovement: false;
+  currency: "PGK";
+  generatedAt: string;
+  claimReference: string;
+  accountReference: string;
+  bankName: string;
+  accountName: string;
+  maskedAccountNumber: string;
+  amountPgk: number;
+}
+
+const payments = new Map<string, SimulatedPaymentTransaction>();
+let paymentSequence = 0;
 
 const identities = [DEMO_IDENTITY, ...ADDITIONAL_IDENTITIES];
 const employers = [DEMO_EMPLOYER, ...ADDITIONAL_EMPLOYERS];
@@ -203,22 +220,43 @@ export function processSandboxPayment(input: SandboxPaymentInput) {
   if (existing) {
     return makeSandboxEnvelope("bank", "process_payment", {
       ...existing,
-      claimReference: input.claimReference,
-      accountReference: input.accountReference,
-      amountPgk: input.amountPgk,
       duplicateRequest: true,
     });
   }
 
-  const transactionReference = `TXN-2026-${String(payments.size + 1).padStart(8, "0")}`;
-  const result = { transactionReference, status: "PROCESSED" as const };
-  payments.set(input.idempotencyKey, result);
+  const normalizedAccountReference = code(input.accountReference);
+  const account = bankAccounts.find(
+    (item) =>
+      item.accountReference === normalizedAccountReference &&
+      item.status === "VERIFIED",
+  );
+  if (!account) {
+    throw new Error("Simulated payment requires a verified demonstration bank account");
+  }
+
+  paymentSequence += 1;
+  const generatedAt = new Date().toISOString();
+  const year = new Date(generatedAt).getUTCFullYear();
+  const sequence = String(paymentSequence).padStart(8, "0");
+  const transaction: SimulatedPaymentTransaction = {
+    transactionReference: `SIM-PAY-${year}-${sequence}`,
+    receiptReference: `SIM-RCPT-${year}-${sequence}`,
+    status: "SIMULATED",
+    simulation: true,
+    moneyMovement: false,
+    currency: "PGK",
+    generatedAt,
+    claimReference: input.claimReference,
+    accountReference: account.accountReference,
+    bankName: account.bankName,
+    accountName: account.accountName,
+    maskedAccountNumber: account.maskedAccountNumber,
+    amountPgk: input.amountPgk,
+  };
+  payments.set(input.idempotencyKey, transaction);
 
   return makeSandboxEnvelope("bank", "process_payment", {
-    ...result,
-    claimReference: input.claimReference,
-    accountReference: input.accountReference,
-    amountPgk: input.amountPgk,
+    ...transaction,
     duplicateRequest: false,
   });
 }
