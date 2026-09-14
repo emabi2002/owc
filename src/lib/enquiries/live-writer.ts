@@ -1,6 +1,6 @@
 import { createAdminSupabaseClient } from "@/lib/supabase/admin";
 import type { LiveEnquiryWriter } from "./persistence";
-import type { PersistedEnquiryRecord } from "./types";
+import type { EnquiryNotificationStatus, PersistedEnquiryRecord } from "./types";
 
 export function createLiveEnquiryWriter(): LiveEnquiryWriter | null {
   const db = createAdminSupabaseClient();
@@ -41,4 +41,19 @@ export function createLiveEnquiryWriter(): LiveEnquiryWriter | null {
       synthetic: false,
     };
   };
+}
+
+export async function updateLiveEnquiryNotificationStatus(
+  reference: string,
+  notificationStatus: EnquiryNotificationStatus,
+): Promise<boolean> {
+  const db = createAdminSupabaseClient();
+  if (!db) return false;
+
+  const { error } = await db
+    .from("enquiries")
+    .update({ notification_status: notificationStatus })
+    .eq("reference", reference);
+
+  return !error;
 }
