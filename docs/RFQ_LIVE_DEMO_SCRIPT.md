@@ -6,7 +6,7 @@ Show the Evaluation Committee that OWC is an integrated digital service platform
 
 **Presenter statement before the integration demo:**
 
-> The OWC application you are seeing is a working system. For services owned by external organizations, this demonstration uses clearly identified sandbox APIs and synthetic records. These interfaces demonstrate the integration design and transaction flow. Production endpoints will be substituted only after the relevant agency authorizes access and completes interface testing.
+> The OWC application you are seeing is a working system. For services owned by external organizations, this demonstration uses clearly identified sandbox APIs and synthetic records. These interfaces demonstrate the integration design and transaction flow. Production endpoints will be substituted only after the relevant agency authorizes access and completes interface testing. Payment is deliberately different: the demonstration generates synthetic payment transactions and receipts only; there is no real bank or payment-gateway connection and no real funds move.
 
 ## Suggested 30-Minute Technical Demonstration Segment
 
@@ -64,11 +64,11 @@ Use the current coherent synthetic references shown on the screen:
 7. **Bank verification** — `BANK-ACC-7842` confirms the synthetic claimant account.
 8. **Cross-agency reconciliation** — OWC confirms that the identity, employer, employment, medical, insurance and banking records belong to one coherent synthetic claim chain.
 9. **Claim determination** — OWC records the demonstration determination for the claim.
-10. **Payment simulation** — OWC issues a K18,450 sandbox payment instruction and receives a `TXN-2026-...` synthetic transaction reference. No real funds move.
-11. **Notification** — a synthetic SMS notification is accepted by the sandbox notification service.
+10. **Payment simulation** — OWC generates a K18,450 synthetic payment transaction with a `SIM-PAY-YYYY-...` transaction reference and `SIM-RCPT-YYYY-...` receipt reference. The record states `simulation: true` and `moneyMovement: false`; no bank API is called and no real funds move.
+11. **Notification** — a synthetic SMS notification records that the demonstration payment transaction was generated.
 12. **Trace evidence** — the completed flow exposes correlation identifiers for the integration control centre without exposing sensitive payloads.
 
-Key message: **one OWC workflow can orchestrate independently governed services while preserving source-of-truth boundaries.**
+Key message: **one OWC workflow can orchestrate independently governed services while preserving source-of-truth boundaries, while financial settlement remains safely simulated.**
 
 ### 5. Traceability and Resilience — 4 minutes
 
@@ -78,7 +78,8 @@ Explain:
 - every service call has a correlation ID;
 - OWC can see operation outcome and latency;
 - sensitive payloads are not dumped into the monitoring view;
-- payment requests are idempotent, so repeated identical requests do not create duplicate simulated transactions;
+- payment requests are idempotent, so repeated identical requests return the same synthetic transaction and receipt rather than generating a duplicate;
+- simulated payment records contain only masked demonstration account details and are process-local/non-durable;
 - sandbox services are disabled by default and are not exposed when `OWC_ENABLE_SANDBOX` is false.
 
 Key message: **security, traceability and recoverability are built into the integration pattern.**
@@ -87,13 +88,16 @@ Key message: **security, traceability and recoverability are built into the inte
 
 Explain the adapter model:
 
-- Current demonstration: `OWC -> controlled sandbox API`.
-- Production: `OWC -> authorized agency API`.
-- OWC workflows and screens remain stable while the connector implementation changes.
+- Current demonstration external checks: `OWC -> controlled sandbox API`.
+- Post-award authorized external checks: `OWC -> authorized agency API` after contract/security/UAT acceptance.
+- Payment remains `OWC -> simulated transaction generator` under the current scope; there is no production payment connector.
+- OWC workflows and screens remain stable while authorized non-payment connectors are replaced.
 
 State explicitly:
 
-> No production connection to NID, IPA, IRC, a bank, insurer or medical provider is being claimed in this demonstration. The working sandbox proves the interface and orchestration model; production access remains subject to agency authorization, security approval and contract testing.
+> No production connection to NID, IPA, IRC, an insurer or medical provider is being claimed in this demonstration. Those working sandbox interfaces prove the orchestration model and remain subject to agency authorization. Payment is simulation-only under the current scope: OWC generates a dummy transaction and receipt for presentation purposes, but it does not connect to a financial institution and cannot move funds.
+
+If OWC later changes the payment scope post-award, direct payment connectivity must be separately designed, security-assessed, reconciled, UAT-tested and explicitly authorized rather than turning the simulator into a live connector.
 
 ## Demonstration Recovery Plan
 
@@ -104,8 +108,9 @@ Before presentation:
 - confirm `/admin/integrations` loads the integration control centre;
 - confirm `/admin/integrations/process` loads the worker-claim process screen;
 - run the scenario once using the current references above and confirm the control centre receives traces;
+- confirm the payment response contains synthetic `SIM-PAY-...` / `SIM-RCPT-...` references, `simulation: true` and `moneyMovement: false`;
 - confirm the result remains explicitly synthetic and no real payment or external agency transaction is claimed;
 - refresh/reset the presentation screen before the panel arrives;
 - retain screenshots/video as presentation fallback, but lead with the live system.
 
-If an external production discussion arises, return to the architectural distinction: **sandbox interface proven; production authorization pending**.
+If an external production discussion arises, return to the architectural distinction: **authorized external-service integration may follow post-award acceptance; payment remains simulation-only unless separately scoped and approved.**
