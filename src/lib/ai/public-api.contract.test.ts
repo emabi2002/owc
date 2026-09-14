@@ -15,13 +15,15 @@ describe("OWC web and mobile public AI API contract", () => {
   test("provides separate guidance and confirmed-referral endpoints", () => {
     const assistant = read("src/app/api/public/assistant/route.ts");
     const referrals = read("src/app/api/public/assistant/referrals/route.ts");
+    const validation = read("src/lib/ai/public-validation.ts");
 
     expect(assistant).toContain("publicAssistantRequestSchema");
     expect(assistant).toContain("answerPublicAssistant");
     expect(assistant).toContain("rateLimit(");
     expect(assistant).toContain("getClientIp");
 
-    expect(referrals).toContain("confirmed: z.literal(true)");
+    expect(validation).toContain("confirmed: z.literal(true)");
+    expect(referrals).toContain("publicReferralRequestSchema");
     expect(referrals).toContain("routeEnquiry");
     expect(referrals).toContain("buildProfessionalEnquirySummary");
     expect(referrals).toContain("persistConfirmedEnquiry");
