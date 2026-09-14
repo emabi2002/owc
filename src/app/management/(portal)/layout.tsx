@@ -9,7 +9,11 @@ export default async function ManagementLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const user = await requirePermission("reports.view");
+  const user = await requirePermission("reports.view", {
+    redirectTo: "/management",
+    loginPath: "/management/login",
+    deniedPath: "/management/login",
+  });
 
   return (
     <>
