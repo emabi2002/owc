@@ -19,3 +19,15 @@ export const publicReferralContactSchema = z.object({
 }).refine((value) => Boolean(value.email || value.phone), {
   message: "An email address or phone number is required for referral follow-up.",
 });
+
+export const publicReferralRequestSchema = z.object({
+  confirmed: z.literal(true),
+  message: z.string().trim().min(2).max(4000),
+  channel: z.enum(["web", "android", "ios", "tablet"]),
+  locale: z.enum(["en", "tpi"]).default("en"),
+  contact: publicReferralContactSchema,
+  preferredContact: z.enum(["email", "phone", "either"]).default("either"),
+  subject: z.string().trim().max(200).optional(),
+  linkedClaimReference: z.string().trim().max(80).optional(),
+  idempotencyKey: z.string().trim().min(8).max(128).optional(),
+}).strict();
