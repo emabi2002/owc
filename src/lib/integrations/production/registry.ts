@@ -8,15 +8,15 @@ import type {
 /**
  * Approved external-service boundary for the production OWC Integration Hub.
  *
- * These names are intentionally generic. The registry does not encode or infer
- * any external-agency request/response schema; those contracts remain unknown
- * until the relevant agency supplies an approved interface specification.
+ * Payment execution is deliberately excluded. OWC demonstration payment
+ * transactions are synthetic only and never call a bank or payment gateway.
+ * These names remain generic because authoritative agency contracts must be
+ * supplied and accepted before live integration.
  */
 export const PRODUCTION_SERVICES = [
   "nid",
   "employerRegistry",
   "insurance",
-  "payments",
   "medical",
 ] as const satisfies readonly ProductionServiceName[];
 
@@ -46,12 +46,6 @@ export function getProductionConnectorConfig(
         service,
         baseUrl: serverEnv.insuranceApiBaseUrl.trim(),
         apiKey: serverEnv.insuranceApiKey,
-      };
-    case "payments":
-      return {
-        service,
-        baseUrl: serverEnv.paymentApiBaseUrl.trim(),
-        apiKey: serverEnv.paymentApiKey,
       };
     case "medical":
       return {
