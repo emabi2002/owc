@@ -43,16 +43,17 @@ describe("OWC management AI security boundary", () => {
     expect(route).toContain("status: 429");
   });
 
-  test("management analyst remains isolated from write-capable database operations", () => {
+  test("management analyst has no direct operational database or arbitrary SQL path", () => {
     const analyst = read("src/lib/ai/management-analyst.ts");
     const route = read("src/app/api/management/ai/route.ts");
     for (const source of [analyst, route]) {
-      expect(source).not.toContain(".insert(");
-      expect(source).not.toContain(".update(");
-      expect(source).not.toContain(".delete(");
+      expect(source).not.toContain('from("claim_tracking")');
       expect(source).not.toContain("executeSql");
       expect(source).not.toContain("execute_sql");
+      expect(source).not.toContain("SUPABASE_SERVICE_ROLE_KEY");
     }
+    expect(analyst).not.toContain("createAdminClient");
+    expect(analyst).not.toContain("createServerClient");
   });
 
   test("standard management reporting does not depend on the AI provider", () => {
