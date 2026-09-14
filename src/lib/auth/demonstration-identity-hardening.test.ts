@@ -44,7 +44,7 @@ describe("OWC demonstration identity hardening", () => {
     expect(mfa).toContain("isDemoIdentityConfigured");
   });
 
-  test("fresh and upgraded databases both grant claim visibility to assessment and finance roles", async () => {
+  test("fresh and upgraded databases grant assessment and finance claim visibility", async () => {
     const schema = await read("src/lib/db/schema.sql");
     const migration = await read(
       "src/lib/db/demonstration-identity-roles-2026-09-14.sql",
@@ -61,5 +61,15 @@ describe("OWC demonstration identity hardening", () => {
     expect(migration).toContain("claims_staff_read");
     expect(migration).toContain("assessment_officer");
     expect(migration).toContain("finance_officer");
+  });
+
+  test("upgraded databases define management without claim mutation authority", async () => {
+    const migration = await read(
+      "src/lib/db/management-reporting-role-2026-09-14.sql",
+    );
+
+    expect(migration).toContain("add value if not exists 'management'");
+    expect(migration).not.toContain("claims_staff_manage");
+    expect(migration).not.toContain("payments.manage");
   });
 });

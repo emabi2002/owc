@@ -92,6 +92,7 @@ export type Role =
   | "Claims Officer"
   | "Assessment Officer"
   | "Finance / Payment Officer"
+  | "Management / Executive"
   | "Viewer";
 
 export type WorkflowStatus =

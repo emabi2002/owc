@@ -5,9 +5,9 @@
  *  - `NEXT_PUBLIC_*` variables are safe in the browser and are inlined at build
  *    time by Next.js. They are referenced *literally* below so the compiler can
  *    replace them.
- *  - Server-only secrets (service-role key, CPPS API key, Drupal token and
- *    external-agency credentials) are read from `process.env` and MUST only be
- *    consumed inside server modules.
+ *  - Server-only secrets (service-role key, CPPS API key, Drupal token, AI
+ *    provider keys and external-agency credentials) are read from `process.env`
+ *    and MUST only be consumed inside server modules.
  *
  * Reference/demo adapters are always explicitly enabled. Missing live services
  * must not silently turn into synthetic production-looking success.
@@ -22,6 +22,7 @@ export type CaptchaProvider =
   | "hcaptcha";
 
 export type ContentSource = "auto" | "drupal" | "supabase";
+export type AiProviderSetting = "disabled" | "reference" | "openai_compatible";
 
 /** Browser-safe configuration (inlined at build time). */
 export const publicEnv = {
@@ -65,6 +66,10 @@ export const serverEnv = {
   insuranceApiKey: process.env.OWC_INSURANCE_API_KEY ?? "",
   medicalApiBaseUrl: process.env.OWC_MEDICAL_API_BASE_URL ?? "",
   medicalApiKey: process.env.OWC_MEDICAL_API_KEY ?? "",
+  aiProvider: (process.env.OWC_AI_PROVIDER ?? "disabled") as AiProviderSetting,
+  aiApiUrl: process.env.OWC_AI_API_URL ?? "",
+  aiApiKey: process.env.OWC_AI_API_KEY ?? "",
+  aiModel: process.env.OWC_AI_MODEL ?? "",
 } as const;
 
 /** True when Supabase (Auth + Postgres) credentials are present. */

@@ -31,7 +31,7 @@ exception when duplicate_object then null; end $$;
 do $$ begin
   create type public.app_role as enum
     ('administrator', 'editor', 'reviewer', 'claims_officer',
-     'assessment_officer', 'finance_officer', 'viewer');
+     'assessment_officer', 'finance_officer', 'management', 'viewer');
 exception when duplicate_object then null; end $$;
 
 do $$ begin
@@ -124,7 +124,7 @@ create table if not exists public.publications (
   id            uuid primary key default gen_random_uuid(),
   title         text not null,
   category      text not null,
-  description   text,
+  description  text,
   file_url      text,
   file_format   text,
   file_size     text,
@@ -138,16 +138,16 @@ create table if not exists public.publications (
 -- Legislation (Acts, regulations, schedules)
 create table if not exists public.legislation (
   id            uuid primary key default gen_random_uuid(),
-  title         text not null,
-  reference     text,
-  category      text not null,
+  title          text not null,
+  reference      text,
+  category       text not null,
   description   text,
-  file_url      text,
+  file_url       text,
   enacted_year  text,
-  status        public.content_status not null default 'draft',
-  published_at  timestamptz,
-  created_at    timestamptz not null default now(),
-  updated_at    timestamptz not null default now()
+  status         public.content_status not null default 'draft',
+  published_at   timestamptz,
+  created_at     timestamptz not null default now(),
+  updated_at     timestamptz not null default now()
 );
 
 -- Tenders & procurement
@@ -205,20 +205,30 @@ create table if not exists public.reports (
   updated_at   timestamptz not null default now()
 );
 
--- Public enquiries (contact form submissions)
+-- Public enquiries. AI-routed fields remain null for ordinary contact-form
+-- submissions and are populated only by the trusted confirmed-referral route.
 create table if not exists public.enquiries (
-  id          uuid primary key default gen_random_uuid(),
-  name        text not null,
-  email       text not null,
-  phone       text,
-  category    text not null,
-  subject     text,
-  message     text not null,
-  status      public.enquiry_status not null default 'new',
-  source_ip   text,
-  handled_by  uuid references public.profiles (id) on delete set null,
-  created_at  timestamptz not null default now(),
-  updated_at  timestamptz not null default now()
+  id                      uuid primary key default gen_random_uuid(),
+  reference               text,
+  name                    text not null,
+  email                   text,
+  phone                   text,
+  category                text not null,
+  subject                 text,
+  message                 text not null,
+  status                  public.enquiry_status not null default 'new',
+  source_ip               text,
+  handled_by              uuid references public.profiles (id) on delete set null,
+  source_channel          text,
+  language                text,
+  linked_claim_reference  text,
+  ai_summary              text,
+  route_destination       text,
+  priority                text,
+  confirmed_at            timestamptz,
+  notification_status     text,
+  created_at              timestamptz not null default now(),
+  updated_at              timestamptz not null default now()
 );
 
 -- Append-only audit log
@@ -235,20 +245,30 @@ create table if not exists public.audit_logs (
   ip_address   text
 );
 
--- Local mirror of CPPS claim status for the tracking UI
+-- Local mirror of CPPS claim status for tracking and management reporting.
 create table if not exists public.claim_tracking (
-  id              uuid primary key default gen_random_uuid(),
-  reference       text not null unique,
-  worker_name     text not null,
-  employer_name   text,
-  injury_type     text,
-  injury_date     date,
-  lodged_date     date default current_date,
-  status          text not null default 'New',
-  steps           jsonb,
-  cpps_synced_at  timestamptz,
-  created_at      timestamptz not null default now(),
-  updated_at      timestamptz not null default now()
+  id                       uuid primary key default gen_random_uuid(),
+  reference                text not null unique,
+  worker_name              text not null,
+  employer_name            text,
+  province                 text,
+  district                 text,
+  industry                 text,
+  occupation               text,
+  injury_type              text,
+  injury_date              date,
+  lodged_date              date default current_date,
+  status                   text not null default 'New',
+  decision                 text,
+  compensation_amount_pgk  numeric(14,2),
+  turnaround_days          integer,
+  notification_status      text,
+  payment_status           text,
+  assigned_officer         text,
+  steps                    jsonb,
+  cpps_synced_at           timestamptz,
+  created_at               timestamptz not null default now(),
+  updated_at               timestamptz not null default now()
 );
 
 -- ----------------------------------------------------------------------------
@@ -375,18 +395,26 @@ end $$;
 -- ----------------------------------------------------------------------------
 -- Indexes
 -- ----------------------------------------------------------------------------
-create index if not exists idx_news_status        on public.news (status);
+create index if not exists idx_news_status         on public.news (status);
 create index if not exists idx_news_published_at   on public.news (published_at desc);
 create index if not exists idx_pages_status        on public.pages (status);
-create index if not exists idx_publications_status  on public.publications (status);
-create index if not exists idx_legislation_status   on public.legislation (status);
-create index if not exists idx_tenders_cstatus      on public.tenders (content_status);
-create index if not exists idx_faqs_status          on public.faqs (status);
-create index if not exists idx_forms_status         on public.forms (status);
-create index if not exists idx_reports_status       on public.reports (status);
-create index if not exists idx_enquiries_status     on public.enquiries (status);
-create index if not exists idx_audit_created_at     on public.audit_logs (created_at desc);
-create index if not exists idx_claims_reference     on public.claim_tracking (reference);
+create index if not exists idx_publications_status on public.publications (status);
+create index if not exists idx_legislation_status  on public.legislation (status);
+create index if not exists idx_tenders_cstatus     on public.tenders (content_status);
+create index if not exists idx_faqs_status         on public.faqs (status);
+create index if not exists idx_forms_status        on public.forms (status);
+create index if not exists idx_reports_status      on public.reports (status);
+create index if not exists idx_enquiries_status    on public.enquiries (status);
+create unique index if not exists idx_enquiries_reference
+  on public.enquiries (reference) where reference is not null;
+create index if not exists idx_enquiries_confirmed_at
+  on public.enquiries (confirmed_at desc) where confirmed_at is not null;
+create index if not exists idx_enquiries_route_destination
+  on public.enquiries (route_destination) where route_destination is not null;
+create index if not exists idx_audit_created_at    on public.audit_logs (created_at desc);
+create index if not exists idx_claims_reference    on public.claim_tracking (reference);
+create index if not exists idx_claims_province     on public.claim_tracking (province);
+create index if not exists idx_claims_lodged_date  on public.claim_tracking (lodged_date);
 
 -- ----------------------------------------------------------------------------
 -- Row Level Security
@@ -464,7 +492,7 @@ create policy "enquiries_staff_update" on public.enquiries
 -- fields even if the API is called directly instead of through the UI.
 alter table public.profiles enable row level security;
 drop policy if exists "profiles_self_read"   on public.profiles;
-drop policy if exists "profiles_self_update"  on public.profiles;
+drop policy if exists "profiles_self_update" on public.profiles;
 drop policy if exists "profiles_admin_manage" on public.profiles;
 create policy "profiles_self_read" on public.profiles
   for select to authenticated
@@ -489,7 +517,9 @@ create policy "audit_staff_insert" on public.audit_logs
   for insert to authenticated
   with check (public.is_staff());
 
--- Claim tracking: public may lodge (insert); claims staff read/manage.
+-- Claim tracking: public may lodge (insert); operational claim roles read/manage.
+-- Management/Executive reporting is intentionally served through protected
+-- server-side reporting adapters, not direct claim table access.
 alter table public.claim_tracking enable row level security;
 drop policy if exists "claims_public_insert" on public.claim_tracking;
 drop policy if exists "claims_staff_read"     on public.claim_tracking;

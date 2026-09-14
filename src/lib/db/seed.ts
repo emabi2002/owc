@@ -181,15 +181,21 @@ export const SEED_STAFF: StaffMember[] = [
   { name: "Grace Sori", email: "g.sori@owc.gov.pg", role: "Editor", status: "Active", lastActive: "Yesterday, 17:02" },
   { name: "Francis Wartovo", email: "f.wartovo@owc.gov.pg", role: "Reviewer", status: "Active", lastActive: "Yesterday, 16:30" },
   { name: "Peter Namaliu", email: "p.namaliu@owc.gov.pg", role: "Claims Officer", status: "Active", lastActive: "2 days ago" },
+  { name: "Lucy Arore", email: "l.arore@owc.gov.pg", role: "Assessment Officer", status: "Active", lastActive: "Today, 08:54" },
+  { name: "John Kera", email: "j.kera@owc.gov.pg", role: "Finance / Payment Officer", status: "Active", lastActive: "Yesterday, 15:48" },
+  { name: "Margaret Aihi", email: "m.aihi@owc.gov.pg", role: "Management / Executive", status: "Active", lastActive: "Today, 10:05" },
   { name: "Helen Kila", email: "h.kila@owc.gov.pg", role: "Viewer", status: "Invited", lastActive: "—" },
 ];
 
 export const ROLE_PERMISSIONS: { role: Role; can: string[] }[] = [
-  { role: "Administrator", can: ["Full access", "Manage users & roles", "Publish content", "View audit logs", "System settings"] },
+  { role: "Administrator", can: ["System administration", "Manage users & roles", "Publish content", "View audit logs", "System settings"] },
   { role: "Editor", can: ["Create & edit content", "Submit for review", "Upload forms & reports"] },
   { role: "Reviewer", can: ["Review & approve content", "Return for changes", "Publish approved items"] },
   { role: "Claims Officer", can: ["View & process claims", "Update claim status", "Request documents"] },
-  { role: "Viewer", can: ["Read-only dashboard access", "View reports"] },
+  { role: "Assessment Officer", can: ["View assigned claims", "Assess claim eligibility", "Record assessment outcomes"] },
+  { role: "Finance / Payment Officer", can: ["View authorised claims", "Manage simulated payment workflow"] },
+  { role: "Management / Executive", can: ["View management reports", "Export management reports", "Use read-only AI analyst", "View authorised report source data"] },
+  { role: "Viewer", can: ["Read-only administrative dashboard access"] },
 ];
 
 /* --------------------------- Admin: audit log -------------------------- */

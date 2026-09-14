@@ -31,6 +31,7 @@ export type AppRole =
   | "claims_officer"
   | "assessment_officer"
   | "finance_officer"
+  | "management"
   | "viewer";
 
 export type AuditAction =
@@ -156,8 +157,9 @@ export type ReportRow = Timestamped & {
 
 export type EnquiryRow = Timestamped & {
   id: string;
+  reference: string | null;
   name: string;
-  email: string;
+  email: string | null;
   phone: string | null;
   category: string;
   subject: string | null;
@@ -165,6 +167,14 @@ export type EnquiryRow = Timestamped & {
   status: "new" | "in_progress" | "resolved" | "closed";
   source_ip: string | null;
   handled_by: string | null;
+  source_channel: string | null;
+  language: string | null;
+  linked_claim_reference: string | null;
+  ai_summary: string | null;
+  route_destination: string | null;
+  priority: string | null;
+  confirmed_at: string | null;
+  notification_status: string | null;
 };
 
 export type ProfileRow = Timestamped & {
@@ -195,10 +205,20 @@ export type ClaimTrackingRow = Timestamped & {
   reference: string;
   worker_name: string;
   employer_name: string | null;
+  province: string | null;
+  district: string | null;
+  industry: string | null;
+  occupation: string | null;
   injury_type: string | null;
   injury_date: string | null;
   lodged_date: string | null;
   status: string;
+  decision: string | null;
+  compensation_amount_pgk: number | null;
+  turnaround_days: number | null;
+  notification_status: string | null;
+  payment_status: string | null;
+  assigned_officer: string | null;
   steps: Json | null;
   cpps_synced_at: string | null;
 };
@@ -250,8 +270,7 @@ export type Database = {
       >;
       enquiries: BaseRow<
         EnquiryRow,
-        Partial<EnquiryRow> &
-          Pick<EnquiryRow, "name" | "email" | "category" | "message">,
+        Partial<EnquiryRow> & Pick<EnquiryRow, "name" | "category" | "message">,
         Partial<EnquiryRow>
       >;
       profiles: BaseRow<

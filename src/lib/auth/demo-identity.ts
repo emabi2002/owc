@@ -7,6 +7,7 @@ export type DemoPersonaId =
   | "assessment-officer"
   | "finance-officer"
   | "content-editor"
+  | "management-executive"
   | "employer-representative"
   | "claimant-worker";
 
@@ -100,6 +101,22 @@ const DEMO_PRINCIPALS: readonly DemoPrincipal[] = [
     active: true,
     mfaRequired: true,
     scopes: ["content:create", "content:edit", "content:submit"],
+  },
+  {
+    id: "demo-staff-management-001",
+    personaId: "management-executive",
+    email: "management.demo@owc.gov.pg",
+    fullName: "Margaret Aihi",
+    principalType: "staff",
+    role: "management",
+    active: true,
+    mfaRequired: true,
+    scopes: [
+      "reports:view",
+      "reports:export",
+      "reports:ai:query",
+      "reports:source-data:view",
+    ],
   },
   {
     id: "demo-employer-001",

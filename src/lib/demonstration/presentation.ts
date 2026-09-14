@@ -6,6 +6,7 @@ const ROUTE_BY_PERSONA: Record<DemoPersonaId, string> = {
   "assessment-officer": "/admin/demonstration/officer?persona=assessment-officer",
   "finance-officer": "/admin/demonstration/officer?persona=finance-officer",
   "content-editor": "/admin/content",
+  "management-executive": "/management/reports",
   "employer-representative": "/employer",
   "claimant-worker": "/claims",
 };

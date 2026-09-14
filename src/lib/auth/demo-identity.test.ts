@@ -16,9 +16,9 @@ const SESSION_SECRET = "task-1-test-session-secret-at-least-32-characters";
 const DEMO_SECRET = "OWC-Demo-Test-Password";
 
 describe("OWC demonstration identity provider", () => {
-  test("contains seven principals but only five staff-console identities", () => {
-    expect(listDemoPrincipals()).toHaveLength(7);
-    expect(listDemoStaffPrincipals()).toHaveLength(5);
+  test("contains eight principals but only six staff-console identities", () => {
+    expect(listDemoPrincipals()).toHaveLength(8);
+    expect(listDemoStaffPrincipals()).toHaveLength(6);
     expect(
       listDemoPrincipals().filter((principal) => principal.principalType !== "staff"),
     ).toHaveLength(2);
@@ -90,7 +90,7 @@ describe("OWC demonstration identity provider", () => {
     ).toBeNull();
   });
 
-  test("enforces separation between claims, assessment and payment duties", () => {
+  test("enforces separation between claims, assessment, payment and management duties", () => {
     expect(hasPermission("claims_officer", "claims.manage")).toBe(true);
     expect(hasPermission("claims_officer", "claims.assess")).toBe(false);
     expect(hasPermission("claims_officer", "payments.manage")).toBe(false);
@@ -104,5 +104,11 @@ describe("OWC demonstration identity provider", () => {
     expect(hasPermission("finance_officer", "payments.manage")).toBe(true);
     expect(hasPermission("finance_officer", "claims.manage")).toBe(false);
     expect(hasPermission("finance_officer", "claims.assess")).toBe(false);
+
+    expect(hasPermission("management", "reports.view")).toBe(true);
+    expect(hasPermission("management", "reports.ai.query")).toBe(true);
+    expect(hasPermission("management", "claims.manage")).toBe(false);
+    expect(hasPermission("management", "claims.assess")).toBe(false);
+    expect(hasPermission("management", "payments.manage")).toBe(false);
   });
 });
