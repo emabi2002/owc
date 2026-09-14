@@ -41,12 +41,15 @@ describe("OWC RFQ live demonstration contract", () => {
     }
   });
 
-  test("does not promise an obsolete payment reference or a real external transaction", async () => {
+  test("presents payment as a simulated transaction and receipt with no financial connection", async () => {
     const script = await read(scriptPath);
-    expect(script).toContain("TXN-2026-");
+    expect(script).toContain("SIM-PAY-YYYY-");
+    expect(script).toContain("SIM-RCPT-YYYY-");
+    expect(script).toContain("simulation: true");
+    expect(script).toContain("moneyMovement: false");
+    expect(script).toContain("no bank API");
+    expect(script).toContain("no real funds move");
     expect(script).not.toContain("TXN-DEMO-");
-    expect(script).toContain("synthetic");
-    expect(script).toContain("No production connection");
   });
 
   test("keeps the demo recovery checklist aligned with the disabled-by-default sandbox boundary", async () => {
