@@ -43,6 +43,7 @@ import { cn } from "@/lib/utils";
 
 const NAV = [
   { label: "Dashboard", href: "/admin", icon: LayoutDashboard },
+  { label: "Demonstration", href: "/admin/demonstration", icon: ShieldCheck },
   { label: "Content", href: "/admin/content", icon: FileEdit, badge: "3" },
   { label: "Approvals", href: "/admin/content#approvals", icon: ClipboardCheck },
   { label: "Claims", href: "/admin/claims", icon: FileText },

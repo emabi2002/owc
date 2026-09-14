@@ -15,6 +15,8 @@
     "uat:reference": "bun scripts/uat/run-reference-suite.ts",
     "uat:demonstration": "bun scripts/uat/run-demonstration-suite.ts",
     "demo:preflight": "bash deploy/demo-preflight.sh",
+    "demo:terminology": "bun scripts/demonstration/verify-terminology.ts",
+    "demo:release": "bun scripts/demonstration/run-release-rehearsal.ts",
     "cutover:readiness": "bun scripts/cutover/evaluate-readiness.ts"
   },
   "dependencies": {

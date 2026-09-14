@@ -59,6 +59,24 @@ jobs:
           path: artifacts/demonstration-uat-evidence.json
           if-no-files-found: error
           retention-days: 30
+      - name: Verify demonstration terminology
+        run: bun run demo:terminology
+      - name: Run OWC demonstration release rehearsal
+        run: bun run demo:release
+        env:
+          OWC_DEMONSTRATION_RELEASE_EVIDENCE_PATH: artifacts/demonstration-release.json
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+          DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
+          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+      - name: Upload OWC demonstration release evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: demonstration-release
+          path: artifacts/demonstration-release.json
+          if-no-files-found: error
+          retention-days: 30
       - name: Lint & type-check
         run: bun run lint
       - name: Build
