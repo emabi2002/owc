@@ -1,5 +1,9 @@
 import { randomBytes } from "node:crypto";
-import type { ConfirmedEnquiryInput, PersistedEnquiryRecord } from "./types";
+import type {
+  ConfirmedEnquiryInput,
+  EnquiryNotificationStatus,
+  PersistedEnquiryRecord,
+} from "./types";
 
 export type LiveEnquiryWriter = (
   record: PersistedEnquiryRecord,
@@ -25,6 +29,17 @@ export function clearReferenceEnquiries(): void {
 
 export function getReferenceEnquiry(reference: string): PersistedEnquiryRecord | null {
   return referenceRecords.get(reference) ?? null;
+}
+
+export function updateReferenceEnquiryNotificationStatus(
+  reference: string,
+  notificationStatus: EnquiryNotificationStatus,
+): PersistedEnquiryRecord | null {
+  const existing = referenceRecords.get(reference);
+  if (!existing) return null;
+  const updated = { ...existing, notificationStatus };
+  referenceRecords.set(reference, updated);
+  return updated;
 }
 
 export async function persistConfirmedEnquiry(
