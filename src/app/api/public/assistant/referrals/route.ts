@@ -99,7 +99,7 @@ export async function POST(request: NextRequest) {
   });
 
   const mode = demonstration ? "reference" : "live";
-  const writer = mode === "live" ? createLiveEnquiryWriter() : undefined;
+  const writer = mode === "live" ? createLiveEnquiryWriter() ?? undefined : undefined;
   if (mode === "live" && !writer) {
     return NextResponse.json(
       { error: "OWC enquiry persistence is currently unavailable. Nothing was sent." },
