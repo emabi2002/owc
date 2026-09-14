@@ -5,4 +5,9 @@ import { createReferenceCppsService } from "./service";
  * It is deliberately not durable storage and must never be treated as the real
  * OWC CPPS database.
  */
-export const referenceCppsService = createReferenceCppsService();
+export let referenceCppsService = createReferenceCppsService();
+
+/** Restores a new empty process-local CPPS instance for repeatable demos/UAT. */
+export function resetReferenceCppsRuntime(): void {
+  referenceCppsService = createReferenceCppsService();
+}

@@ -261,6 +261,15 @@ export function processSandboxPayment(input: SandboxPaymentInput) {
   });
 }
 
+export function listSandboxPayments(): readonly SimulatedPaymentTransaction[] {
+  return [...payments.values()].map((payment) => ({ ...payment }));
+}
+
+export function resetSandboxPayments(): void {
+  payments.clear();
+  paymentSequence = 0;
+}
+
 export function sendSandboxNotification(input: {
   channel: "email" | "sms" | "in_app";
   recipient: string;
