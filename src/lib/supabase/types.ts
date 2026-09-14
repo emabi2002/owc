@@ -31,6 +31,7 @@ export type AppRole =
   | "claims_officer"
   | "assessment_officer"
   | "finance_officer"
+  | "management"
   | "viewer";
 
 export type AuditAction =
