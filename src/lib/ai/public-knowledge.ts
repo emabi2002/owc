@@ -4,7 +4,7 @@ import type { PublicKnowledgeItem, PublicKnowledgeMatch } from "./public-assista
 
 const STOP_WORDS = new Set([
   "a", "an", "and", "are", "can", "do", "for", "how", "i", "is", "me", "my",
-  "of", "on", "or", "the", "to", "what", "when", "where", "who", "with", "you",
+  "of", "on", "or", "owc", "the", "to", "what", "when", "where", "who", "with", "you",
 ]);
 
 function words(value: string): Set<string> {
