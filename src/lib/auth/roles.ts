@@ -2,7 +2,7 @@
  * Role-Based Access Control (OWASP A01 — broken access control).
  *
  * Staff roles map to a fixed permission matrix. Server actions, route handlers
- * and admin pages gate behaviour through `hasPermission`.
+ * and protected pages gate behaviour through `hasPermission`.
  */
 import type { AppRole } from "@/lib/supabase/types";
 import type { Role } from "@/lib/data/types";
@@ -14,6 +14,7 @@ export const ALL_ROLES: AppRole[] = [
   "claims_officer",
   "assessment_officer",
   "finance_officer",
+  "management",
   "viewer",
 ];
 
@@ -25,6 +26,7 @@ export const ROLE_LABELS: Record<AppRole, Role> = {
   claims_officer: "Claims Officer",
   assessment_officer: "Assessment Officer",
   finance_officer: "Finance / Payment Officer",
+  management: "Management / Executive",
   viewer: "Viewer",
 };
 
@@ -36,6 +38,7 @@ export const ROLE_VALUES: Record<Role, AppRole> = {
   "Claims Officer": "claims_officer",
   "Assessment Officer": "assessment_officer",
   "Finance / Payment Officer": "finance_officer",
+  "Management / Executive": "management",
   Viewer: "viewer",
 };
 
@@ -66,8 +69,13 @@ export const PERMISSIONS = {
     "claims_officer",
     "assessment_officer",
     "finance_officer",
+    "management",
     "viewer",
   ],
+  "reports.view": ["management"],
+  "reports.export": ["management"],
+  "reports.ai.query": ["management"],
+  "reports.source_data.view": ["management"],
   "settings.manage": ["administrator"],
 } as const satisfies Record<string, AppRole[]>;
 
