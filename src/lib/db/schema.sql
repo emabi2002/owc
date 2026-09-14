@@ -31,7 +31,7 @@ exception when duplicate_object then null; end $$;
 do $$ begin
   create type public.app_role as enum
     ('administrator', 'editor', 'reviewer', 'claims_officer',
-     'assessment_officer', 'finance_officer', 'viewer');
+     'assessment_officer', 'finance_officer', 'management', 'viewer');
 exception when duplicate_object then null; end $$;
 
 do $$ begin
@@ -124,7 +124,7 @@ create table if not exists public.publications (
   id            uuid primary key default gen_random_uuid(),
   title         text not null,
   category      text not null,
-  description   text,
+  description  text,
   file_url      text,
   file_format   text,
   file_size     text,
@@ -141,9 +141,9 @@ create table if not exists public.legislation (
   title         text not null,
   reference     text,
   category      text not null,
-  description   text,
+  description  text,
   file_url      text,
-  enacted_year  text,
+  enacted_year text,
   status        public.content_status not null default 'draft',
   published_at  timestamptz,
   created_at    timestamptz not null default now(),
@@ -378,15 +378,15 @@ end $$;
 create index if not exists idx_news_status        on public.news (status);
 create index if not exists idx_news_published_at   on public.news (published_at desc);
 create index if not exists idx_pages_status        on public.pages (status);
-create index if not exists idx_publications_status  on public.publications (status);
-create index if not exists idx_legislation_status   on public.legislation (status);
-create index if not exists idx_tenders_cstatus      on public.tenders (content_status);
-create index if not exists idx_faqs_status          on public.faqs (status);
-create index if not exists idx_forms_status         on public.forms (status);
-create index if not exists idx_reports_status       on public.reports (status);
-create index if not exists idx_enquiries_status     on public.enquiries (status);
-create index if not exists idx_audit_created_at     on public.audit_logs (created_at desc);
-create index if not exists idx_claims_reference     on public.claim_tracking (reference);
+create index if not exists idx_publications_status on public.publications (status);
+create index if not exists idx_legislation_status  on public.legislation (status);
+create index if not exists idx_tenders_cstatus     on public.tenders (content_status);
+create index if not exists idx_faqs_status         on public.faqs (status);
+create index if not exists idx_forms_status        on public.forms (status);
+create index if not exists idx_reports_status      on public.reports (status);
+create index if not exists idx_enquiries_status    on public.enquiries (status);
+create index if not exists idx_audit_created_at    on public.audit_logs (created_at desc);
+create index if not exists idx_claims_reference    on public.claim_tracking (reference);
 
 -- ----------------------------------------------------------------------------
 -- Row Level Security
@@ -464,7 +464,7 @@ create policy "enquiries_staff_update" on public.enquiries
 -- fields even if the API is called directly instead of through the UI.
 alter table public.profiles enable row level security;
 drop policy if exists "profiles_self_read"   on public.profiles;
-drop policy if exists "profiles_self_update"  on public.profiles;
+drop policy if exists "profiles_self_update" on public.profiles;
 drop policy if exists "profiles_admin_manage" on public.profiles;
 create policy "profiles_self_read" on public.profiles
   for select to authenticated
@@ -489,7 +489,9 @@ create policy "audit_staff_insert" on public.audit_logs
   for insert to authenticated
   with check (public.is_staff());
 
--- Claim tracking: public may lodge (insert); claims staff read/manage.
+-- Claim tracking: public may lodge (insert); operational claim roles read/manage.
+-- Management/Executive reporting is intentionally served through protected
+-- server-side reporting adapters, not direct claim table access.
 alter table public.claim_tracking enable row level security;
 drop policy if exists "claims_public_insert" on public.claim_tracking;
 drop policy if exists "claims_staff_read"     on public.claim_tracking;
