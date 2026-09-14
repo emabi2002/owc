@@ -288,6 +288,9 @@ export async function getStaff(): Promise<StaffMember[]> {
     editor: "Editor",
     reviewer: "Reviewer",
     claims_officer: "Claims Officer",
+    assessment_officer: "Assessment Officer",
+    finance_officer: "Finance / Payment Officer",
+    management: "Management / Executive",
     viewer: "Viewer",
   };
   return data.map((r) => ({
