@@ -86,7 +86,10 @@ export default async function ManagementReportsPage({
             <p className="mt-2 text-sm text-muted-foreground">Report ID: {reportId} · {source.environment} · {report.recordCount} records</p>
           </div>
           <div className="flex flex-col items-end gap-3">
-            <Link href="/management" className="text-sm font-semibold text-primary hover:underline">Executive workspace</Link>
+            <div className="flex flex-wrap justify-end gap-3 text-sm font-semibold">
+              <Link href="/management" className="text-primary hover:underline">Executive workspace</Link>
+              <Link href="/management/analyst" className="text-primary hover:underline">Ask AI Analyst</Link>
+            </div>
             <ReportExportActions request={request} />
           </div>
         </div>
