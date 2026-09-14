@@ -25,7 +25,7 @@ export type DemonstrationUatResult = {
   suite: "OWC_DEMONSTRATION_END_TO_END_UAT";
   environment: "DEMONSTRATION";
   syntheticData: true;
-  demonstrationAcceptance: true;
+  demonstrationAcceptance: boolean;
   productionAcceptance: false;
   generatedAt: string;
   releaseSha: string | null;
@@ -111,7 +111,9 @@ async function runInfectedEvidence() {
   const marker = new TextEncoder().encode(
     "OWC synthetic fixture EICAR-STANDARD-ANTIVIRUS-TEST-FILE presentation marker",
   );
-  const result = await scanReferenceEvidenceBytes(marker.buffer);
+  const markerBuffer = new ArrayBuffer(marker.byteLength);
+  new Uint8Array(markerBuffer).set(marker);
+  const result = await scanReferenceEvidenceBytes(markerBuffer);
   const passed =
     result.status === "infected" &&
     result.source === "reference" &&
