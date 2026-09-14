@@ -13,6 +13,7 @@
     "db:seed": "bun scripts/setup-supabase.ts",
     "drupal:export-content": "bun scripts/export-drupal-content.ts",
     "uat:reference": "bun scripts/uat/run-reference-suite.ts",
+    "uat:demonstration": "bun scripts/uat/run-demonstration-suite.ts",
     "demo:preflight": "bash deploy/demo-preflight.sh",
     "cutover:readiness": "bun scripts/cutover/evaluate-readiness.ts"
   },
