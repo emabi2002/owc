@@ -1,3 +1,4 @@
+import { readFile } from "node:fs/promises";
 import { verifyDemonstrationTerminology } from "../../src/lib/demonstration/terminology";
 
 const FILES = [
@@ -12,12 +13,15 @@ const FILES = [
 const failures: Array<{ file: string; violations: string[] }> = [];
 
 for (const file of FILES) {
-  const source = Bun.file(file);
-  if (!(await source.exists())) {
+  let text: string;
+  try {
+    text = await readFile(file, "utf8");
+  } catch {
     failures.push({ file, violations: ["missing presentation file"] });
     continue;
   }
-  const result = verifyDemonstrationTerminology(await source.text());
+
+  const result = verifyDemonstrationTerminology(text);
   if (!result.ok) failures.push({ file, violations: result.violations });
 }
 
