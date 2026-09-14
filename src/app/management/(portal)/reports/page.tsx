@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { AlertTriangle, FileSpreadsheet, Filter } from "lucide-react";
+import { ReportExportActions } from "@/components/management/report-export-actions";
 import { isDemonstrationIdentityMode } from "@/lib/auth/identity-mode";
 import { requirePermission } from "@/lib/auth/session";
 import { buildManagementReport } from "@/lib/reporting/service";
@@ -32,7 +33,11 @@ export default async function ManagementReportsPage({
 }: {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
-  const user = await requirePermission("reports.view");
+  const user = await requirePermission("reports.view", {
+    redirectTo: "/management/reports",
+    loginPath: "/management/login",
+    deniedPath: "/management/login",
+  });
   const params = await searchParams;
   const request: ManagementReportRequest = {
     report: asReport(param(params.report)),
@@ -80,14 +85,17 @@ export default async function ManagementReportsPage({
             <h1 className="mt-1 font-serif text-3xl font-bold text-primary">{report.title}</h1>
             <p className="mt-2 text-sm text-muted-foreground">Report ID: {reportId} · {source.environment} · {report.recordCount} records</p>
           </div>
-          <Link href="/management" className="text-sm font-semibold text-primary hover:underline">Executive workspace</Link>
+          <div className="flex flex-col items-end gap-3">
+            <Link href="/management" className="text-sm font-semibold text-primary hover:underline">Executive workspace</Link>
+            <ReportExportActions request={request} />
+          </div>
         </div>
         {report.syntheticData && (
           <div className="mt-4 rounded-lg border border-gold/40 bg-gold/10 p-3 text-sm text-muted-foreground">{report.disclosure}</div>
         )}
       </section>
 
-      <form className="grid gap-3 rounded-2xl border bg-card p-5 md:grid-cols-3 lg:grid-cols-6">
+      <form className="grid gap-3 rounded-2xl border bg-card p-5 md:grid-cols-3 lg:grid-cols-6 print:hidden">
         <label className="text-xs font-semibold text-muted-foreground lg:col-span-2">
           Report
           <select name="report" defaultValue={request.report} className="mt-1 h-10 w-full rounded-md border bg-background px-3 text-sm text-foreground">
@@ -137,7 +145,7 @@ export default async function ManagementReportsPage({
         </div>
       </section>
 
-      <details className="rounded-2xl border bg-card p-5">
+      <details className="rounded-2xl border bg-card p-5 print:hidden">
         <summary className="cursor-pointer font-semibold text-primary">Show source data ({report.rows.length} rows)</summary>
         <p className="mt-2 text-xs text-muted-foreground">Source rows are shown only inside the protected management workspace. Sensitive fields not required for this report are not included.</p>
         <div className="mt-4 overflow-x-auto">
