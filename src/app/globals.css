@@ -186,3 +186,59 @@
 .animate-ticker {
   animation: ticker 32s linear infinite;
 }
+
+/* Homepage presentation responsiveness.
+ * The hero and quick actions may use more width on presentation displays while
+ * normal reading sections retain the narrower government content measure. */
+#main-content > section.bg-flag-diag > .container-gov {
+  max-width: 100rem;
+}
+
+#main-content > section.bg-flag-diag + section > .container-gov {
+  max-width: 100rem;
+}
+
+/* Phones: keep the primary image useful without pushing services below the fold. */
+@media (max-width: 639px) {
+  #main-content > section.bg-flag-diag > .container-gov img {
+    height: 260px;
+  }
+}
+
+/* Small tablets / large phones. */
+@media (min-width: 640px) and (max-width: 767px) {
+  #main-content > section.bg-flag-diag > .container-gov img {
+    height: 320px;
+  }
+}
+
+/* Tablets use the compact search action rather than showing two search controls. */
+@media (min-width: 768px) and (max-width: 1023px) {
+  #main-content > section.bg-flag-diag > .container-gov img {
+    height: 360px;
+  }
+
+  header a[aria-label="Search the OWC website"] {
+    display: none;
+  }
+}
+
+/* 1024–1279px remains a presentation-tablet layout. Tailwind's lg desktop grid
+ * is deliberately overridden here; the two-column hero begins at 1280px. */
+@media (min-width: 1024px) and (max-width: 1279px) {
+  #main-content > section.bg-flag-diag > .container-gov {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 2rem;
+    padding-top: 4rem;
+    padding-bottom: 4rem;
+  }
+
+  #main-content > section.bg-flag-diag > .container-gov > .lg\:col-span-7,
+  #main-content > section.bg-flag-diag > .container-gov > .lg\:col-span-5 {
+    grid-column: auto;
+  }
+
+  #main-content > section.bg-flag-diag > .container-gov img {
+    height: 360px;
+  }
+}
