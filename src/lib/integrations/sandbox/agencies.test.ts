@@ -38,7 +38,7 @@ describe("OWC synthetic agency sandbox", () => {
     expect(result.source).toBe("sandbox");
   });
 
-  test("makes payment processing idempotent for the same request key", () => {
+  test("makes simulated payment processing idempotent for the same request key", () => {
     const input = {
       idempotencyKey: "PAY-OWC-2026-005112",
       claimReference: "OWC-2026-005112",
@@ -49,8 +49,15 @@ describe("OWC synthetic agency sandbox", () => {
     const first = processSandboxPayment(input);
     const second = processSandboxPayment(input);
 
-    expect(first.data.status).toBe("PROCESSED");
+    expect(first.data.status).toBe("SIMULATED");
+    expect(first.data.simulation).toBe(true);
+    expect(first.data.moneyMovement).toBe(false);
+    expect(first.data.transactionReference).toMatch(/^SIM-PAY-\d{4}-\d{8}$/);
+    expect(first.data.receiptReference).toMatch(/^SIM-RCPT-\d{4}-\d{8}$/);
     expect(second.data.transactionReference).toBe(first.data.transactionReference);
+    expect(second.data.receiptReference).toBe(first.data.receiptReference);
+    expect(second.data.duplicateRequest).toBe(true);
+    expect(second.data.moneyMovement).toBe(false);
   });
 
   test("records safe integration telemetry for agency calls", () => {
