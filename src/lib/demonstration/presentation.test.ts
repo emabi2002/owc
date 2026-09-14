@@ -13,6 +13,7 @@ describe("OWC demonstration presentation guide", () => {
       "assessment-officer",
       "finance-officer",
       "content-editor",
+      "management-executive",
       "employer-representative",
       "claimant-worker",
     ]);
