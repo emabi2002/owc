@@ -1,13 +1,14 @@
 import Link from "next/link";
 import { AlertTriangle, ArrowRight, BarChart3, BriefcaseBusiness, WalletCards } from "lucide-react";
 import { AdminPageHeader } from "@/components/admin/admin-shell";
+import { DemonstrationServiceControls } from "@/components/admin/demonstration-service-controls";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { requirePermission } from "@/lib/auth/session";
 import { buildDemonstrationReport } from "@/lib/demonstration/reporting";
 
 export default async function DemonstrationDashboardPage() {
-  await requirePermission("claims.view");
+  const user = await requirePermission("claims.view");
   const report = buildDemonstrationReport();
 
   return (
@@ -79,6 +80,18 @@ export default async function DemonstrationDashboardPage() {
           </dl>
         </section>
       </div>
+
+      {user.role === "administrator" && user.demo && (
+        <section className="mt-6 rounded-xl border border-border bg-card p-6 shadow-sm">
+          <div className="mb-4">
+            <h2 className="font-serif text-lg font-bold text-primary">Failure and recovery rehearsal</h2>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Administrator-only controls change process-local sandbox state for presentation purposes. They cannot contact production services.
+            </p>
+          </div>
+          <DemonstrationServiceControls />
+        </section>
+      )}
     </>
   );
 }
