@@ -41,6 +41,7 @@ export function buildPresentationGuide() {
       "productionAcceptance=false",
       "Simulated payments require simulation=true and moneyMovement=false.",
       "External agency responses are reference/sandbox responses, not live agency confirmations.",
+      "DEMO_HOST_EXTERNAL",
       "The repository release remains DEMO_HOST_EXTERNAL until an actual presentation host is configured and independently verified.",
     ],
     recovery: {
