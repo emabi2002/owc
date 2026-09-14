@@ -19,6 +19,7 @@ import {
   DEMO_SESSION_COOKIE,
   recordDemoIdentityEvent,
   verifyDemoSessionToken,
+  type DemoPersonaId,
 } from "@/lib/auth/demo-identity";
 
 /** Emails that should always be treated as Administrator (bootstrap). */
@@ -103,6 +104,23 @@ export async function requireUser(redirectTo = "/admin"): Promise<SessionUser> {
   return user;
 }
 
+function demoPersonaForRole(role: AppRole): DemoPersonaId {
+  switch (role) {
+    case "administrator":
+      return "administrator";
+    case "claims_officer":
+      return "claims-officer";
+    case "assessment_officer":
+      return "assessment-officer";
+    case "finance_officer":
+      return "finance-officer";
+    case "management":
+      return "management-executive";
+    default:
+      return "content-editor";
+  }
+}
+
 /** Ensures the current user holds a permission; redirects to /admin if not. */
 export async function requirePermission(
   permission: Permission,
@@ -111,16 +129,7 @@ export async function requirePermission(
   if (!hasPermission(user.role, permission)) {
     if (user.demo) {
       recordDemoIdentityEvent("authorization_denied", {
-        personaId:
-          user.role === "administrator"
-            ? "administrator"
-            : user.role === "claims_officer"
-              ? "claims-officer"
-              : user.role === "assessment_officer"
-                ? "assessment-officer"
-                : user.role === "finance_officer"
-                  ? "finance-officer"
-                  : "content-editor",
+        personaId: demoPersonaForRole(user.role),
         email: user.email,
       });
     }
