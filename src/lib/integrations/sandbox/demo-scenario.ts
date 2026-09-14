@@ -250,25 +250,25 @@ export function runWorkerClaimDemo(
   });
   steps.push({
     key: "payment",
-    label: "Compensation payment",
+    label: "Simulated compensation payment",
     status: "passed",
-    summary: `K18,450.00 payment processed as ${payment.data.transactionReference}`,
+    summary: `K18,450.00 simulated payment transaction generated as ${payment.data.transactionReference}; no real funds moved`,
     correlationId: payment.correlationId,
   });
 
   const notification = sendSandboxNotification({
     channel: "sms",
     recipient: "+67570000001",
-    event: "PAYMENT_PROCESSED",
-    message: `Payment for ${claimReference} has been processed.`,
+    event: "PAYMENT_SIMULATED",
+    message: `Demonstration payment transaction for ${claimReference} has been generated. No real funds moved.`,
   });
   steps.push({
     key: "notification",
     label: "Claimant notification",
     status: notification.data.accepted ? "passed" : "failed",
     summary: notification.data.accepted
-      ? "SMS notification accepted for delivery"
-      : "Notification could not be sent",
+      ? "Synthetic SMS notification accepted for the demonstration outbox"
+      : "Notification could not be recorded",
     correlationId: notification.correlationId,
   });
 
