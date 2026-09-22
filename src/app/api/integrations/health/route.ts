@@ -1,15 +1,23 @@
 import { NextResponse } from "next/server";
+import { listIntegrationServiceStateGateway } from "@/lib/integrations/persistent/gateway";
+import { PersistentIntegrationError } from "@/lib/integrations/persistent/repository";
 import {
   isSandboxEnabled,
   sandboxUnavailableResponse,
 } from "@/lib/integrations/sandbox/http";
-import { listSandboxServiceStatuses } from "@/lib/integrations/sandbox/state";
 
 export async function GET() {
   if (!isSandboxEnabled()) return sandboxUnavailableResponse();
 
-  return NextResponse.json({
-    services: listSandboxServiceStatuses(),
-    timestamp: new Date().toISOString(),
-  });
+  try {
+    return NextResponse.json({
+      services: await listIntegrationServiceStateGateway(),
+      timestamp: new Date().toISOString(),
+    });
+  } catch (error) {
+    if (error instanceof PersistentIntegrationError) {
+      return NextResponse.json({ error: error.message }, { status: error.status });
+    }
+    throw error;
+  }
 }

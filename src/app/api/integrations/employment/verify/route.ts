@@ -1,4 +1,4 @@
-import { verifyEmployment } from "@/lib/integrations/sandbox/agencies";
+import { verifyEmploymentIntegration } from "@/lib/integrations/persistent/gateway";
 import { handleSandboxPost } from "@/lib/integrations/sandbox/http";
 import { employmentSchema } from "@/lib/integrations/sandbox/validation";
 
@@ -7,6 +7,6 @@ export async function POST(request: Request) {
     service: "employer",
     rateLimitKey: "integrations:employment:verify",
     schema: employmentSchema,
-    execute: ({ employeeNo }) => verifyEmployment(employeeNo),
+    execute: ({ employeeNo }) => verifyEmploymentIntegration(employeeNo),
   });
 }

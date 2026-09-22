@@ -16,7 +16,7 @@ export async function createServerSupabaseClient() {
 
   return createServerClient<Database>(
     publicEnv.supabaseUrl,
-    publicEnv.supabaseAnonKey,
+    publicEnv.supabasePublishableKey,
     {
       cookies: {
         getAll() {

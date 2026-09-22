@@ -1,4 +1,4 @@
-import { verifyMedicalCertificate } from "@/lib/integrations/sandbox/agencies";
+import { verifyMedicalCertificateIntegration } from "@/lib/integrations/persistent/gateway";
 import { handleSandboxPost } from "@/lib/integrations/sandbox/http";
 import { medicalSchema } from "@/lib/integrations/sandbox/validation";
 
@@ -7,6 +7,6 @@ export async function POST(request: Request) {
     service: "medical",
     rateLimitKey: "integrations:medical:verify",
     schema: medicalSchema,
-    execute: ({ certificateNo }) => verifyMedicalCertificate(certificateNo),
+    execute: ({ certificateNo }) => verifyMedicalCertificateIntegration(certificateNo),
   });
 }
