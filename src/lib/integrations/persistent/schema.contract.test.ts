@@ -39,6 +39,17 @@ describe("persistent multi-agency database contract", () => {
     expect(sql).not.toContain("delete from");
   });
 
+  test("covers institutional foreign keys with indexes", async () => {
+    const sql = (await Bun.file(
+      "supabase/migrations/20260922164000_add_demonstration_foreign_key_indexes.sql",
+    ).text()).toLowerCase();
+    expect((sql.match(/create index if not exists/g) ?? [])).toHaveLength(12);
+    for (const schema of [
+      "banking_registry", "employment_registry", "health_registry",
+      "insurance_registry", "owc_core",
+    ]) expect(sql).toContain(`on ${schema}.`);
+  });
+
   test("enforces synthetic records and impossible real-money movement", async () => {
     const sql = (await Bun.file(migration).text()).toLowerCase();
     expect(sql).toContain("money_movement boolean not null default false check (money_movement = false)");
