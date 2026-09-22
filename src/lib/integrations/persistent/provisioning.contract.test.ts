@@ -9,7 +9,8 @@ describe("persistent demonstration provisioning contract", () => {
     const source = await Bun.file("scripts/supabase/verify-persistent-demonstration.ts").text();
     expect(source).toContain("createPersistentIntegrationRepository");
     expect(source).toContain("listBuckets");
-    expect(source).toContain("NID-00010005");
+    expect(source).toContain("owc_demo_verification_summary");
+    expect(source).toContain("OWC-S05");
     expect(source).not.toContain("SUPABASE_SECRET_KEY=");
     expect(source).not.toContain("console.log(process.env");
     expect(source).not.toContain("processPayment");

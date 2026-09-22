@@ -23,6 +23,22 @@ describe("persistent multi-agency database contract", () => {
     expect(sql).toContain("to service_role");
   });
 
+  test("adds a read-only deployment verification boundary", async () => {
+    const sql = (await Bun.file(
+      "supabase/migrations/20260922163000_add_demonstration_verification_summary.sql",
+    ).text()).toLowerCase();
+    expect(sql).toContain("function public.owc_demo_verification_summary");
+    expect(sql).toContain("language sql");
+    expect(sql).toContain("stable");
+    expect(sql).toContain("security invoker");
+    expect(sql).toContain("paymentSafetyConstraints".toLowerCase());
+    expect(sql).toContain("grant execute");
+    expect(sql).toContain("to service_role");
+    expect(sql).not.toContain("insert into");
+    expect(sql).not.toContain("update ");
+    expect(sql).not.toContain("delete from");
+  });
+
   test("enforces synthetic records and impossible real-money movement", async () => {
     const sql = (await Bun.file(migration).text()).toLowerCase();
     expect(sql).toContain("money_movement boolean not null default false check (money_movement = false)");

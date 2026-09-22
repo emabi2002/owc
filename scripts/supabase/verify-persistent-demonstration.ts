@@ -3,12 +3,12 @@ import { createAdminSupabaseClient } from "@/lib/supabase/admin";
 import { createPersistentIntegrationRepository } from "@/lib/integrations/persistent/repository";
 import type { PersistentRpcClient } from "@/lib/integrations/persistent/types";
 
-const scenarioNids = [
-  { nid: "NID-00010001", matched: true },
-  { nid: "NID-00010002", matched: true },
-  { nid: "NID-00010003", matched: false },
-  { nid: "NID-00010004", matched: true },
-  { nid: "NID-00010005", matched: true },
+const scenarioIds = [
+  "OWC-S01",
+  "OWC-S02",
+  "OWC-S03",
+  "OWC-S04",
+  "OWC-S05",
 ] as const;
 
 const expectedBuckets = [
@@ -31,12 +31,20 @@ async function main() {
     admin as unknown as PersistentRpcClient,
   );
 
-  let verifiedScenarios = 0;
-  for (const scenario of scenarioNids) {
-    const response = await repository.lookup("nid", scenario.nid);
-    if (response.data.matched === scenario.matched) verifiedScenarios += 1;
-  }
-  requireCondition(verifiedScenarios === scenarioNids.length, "five scenario identities");
+  const { data: summary, error: summaryError } = await admin.rpc(
+    "owc_demo_verification_summary" as never,
+  );
+  requireCondition(!summaryError && summary && typeof summary === "object", "verification summary");
+  const verification = summary as Record<string, unknown>;
+  requireCondition(
+    JSON.stringify(verification.scenarioIds) === JSON.stringify(scenarioIds),
+    "five deterministic scenarios",
+  );
+  for (const count of [
+    "claimCount", "identityCount", "companyCount", "taxpayerCount",
+    "medicalCertificateCount", "policyCount", "employeeCount", "bankAccountCount",
+  ]) requireCondition(Number(verification[count]) >= 5, count);
+  requireCondition(verification.paymentSafetyConstraints === true, "simulated-payment constraints");
 
   const services = await repository.listServiceState();
   requireCondition(services.length >= 8, "multi-agency service state");
@@ -52,7 +60,7 @@ async function main() {
     requireCondition(bucketIds.has(bucket), `private bucket ${bucket}`);
   }
 
-  console.log(`Verified ${verifiedScenarios} deterministic demonstration scenarios.`);
+  console.log(`Verified ${scenarioIds.length} deterministic demonstration scenarios.`);
   console.log(`Verified ${services.length} connected service-state records.`);
   console.log(`Verified ${expectedBuckets.length} private document buckets.`);
   console.log("Read-only verification passed; no transaction or real-money action was performed.");
