@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import type { z } from "zod";
+import { serverEnv } from "@/lib/env";
+import { PersistentIntegrationError } from "@/lib/integrations/persistent/repository";
 import {
   getClientIp,
   rateLimit,
@@ -44,14 +46,14 @@ export async function handleSandboxPost<T>(
     service?: SandboxServiceName;
     rateLimitKey: string;
     schema: z.ZodType<T>;
-    execute: (input: T) => unknown;
+    execute: (input: T) => unknown | Promise<unknown>;
     limit?: number;
   },
 ) {
   if (!isSandboxEnabled()) return sandboxUnavailableResponse();
 
   const service = options.service ?? inferService(options.rateLimitKey);
-  if (getSandboxServiceStatus(service) !== "online") {
+  if (!serverEnv.persistentDemonstration && getSandboxServiceStatus(service) !== "online") {
     return sandboxServiceUnavailableResponse(service);
   }
 
@@ -82,5 +84,22 @@ export async function handleSandboxPost<T>(
     );
   }
 
-  return NextResponse.json(options.execute(parsed.data));
+  try {
+    return NextResponse.json(await options.execute(parsed.data));
+  } catch (error) {
+    if (error instanceof PersistentIntegrationError) {
+      return NextResponse.json(
+        {
+          source: "persistent_demo",
+          service,
+          status: "unavailable",
+          correlationId: makeCorrelationId(),
+          timestamp: new Date().toISOString(),
+          error: error.message,
+        },
+        { status: error.status },
+      );
+    }
+    throw error;
+  }
 }

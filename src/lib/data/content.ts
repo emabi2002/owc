@@ -49,7 +49,7 @@ function publicClient(): SupabaseClient<Database> | null {
   if (!cached) {
     cached = createClient<Database>(
       publicEnv.supabaseUrl,
-      publicEnv.supabaseAnonKey,
+      publicEnv.supabasePublishableKey,
       { auth: { persistSession: false } },
     );
   }

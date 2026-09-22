@@ -1,5 +1,6 @@
 # Netlify deployment for the dynamic Next.js app.
-# Set NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY
+# Set NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
+# SUPABASE_SECRET_KEY and OWC_PERSISTENT_DEMONSTRATION in Netlify environment
 # and any CPPS_* / CAPTCHA_* variables in Site settings → Environment variables.
 [build]
   command = "bun run build"
@@ -14,6 +15,7 @@
 # administrator explicitly configures the equivalent production endpoints.
 [context.deploy-preview.environment]
   OWC_ENABLE_SANDBOX = "true"
+  OWC_PERSISTENT_DEMONSTRATION = "false"
 
 [[plugins]]
   package = "@netlify/plugin-nextjs"

@@ -163,8 +163,8 @@ export function getProductionPreflight(): ProductionPreflightCheck[] {
   return buildProductionPreflight({
     siteUrl: publicEnv.siteUrl,
     supabaseUrl: publicEnv.supabaseUrl,
-    supabaseAnonKey: publicEnv.supabaseAnonKey,
-    supabaseServiceRoleKey: serverEnv.supabaseServiceRoleKey,
+    supabaseAnonKey: publicEnv.supabasePublishableKey,
+    supabaseServiceRoleKey: serverEnv.supabaseSecretKey,
     contentSource: serverEnv.contentSource,
     drupalBaseUrl: serverEnv.drupalBaseUrl,
     evidenceUploadSigningSecret: serverEnv.evidenceUploadSigningSecret,

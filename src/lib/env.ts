@@ -27,7 +27,10 @@ export type AiProviderSetting = "disabled" | "reference" | "openai_compatible";
 /** Browser-safe configuration (inlined at build time). */
 export const publicEnv = {
   supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL ?? "",
-  supabaseAnonKey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "",
+  supabasePublishableKey:
+    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ??
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ??
+    "",
   siteUrl: process.env.NEXT_PUBLIC_SITE_URL ?? "https://owc.gov.pg",
   captchaProvider: (process.env.NEXT_PUBLIC_CAPTCHA_PROVIDER ??
     "fallback") as CaptchaProvider,
@@ -36,7 +39,12 @@ export const publicEnv = {
 
 /** Server-only configuration. */
 export const serverEnv = {
-  supabaseServiceRoleKey: process.env.SUPABASE_SERVICE_ROLE_KEY ?? "",
+  supabaseSecretKey:
+    process.env.SUPABASE_SECRET_KEY ??
+    process.env.SUPABASE_SERVICE_ROLE_KEY ??
+    "",
+  persistentDemonstration:
+    process.env.OWC_PERSISTENT_DEMONSTRATION === "true",
   identityMode: process.env.OWC_IDENTITY_MODE ?? "live",
   demoSessionSecret: process.env.OWC_DEMO_SESSION_SECRET ?? "",
   demoPassword: process.env.OWC_DEMO_PASSWORD ?? "",
@@ -74,12 +82,17 @@ export const serverEnv = {
 
 /** True when Supabase (Auth + Postgres) credentials are present. */
 export const isSupabaseConfigured = Boolean(
-  publicEnv.supabaseUrl && publicEnv.supabaseAnonKey,
+  publicEnv.supabaseUrl && publicEnv.supabasePublishableKey,
 );
 
 /** True when the service-role key is available (server-side privileged ops). */
 export const isSupabaseAdminConfigured = Boolean(
-  isSupabaseConfigured && serverEnv.supabaseServiceRoleKey,
+  isSupabaseConfigured && serverEnv.supabaseSecretKey,
+);
+
+/** True only when durable demonstration storage and server credentials exist. */
+export const isPersistentDemonstrationConfigured = Boolean(
+  serverEnv.persistentDemonstration && isSupabaseAdminConfigured,
 );
 
 /** True when the CPPS claims back-end is reachable. */

@@ -1,4 +1,4 @@
-import { verifyBankAccount } from "@/lib/integrations/sandbox/agencies";
+import { verifyBankAccountIntegration } from "@/lib/integrations/persistent/gateway";
 import { handleSandboxPost } from "@/lib/integrations/sandbox/http";
 import { bankAccountSchema } from "@/lib/integrations/sandbox/validation";
 
@@ -7,6 +7,6 @@ export async function POST(request: Request) {
     service: "bank",
     rateLimitKey: "integrations:bank:accounts:verify",
     schema: bankAccountSchema,
-    execute: ({ accountReference }) => verifyBankAccount(accountReference),
+    execute: ({ accountReference }) => verifyBankAccountIntegration(accountReference),
   });
 }

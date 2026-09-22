@@ -1,4 +1,4 @@
-import { processSandboxPayment } from "@/lib/integrations/sandbox/agencies";
+import { processSandboxPaymentIntegration } from "@/lib/integrations/persistent/gateway";
 import { handleSandboxPost } from "@/lib/integrations/sandbox/http";
 import { bankPaymentSchema } from "@/lib/integrations/sandbox/validation";
 
@@ -7,6 +7,6 @@ export async function POST(request: Request) {
     service: "bank",
     rateLimitKey: "integrations:bank:payments:process",
     schema: bankPaymentSchema,
-    execute: (input) => processSandboxPayment(input),
+    execute: (input) => processSandboxPaymentIntegration(input),
   });
 }

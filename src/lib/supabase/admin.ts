@@ -15,7 +15,7 @@ export function createAdminSupabaseClient() {
 
   return createClient<Database>(
     publicEnv.supabaseUrl,
-    serverEnv.supabaseServiceRoleKey,
+    serverEnv.supabaseSecretKey,
     {
       auth: {
         autoRefreshToken: false,

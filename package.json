@@ -17,6 +17,7 @@
     "demo:preflight": "bash deploy/demo-preflight.sh",
     "demo:terminology": "bun scripts/demonstration/verify-terminology.ts",
     "demo:release": "bun scripts/demonstration/run-release-rehearsal.ts",
+    "db:verify-demonstration": "bun scripts/supabase/verify-persistent-demonstration.ts",
     "cutover:readiness": "bun scripts/cutover/evaluate-readiness.ts"
   },
   "dependencies": {
